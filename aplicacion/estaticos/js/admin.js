@@ -446,6 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="admin-badge admin-badge--${p.activo ? 'activo' : 'inactivo'}">${p.activo ? '● Activo' : '● Inactivo'}</span>
             <span style="font-size:0.8rem;color:#6a8fa5">Stock: ${p.stock}</span>
           </div>
+          <div class="admin-meta-text">${p.ficha_url ? '<a href="' + p.ficha_url + '" target="_blank" rel="noopener">Ver ficha técnica (PDF)</a>' : 'Sin ficha técnica'}</div>
           <div class="admin-product-price">${fmtCop(p.precio)}</div>
         </div>
         <div class="admin-product-actions">

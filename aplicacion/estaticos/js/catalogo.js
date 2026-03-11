@@ -58,7 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="catalog-card__tax">IVA incluido</div>
                     <div class="catalog-card__footer">
                         <button class="catalog-card__cart-btn catalog-card__cart-btn--${lineClass}" data-product-id="${product.id}"><i class="fas fa-cart-plus"></i> Comprar</button>
-                        <button class="catalog-card__quote-btn" title="Cotizar"><i class="fas fa-file-alt"></i></button>
+                        ${product.ficha_url
+                            ? `<a class="catalog-card__quote-btn" title="Ficha técnica" href="${product.ficha_url}" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i></a>`
+                            : `<button class="catalog-card__quote-btn" title="Cotizar"><i class="fas fa-file-alt"></i></button>`
+                        }
                     </div>
                     ${isAdmin ? `<div class="catalog-card__admin"><a class="catalog-card__admin-link" href="/admin/?tab=productos&producto=${product.id}"><i class="fas fa-pen"></i> Editar</a></div>` : ''}
                 </div>

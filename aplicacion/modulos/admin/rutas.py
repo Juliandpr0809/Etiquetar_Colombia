@@ -4,11 +4,13 @@ import re
 from functools import lru_cache
 from datetime import datetime, timedelta
 from decimal import Decimal
+from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen
 
-from flask import Blueprint, flash, g, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, g, jsonify, redirect, render_template, request, url_for
 from sqlalchemy import func
+from werkzeug.utils import secure_filename
 
 from aplicacion.extensiones import db
 from aplicacion.modelos import (
@@ -168,6 +170,28 @@ def _imagen_valida(archivo) -> bool:
     return mimetype in {"image/jpeg", "image/jpg", "image/png", "image/webp"}
 
 
+def _ficha_pdf_valida(archivo) -> bool:
+    if not archivo or not getattr(archivo, "filename", ""):
+        return False
+    nombre = (getattr(archivo, "filename", "") or "").lower()
+    mimetype = (getattr(archivo, "mimetype", "") or "").lower()
+    return nombre.endswith(".pdf") or mimetype == "application/pdf"
+
+
+def _guardar_ficha_local(archivo, slug: str) -> str:
+    carpeta = Path(current_app.static_folder) / "manuales"
+    carpeta.mkdir(parents=True, exist_ok=True)
+
+    nombre_seguro = secure_filename(getattr(archivo, "filename", "") or "ficha.pdf")
+    base = Path(nombre_seguro).stem or "ficha"
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    nombre_archivo = f"{slug}-{base}-{timestamp}.pdf"
+
+    destino = carpeta / nombre_archivo
+    archivo.save(destino)
+    return f"/estaticos/manuales/{nombre_archivo}"
+
+
 @admin_bp.get("/")
 def panel():
     admin = _admin_requerido(api=False)
@@ -257,6 +281,7 @@ def crear_producto_api():
     stock = int(request.form.get("stock") or 0)
     imagen_url = (request.form.get("imagen_url") or "").strip() or None
     imagen = request.files.get("imagen")
+    ficha_pdf = request.files.get("ficha_pdf")
 
     if not nombre or not slug:
         return jsonify({"ok": False, "message": "Nombre y slug son obligatorios."}), 400
@@ -264,6 +289,8 @@ def crear_producto_api():
         return jsonify({"ok": False, "message": "El slug ya existe."}), 409
     if imagen and not _imagen_valida(imagen):
         return jsonify({"ok": False, "message": "La foto debe ser JPG, PNG o WEBP."}), 400
+    if ficha_pdf and getattr(ficha_pdf, "filename", "") and not _ficha_pdf_valida(ficha_pdf):
+        return jsonify({"ok": False, "message": "La ficha tecnica debe ser un PDF valido."}), 400
     if imagen and not cloudinary_habilitado():
         return jsonify({"ok": False, "message": "Cloudinary no esta configurado en el servidor."}), 500
 
@@ -276,6 +303,13 @@ def crear_producto_api():
         except Exception:
             return jsonify({"ok": False, "message": "No se pudo subir la foto del producto."}), 502
 
+    ficha_url = None
+    if ficha_pdf and getattr(ficha_pdf, "filename", ""):
+        try:
+            ficha_url = _guardar_ficha_local(ficha_pdf, slug=slug)
+        except Exception:
+            return jsonify({"ok": False, "message": "No se pudo guardar la ficha tecnica en el servidor."}), 500
+
     producto = Producto(
         nombre=nombre,
         slug=slug,
@@ -286,6 +320,7 @@ def crear_producto_api():
         activo=True,
         imagen_url=imagen_url,
         imagen_public_id=imagen_public_id,
+        ficha_url=ficha_url,
     )
     db.session.add(producto)
     db.session.commit()
@@ -313,6 +348,7 @@ def listar_productos_api():
                     "precio": float(p.precio),
                     "stock": p.stock,
                     "imagen_url": p.imagen_url,
+                    "ficha_url": p.ficha_url,
                     "activo": p.activo,
                 }
                 for p in productos
@@ -335,6 +371,8 @@ def editar_producto_api(producto_id):
     precio = _decimal(request.form.get("precio", producto.precio), str(producto.precio))
     stock = int(request.form.get("stock", producto.stock) or producto.stock)
     imagen = request.files.get("imagen")
+    ficha_pdf = request.files.get("ficha_pdf")
+    eliminar_ficha = (request.form.get("eliminar_ficha") or "").strip().lower() in {"1", "true", "on", "si"}
 
     existe = Producto.query.filter(Producto.slug == slug, Producto.id != producto.id).first()
     if existe:
@@ -342,6 +380,8 @@ def editar_producto_api(producto_id):
 
     if imagen and not _imagen_valida(imagen):
         return jsonify({"ok": False, "message": "La foto debe ser JPG, PNG o WEBP."}), 400
+    if ficha_pdf and getattr(ficha_pdf, "filename", "") and not _ficha_pdf_valida(ficha_pdf):
+        return jsonify({"ok": False, "message": "La ficha tecnica debe ser un PDF valido."}), 400
 
     if imagen:
         try:
@@ -350,6 +390,15 @@ def editar_producto_api(producto_id):
             producto.imagen_public_id = upload.get("public_id") or producto.imagen_public_id
         except Exception:
             return jsonify({"ok": False, "message": "No se pudo actualizar la foto."}), 502
+
+    if eliminar_ficha:
+        producto.ficha_url = None
+
+    if ficha_pdf and getattr(ficha_pdf, "filename", ""):
+        try:
+            producto.ficha_url = _guardar_ficha_local(ficha_pdf, slug=slug)
+        except Exception:
+            return jsonify({"ok": False, "message": "No se pudo guardar la ficha tecnica."}), 500
 
     producto.nombre = nombre
     producto.slug = slug
