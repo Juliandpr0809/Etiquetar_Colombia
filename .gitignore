@@ -1,0 +1,35 @@
+# Variables de entorno y credenciales — NUNCA subir
+.env
+.env.*
+!.env.example
+
+# Entorno virtual de Python
+.venv/
+venv/
+env/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Migraciones compiladas (solo versiones, no caché)
+migrations/__pycache__/
+migrations/versions/__pycache__/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# IDEs
+.vscode/
+.idea/
+
+# Archivos subidos localmente (PDFs de manuales)
+aplicacion/estaticos/manuales/*.pdf

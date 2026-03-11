@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin | Etiquetar Colombia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../estaticos/css/home.css">
+    <link rel="stylesheet" href="../../estaticos/css/admin.css">
+</head>
+
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="navbar__logo">
+                <img src="../../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:42px; width:auto;">
+            </a>
+            <div class="navbar__actions">
+                <a href="{{ url_for('autenticacion.perfil') }}" class="navbar__action-btn" aria-label="Perfil"><i class="fas fa-user"></i></a>
+                <form method="post" action="{{ url_for('autenticacion.logout_post') }}">
+                    <button type="submit" class="admin-logout"><i class="fas fa-right-from-bracket"></i> Salir</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <main class="admin-page">
+        <div class="admin-shell">
+            <header class="admin-header">
+                <div>
+                    <p class="admin-eyebrow">Administración</p>
+                    <h1>Panel del negocio</h1>
+                </div>
+                <div class="admin-actions-inline">
+                    <button class="admin-tab-btn active" data-tab="dashboard">Inicio</button>
+                    <button class="admin-tab-btn" data-tab="productos">Productos</button>
+                    <button class="admin-tab-btn" data-tab="cotizaciones">Consultas</button>
+                    <button class="admin-tab-btn" data-tab="promociones">Ofertas</button>
+                    <button class="admin-tab-btn" data-tab="banners">Anuncios</button>
+                    <button class="admin-tab-btn" data-tab="pedidos">Ventas</button>
+                    <button class="admin-tab-btn" data-tab="clientes">Personas</button>
+                    <button class="admin-tab-btn" data-tab="envios">Envios</button>
+                    <button class="admin-tab-btn" data-tab="notificaciones">Mensajes</button>
+                </div>
+            </header>
+
+            <div class="admin-message admin-message--success" id="adminSuccess"></div>
+            <div class="admin-message admin-message--error" id="adminError"></div>
+
+            <section class="admin-tab active" id="tab-dashboard">
+                <div class="admin-kpis" id="kpiGrid"></div>
+                <div class="admin-grid-2">
+                    <article class="admin-card">
+                        <h3>Paginas mas visitadas</h3>
+                        <div id="accesosList" class="admin-list"></div>
+                    </article>
+                    <article class="admin-card">
+                        <h3>Dinero vendido (ultimos 6 meses)</h3>
+                        <canvas id="ventasChart" height="200"></canvas>
+                    </article>
+                </div>
+                <div class="admin-grid-2" style="margin-top:12px;">
+                    <article class="admin-card">
+                        <h3>Desde donde entran</h3>
+                        <div id="origenesList" class="admin-list"></div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="admin-tab" id="tab-productos">
+                <article class="admin-card">
+                    <h3>Crear producto nuevo</h3>
+                    <form id="formProducto" class="admin-form-grid" enctype="multipart/form-data">
+                        <input name="nombre" placeholder="Nombre" required>
+                        <input name="slug" placeholder="slug-producto" required>
+                        <select name="linea">
+                            <option value="piscina">Piscina</option>
+                            <option value="agua">Agua</option>
+                        </select>
+                        <input type="number" step="0.01" min="0" name="precio" placeholder="Precio" required>
+                        <input type="number" min="0" name="stock" placeholder="Stock" required>
+                        <input type="file" name="imagen" accept="image/png,image/jpeg,image/webp">
+                        <textarea name="descripcion" placeholder="Descripcion"></textarea>
+                        <small>La foto se sube a Cloudinary. Los PDFs se seguiran cargando directo en la pagina para cuidar el plan free.</small>
+                        <button type="submit" class="admin-btn">Guardar producto</button>
+                    </form>
+                </article>
+                <article class="admin-card" style="margin-top:12px;">
+                    <h3>Productos guardados</h3>
+                    <div id="productosList" class="admin-list"></div>
+                </article>
+            </section>
+
+            <section class="admin-tab" id="tab-cotizaciones">
+                <article class="admin-card">
+                    <h3>Responder cotizaciones</h3>
+                    <div id="cotizacionesList" class="admin-list"></div>
+                </article>
+            </section>
+
+            <section class="admin-tab" id="tab-promociones">
+                <article class="admin-card">
+                    <h3>Programar promocion automatica</h3>
+                    <form id="formPromocion" class="admin-form-grid">
+                        <input type="number" name="producto_id" min="1" placeholder="ID producto" required>
+                        <input type="number" name="porcentaje_descuento" min="1" max="90" placeholder="% descuento" required>
+                        <input type="datetime-local" name="fecha_inicio" required>
+                        <input type="datetime-local" name="fecha_fin" required>
+                        <button class="admin-btn" type="submit">Programar</button>
+                    </form>
+                    <div id="promocionesList" class="admin-list"></div>
+                </article>
+            </section>
+
+            <section class="admin-tab" id="tab-banners">
+                <article class="admin-card">
+                    <h3>Poner anuncios en inicio</h3>
+                    <form id="formBanner" class="admin-form-grid">
+                        <input name="titulo" placeholder="Titulo banner" required>
+                        <input name="imagen_url" placeholder="URL imagen banner" required>
+                        <input name="enlace_url" placeholder="URL destino (opcional)">
+                        <input type="number" name="orden" min="0" placeholder="Orden">
+                        <button type="submit" class="admin-btn">Guardar banner</button>
+                    </form>
+                    <div id="bannersList" class="admin-list"></div>
+                </article>
+            </section>
+
+            <section class="admin-tab" id="tab-pedidos">
+                <article class="admin-card">
+                    <h3>Gestionar pedidos</h3>
+                    <div id="pedidosList" class="admin-list"></div>
+                </article>
+            </section>
+
+            <section class="admin-tab" id="tab-clientes">
+                <article class="admin-card">
+                    <h3>Personas registradas (datos de contacto)</h3>
+                    <div id="clientesList" class="admin-list"></div>
+                </article>
+            </section>
+
+            <section class="admin-tab" id="tab-envios">
+                <article class="admin-card">
+                    <h3>Configurar envios y contra entrega</h3>
+                    <form id="formEnvio" class="admin-form-grid">
+                        <input name="ciudad" placeholder="Ciudad" required>
+                        <input type="number" step="0.01" min="0" name="costo" placeholder="Costo envio" required>
+                        <input type="number" step="0.01" min="0" name="gratis_desde" placeholder="Gratis desde (opcional)">
+                        <label class="admin-check"><input type="checkbox" name="contra_entrega_habilitado" checked> Contra entrega habilitado</label>
+                        <button class="admin-btn" type="submit">Guardar envio</button>
+                    </form>
+                    <div id="enviosList" class="admin-list"></div>
+                </article>
+            </section>
+
+            <section class="admin-tab" id="tab-notificaciones">
+                <article class="admin-card">
+                    <h3>Enviar promociones y notificaciones</h3>
+                    <form id="formNotificacion" class="admin-form-grid">
+                        <input name="titulo" placeholder="Titulo" required>
+                        <textarea name="mensaje" placeholder="Mensaje para todos los clientes" required></textarea>
+                        <select name="tipo">
+                            <option value="promocion">Promocion</option>
+                            <option value="informativo">Informativo</option>
+                        </select>
+                        <button type="submit" class="admin-btn">Enviar notificacion</button>
+                    </form>
+                </article>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../../estaticos/js/admin.js"></script>
+</body>
+
+</html>

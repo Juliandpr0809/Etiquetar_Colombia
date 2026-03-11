@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar Cotización de Equipos para Piscinas y Agua | Etiquetar Colombia</title>
+    <meta name="description"
+        content="Solicita cotización personalizada para bombas de piscina, purificadores de agua, filtros y equipos de tratamiento. Respuesta en 24 horas. Envío Colombia.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://etiquetarcolombia.com/cotizar">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../estaticos/css/home.css">
+    <link rel="stylesheet" href="../../estaticos/css/pages.css">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../home.html" class="navbar__logo"><img src="../../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:42px; width:auto;"></a>
+            <ul class="navbar__menu" id="navMenu">
+                <li><a href="../home.html" class="navbar__link">Inicio</a></li>
+                <li><a href="../catalogo/piscina.html" class="navbar__link navbar__link--piscina"><i
+                            class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a></li>
+                <li><a href="../catalogo/agua.html" class="navbar__link navbar__link--agua"><i
+                            class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
+                <li><a href="../blog/listado.html" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
+                <li><a href="contacto.html" class="navbar__link">Contacto</a></li>
+            </ul>
+            <div class="navbar__actions">
+                <a href="../autenticacion/login.html" class="navbar__action-btn" aria-label="Cuenta"><i
+                        class="fas fa-user"></i></a>
+                <a href="../carrito/carrito.html" class="navbar__action-btn" aria-label="Carrito"><i
+                        class="fas fa-shopping-cart"></i><span class="navbar__cart-badge">0</span></a>
+                <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <nav class="page-header__breadcrumb">
+                <a href="../home.html">Inicio</a><i class="fas fa-chevron-right"></i><span
+                    class="active">Solicitar Cotización</span>
+            </nav>
+            <h1 class="page-header__title"><i class="fas fa-file-alt"></i> Solicitar Cotización</h1>
+        </div>
+    </div>
+
+    <!-- QUOTE FORM -->
+    <div class="quote-layout">
+        <div class="quote-form">
+            <div class="quote-form__header">
+                <h2><i class="fas fa-calculator" style="margin-right:8px;"></i> Cotización Personalizada</h2>
+                <p>Completa el formulario y recibirás tu cotización en máximo 24 horas hábiles</p>
+            </div>
+            <div class="quote-form__body">
+                <form id="quoteForm">
+
+                    <!-- Line selection -->
+                    <label class="checkout-form__label" style="margin-bottom:10px;">¿Qué línea te interesa?</label>
+                    <div class="quote-line-select">
+                        <div class="quote-line-option selected--piscina" onclick="selectLine(this, 'piscina')">
+                            <i class="fas fa-swimming-pool" style="color:var(--piscina-primary);"></i>
+                            <span>Piscina & Spa</span>
+                        </div>
+                        <div class="quote-line-option" onclick="selectLine(this, 'agua')">
+                            <i class="fas fa-tint" style="color:var(--agua-primary);"></i>
+                            <span>Tratamiento de Agua</span>
+                        </div>
+                    </div>
+
+                    <!-- Contact info -->
+                    <div class="checkout-form__row">
+                        <div class="checkout-form__field">
+                            <label class="checkout-form__label" for="q-nombre">Nombre completo *</label>
+                            <input type="text" id="q-nombre" class="checkout-form__input" placeholder="Juan Pérez"
+                                required>
+                        </div>
+                        <div class="checkout-form__field">
+                            <label class="checkout-form__label" for="q-empresa">Empresa (opcional)</label>
+                            <input type="text" id="q-empresa" class="checkout-form__input"
+                                placeholder="Mi Empresa S.A.S.">
+                        </div>
+                    </div>
+
+                    <div class="checkout-form__row">
+                        <div class="checkout-form__field">
+                            <label class="checkout-form__label" for="q-email">Correo electrónico *</label>
+                            <input type="email" id="q-email" class="checkout-form__input" placeholder="tu@correo.com"
+                                required>
+                        </div>
+                        <div class="checkout-form__field">
+                            <label class="checkout-form__label" for="q-tel">Teléfono / WhatsApp *</label>
+                            <input type="tel" id="q-tel" class="checkout-form__input" placeholder="+57 300 123 4567"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="checkout-form__field">
+                        <label class="checkout-form__label" for="q-city">Ciudad *</label>
+                        <input type="text" id="q-city" class="checkout-form__input"
+                            placeholder="Bogotá, Medellín, Cali...">
+                    </div>
+
+                    <!-- Type of request -->
+                    <div class="checkout-form__field">
+                        <label class="checkout-form__label" for="q-type">Tipo de solicitud *</label>
+                        <select id="q-type" class="checkout-form__select">
+                            <option value="">Seleccionar...</option>
+                            <option>Equipos para piscina nueva</option>
+                            <option>Mantenimiento de piscina existente</option>
+                            <option>Sistema de purificación para hogar</option>
+                            <option>Sistema de tratamiento para edificio</option>
+                            <option>Proyecto industrial</option>
+                            <option>Compra al por mayor</option>
+                            <option>Otro</option>
+                        </select>
+                    </div>
+
+                    <!-- Products of interest -->
+                    <div class="checkout-form__field">
+                        <label class="checkout-form__label" for="q-products">Productos de interés *</label>
+                        <textarea id="q-products" class="checkout-form__input" rows="4"
+                            placeholder="Describe los productos, cantidades y especificaciones que necesitas..."
+                            required style="resize:vertical;"></textarea>
+                    </div>
+
+                    <!-- Additional notes -->
+                    <div class="checkout-form__field">
+                        <label class="checkout-form__label" for="q-notes">Información adicional (opcional)</label>
+                        <textarea id="q-notes" class="checkout-form__input" rows="3"
+                            placeholder="Presupuesto estimado, plazos de entrega, etc."
+                            style="resize:vertical;"></textarea>
+                    </div>
+
+                    <button type="submit" class="quote-submit">
+                        <i class="fas fa-paper-plane"></i> Enviar Cotización
+                    </button>
+
+                    <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:12px;">
+                        <i class="fas fa-clock"></i> Respondemos en máximo 24 horas hábiles
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__bottom">&copy; 2026 Etiquetar Colombia. Todos los derechos reservados.</div>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/573001234567" target="_blank" class="whatsapp-btn" aria-label="WhatsApp"><i
+            class="fab fa-whatsapp"></i></a>
+
+    <script src="../../estaticos/js/home.js"></script>
+    <script>
+        function selectLine(el, line) {
+            document.querySelectorAll('.quote-line-option').forEach(o => o.classList.remove('selected--piscina', 'selected--agua'));
+            el.classList.add(`selected--${line}`);
+        }
+        document.getElementById('quoteForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('.quote-submit');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> ¡Cotización enviada!';
+                btn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+            }, 1500);
+        });
+    </script>
+</body>
+
+</html>

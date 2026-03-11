@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras | Etiquetar Colombia</title>
+    <meta name="description"
+        content="Tu carrito de compras en Etiquetar Colombia. Revisa equipos para piscinas y tratamiento de agua, aplica cupones y procede al pago seguro con Wompi.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../estaticos/css/home.css">
+    <link rel="stylesheet" href="../../estaticos/css/pages.css">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../home.html" class="navbar__logo"><img src="../../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:42px; width:auto;"></a>
+            <ul class="navbar__menu" id="navMenu">
+                <li><a href="../home.html" class="navbar__link">Inicio</a></li>
+                <li><a href="../catalogo/piscina.html" class="navbar__link navbar__link--piscina"><i
+                            class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a></li>
+                <li><a href="../catalogo/agua.html" class="navbar__link navbar__link--agua"><i
+                            class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
+                <li><a href="../pages/contacto.html" class="navbar__link">Contacto</a></li>
+            </ul>
+            <div class="navbar__actions">
+                <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta"><i
+                        class="fas fa-user"></i></a>
+                <a href="carrito.html" class="navbar__action-btn" aria-label="Carrito"><i
+                    class="fas fa-shopping-cart"></i><span class="navbar__cart-badge">{{ carrito_count }}</span></a>
+                <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <nav class="page-header__breadcrumb">
+                <a href="../home.html">Inicio</a><i class="fas fa-chevron-right"></i><span
+                    class="active">Carrito de compras</span>
+            </nav>
+            <h1 class="page-header__title"><i class="fas fa-shopping-cart"></i> Carrito de Compras</h1>
+        </div>
+    </div>
+
+    <!-- CART -->
+    <div class="container">
+        <div class="cart-layout">
+
+            <!-- Cart Items -->
+            <div class="cart-items" id="cartItems"></div>
+
+            <!-- Summary Sidebar -->
+            <div class="cart-summary">
+                <div class="cart-summary__header"><i class="fas fa-receipt"></i> Resumen del Pedido</div>
+                <div class="cart-summary__body">
+                    <div class="cart-summary__line"><span id="cartSummaryLabel">Subtotal (0 productos)</span><span id="cartSubtotal">$0</span></div>
+                    <div class="cart-summary__line"><span>IVA (19%)</span><span>Incluido</span></div>
+                    <div class="cart-summary__line"><span>Envío</span><span
+                            style="color:#27ae60; font-weight:600;">Gratis</span></div>
+                    <div class="cart-summary__divider"></div>
+                    <div class="cart-summary__total"><span>Total</span><span id="cartTotal">$0</span></div>
+
+                    <!-- Coupon -->
+                    <div class="cart-coupon">
+                        <div class="cart-coupon__label"><i class="fas fa-tag"></i> ¿Tienes un cupón?</div>
+                        <div class="cart-coupon__form">
+                            <input type="text" class="cart-coupon__input" placeholder="Código de descuento"
+                                id="couponInput">
+                            <button class="cart-coupon__btn" onclick="applyCoupon()">Aplicar</button>
+                        </div>
+                        <div class="cart-coupon__applied" id="couponApplied" style="display:none;">
+                            <span><i class="fas fa-check-circle"></i> PRIMERAVEZ — 10% descuento</span>
+                            <button onclick="removeCoupon()"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Checkout -->
+                    <div class="cart-summary__checkout">
+                        <a href="checkout.html" class="cart-checkout-btn" id="checkoutLink" style="text-decoration:none;">
+                            <i class="fas fa-lock"></i> Proceder al Pago
+                        </a>
+                    </div>
+                    <div class="cart-summary__secure"><i class="fas fa-shield-halved"></i> Pago seguro con Wompi
+                        (Bancolombia)</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__bottom">&copy; 2026 Etiquetar Colombia. Todos los derechos reservados.</div>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/573001234567" target="_blank" class="whatsapp-btn" aria-label="WhatsApp"><i
+            class="fab fa-whatsapp"></i></a>
+
+    <script src="../../estaticos/js/home.js"></script>
+    <script>
+        function applyCoupon() {
+            const val = document.getElementById('couponInput').value.trim();
+            if (val.length > 0) {
+                document.getElementById('couponApplied').style.display = 'flex';
+                document.getElementById('couponInput').value = '';
+            }
+        }
+        function removeCoupon() {
+            document.getElementById('couponApplied').style.display = 'none';
+        }
+
+        const cartItemsEl = document.getElementById('cartItems');
+        const cartSubtotalEl = document.getElementById('cartSubtotal');
+        const cartTotalEl = document.getElementById('cartTotal');
+        const cartSummaryLabelEl = document.getElementById('cartSummaryLabel');
+        const checkoutLinkEl = document.getElementById('checkoutLink');
+
+        const priceFormat = (value) => '$' + Number(value || 0).toLocaleString('es-CO');
+
+        function renderCart(data) {
+            const items = data.items || [];
+            cartItemsEl.innerHTML = '';
+
+            if (!items.length) {
+                cartItemsEl.innerHTML = '<div class="cart-item"><div class="cart-item__info"><span class="cart-item__name">Tu carrito esta vacio</span><span class="cart-item__sku">Agrega productos desde el catalogo para continuar.</span></div></div>';
+                checkoutLinkEl.style.pointerEvents = 'none';
+                checkoutLinkEl.style.opacity = '0.6';
+            } else {
+                checkoutLinkEl.style.pointerEvents = '';
+                checkoutLinkEl.style.opacity = '';
+            }
+
+            items.forEach((item) => {
+                const lineClass = item.linea === 'agua' ? 'agua' : 'piscina';
+                const image = item.imagen_url || `/placeholder/200x200/${lineClass === 'piscina' ? 'F0F7FF/0077B6' : 'E8F4F8/1B8FA1'}?text=${encodeURIComponent(item.nombre)}`;
+                const html = `
+                    <div class="cart-item" id="cart-item-${item.id}">
+                        <div class="cart-item__img">
+                            <img src="${image}" alt="${item.nombre}">
+                        </div>
+                        <div class="cart-item__info">
+                            <span class="cart-item__category cart-item__category--${lineClass}">${item.linea === 'agua' ? 'Tratamiento de Agua' : 'Piscina & Spa'}</span>
+                            <span class="cart-item__name">${item.nombre}</span>
+                            <span class="cart-item__sku">REF: ${item.slug}</span>
+                        </div>
+                        <div class="cart-item__actions">
+                            <span class="cart-item__price cart-item__price--${lineClass}">${priceFormat(item.precio)}</span>
+                            <div class="cart-qty">
+                                <button class="cart-qty__btn" onclick="changeQty(${item.id}, -1)"><i class="fas fa-minus"></i></button>
+                                <input type="number" class="cart-qty__value" value="${item.cantidad}" min="1" max="${Math.max(item.stock || 1, 1)}" readonly>
+                                <button class="cart-qty__btn" onclick="changeQty(${item.id}, 1)"><i class="fas fa-plus"></i></button>
+                            </div>
+                            <button class="cart-item__remove" onclick="removeItem(${item.id})"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                        </div>
+                    </div>
+                `;
+                cartItemsEl.insertAdjacentHTML('beforeend', html);
+            });
+
+            cartSummaryLabelEl.textContent = `Subtotal (${data.total_items || 0} productos)`;
+            cartSubtotalEl.textContent = priceFormat(data.subtotal || 0);
+            cartTotalEl.textContent = priceFormat(data.subtotal || 0);
+        }
+
+        async function refreshCart() {
+            const response = await fetch('/carrito/api');
+            const payload = await response.json();
+            if (payload.ok) {
+                renderCart(payload.data);
+                if (window.etiquetarCart) window.etiquetarCart.syncBadge();
+            }
+        }
+
+        async function changeQty(productId, delta) {
+            const item = document.getElementById(`cart-item-${productId}`);
+            const input = item ? item.querySelector('.cart-qty__value') : null;
+            const current = input ? parseInt(input.value, 10) || 1 : 1;
+            const next = Math.max(current + delta, 0);
+            const response = await fetch(`/carrito/api/items/${productId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cantidad: next })
+            });
+            const payload = await response.json();
+            if (payload.ok) renderCart(payload.data);
+        }
+
+        async function removeItem(productId) {
+            const response = await fetch(`/carrito/api/items/${productId}`, { method: 'DELETE' });
+            const payload = await response.json();
+            if (payload.ok) renderCart(payload.data);
+        }
+
+        refreshCart();
+    </script>
+</body>
+
+</html>

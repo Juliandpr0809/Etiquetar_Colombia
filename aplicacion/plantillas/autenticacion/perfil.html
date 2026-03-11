@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil | Etiquetar Colombia</title>
+    <meta name="description" content="Gestiona tu informacion personal, datos de contacto y foto de perfil en Etiquetar Colombia.">
+    <link rel="canonical" href="https://etiquetarcolombia.com/perfil">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../estaticos/css/home.css">
+    <link rel="stylesheet" href="../../estaticos/css/auth.css">
+    <link rel="stylesheet" href="../../estaticos/css/perfil.css">
+</head>
+
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="navbar__logo">
+                <img src="../../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:42px; width:auto;">
+            </a>
+            <ul class="navbar__menu" id="navMenu">
+                <li><a href="{{ url_for('home') }}" class="navbar__link">Inicio</a></li>
+                <li><a href="{{ url_for('catalogo.catalogo_piscina') }}" class="navbar__link navbar__link--piscina"><i
+                            class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina &amp; Spa</a></li>
+                <li><a href="{{ url_for('catalogo.catalogo_agua') }}" class="navbar__link navbar__link--agua"><i
+                            class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
+                <li><a href="{{ url_for('cotizaciones.cotizar_form') }}" class="navbar__link">Cotizar</a></li>
+                <li><a href="{{ url_for('contacto') }}" class="navbar__link">Contacto</a></li>
+            </ul>
+            <div class="navbar__actions">
+                <a href="{{ url_for('autenticacion.perfil') }}" class="navbar__action-btn navbar__action-btn--active" aria-label="Mi perfil">
+                    <i class="fas fa-user"></i>
+                </a>
+                <a href="{{ url_for('carrito.ver_carrito') }}" class="navbar__action-btn" aria-label="Carrito"><i
+                        class="fas fa-shopping-cart"></i><span class="navbar__cart-badge">0</span></a>
+                <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="perfil-page">
+        <div class="perfil-shell">
+            <header class="perfil-header">
+                <div>
+                    <p class="perfil-eyebrow">Cuenta</p>
+                    <h1>Mi Perfil</h1>
+                    <p class="perfil-subtitle">Actualiza tu informacion de contacto y personaliza tu foto.</p>
+                </div>
+                <div class="perfil-header-actions">
+                    {% if usuario_actual and usuario_actual.es_admin %}
+                    <a href="{{ url_for('admin.panel') }}" class="perfil-ghost-btn"><i class="fas fa-shield-halved"></i> Panel admin</a>
+                    {% endif %}
+                    <form method="post" action="{{ url_for('autenticacion.logout_post') }}">
+                        <button type="submit" class="perfil-ghost-btn"><i class="fas fa-right-from-bracket"></i> Cerrar sesion</button>
+                    </form>
+                </div>
+            </header>
+
+            <div class="perfil-message auth-message auth-message--success" id="perfilSuccess" role="status" aria-live="polite">
+                <i class="fas fa-check-circle"></i>
+                <span id="perfilSuccessText">Perfil actualizado correctamente.</span>
+            </div>
+            <div class="perfil-message auth-message auth-message--error" id="perfilError" role="alert" aria-live="assertive">
+                <i class="fas fa-circle-exclamation"></i>
+                <span id="perfilErrorText">Ocurrio un error al guardar.</span>
+            </div>
+
+            <article class="perfil-card" id="perfilCard" data-mode="view">
+                <aside class="perfil-aside">
+                    <div class="perfil-avatar-wrap">
+                        <img id="avatarPreview" src="{{ usuario_actual.foto_url if usuario_actual and usuario_actual.foto_url else '/placeholder/220x220/E8F4F8/0077B6?text=Perfil' }}" alt="Foto de perfil" class="perfil-avatar">
+                        <label class="perfil-avatar-action" for="fotoInput" id="fotoLabel">
+                            <i class="fas fa-camera"></i>
+                            <span>Cambiar foto</span>
+                        </label>
+                        <input type="file" id="fotoInput" name="foto" accept="image/png,image/jpeg,image/webp" hidden>
+                    </div>
+                    <div class="perfil-meta">
+                        <h2 id="fullNameView">{{ (usuario_actual.nombre ~ ' ' ~ usuario_actual.apellido) if usuario_actual else '' }}</h2>
+                        <p id="emailView">{{ usuario_actual.email if usuario_actual else '' }}</p>
+                        <small>Miembro desde <span id="memberSince">-</span></small>
+                    </div>
+                </aside>
+
+                <div class="perfil-body">
+                    <form id="perfilForm" novalidate>
+                        <div class="perfil-grid">
+                            <div class="auth-field">
+                                <label class="auth-field__label" for="nombre">Nombre</label>
+                                <div class="auth-field__input-wrap">
+                                    <input type="text" id="nombre" name="nombre" class="auth-field__input" required>
+                                    <i class="fas fa-user auth-field__icon"></i>
+                                </div>
+                                <div class="auth-field__error" id="nombreError"><i class="fas fa-circle-exclamation"></i><span>Ingresa tu nombre.</span></div>
+                            </div>
+
+                            <div class="auth-field">
+                                <label class="auth-field__label" for="apellido">Apellido</label>
+                                <div class="auth-field__input-wrap">
+                                    <input type="text" id="apellido" name="apellido" class="auth-field__input" required>
+                                    <i class="fas fa-user auth-field__icon"></i>
+                                </div>
+                                <div class="auth-field__error" id="apellidoError"><i class="fas fa-circle-exclamation"></i><span>Ingresa tu apellido.</span></div>
+                            </div>
+
+                            <div class="auth-field">
+                                <label class="auth-field__label" for="email">Correo electronico</label>
+                                <div class="auth-field__input-wrap">
+                                    <input type="email" id="email" name="email" class="auth-field__input" required>
+                                    <i class="fas fa-envelope auth-field__icon"></i>
+                                </div>
+                                <div class="auth-field__error" id="emailError"><i class="fas fa-circle-exclamation"></i><span>Ingresa un correo valido.</span></div>
+                            </div>
+
+                            <div class="auth-field">
+                                <label class="auth-field__label" for="telefono">Telefono</label>
+                                <div class="auth-field__input-wrap">
+                                    <input type="tel" id="telefono" name="telefono" class="auth-field__input" placeholder="+57 300 123 4567">
+                                    <i class="fas fa-phone auth-field__icon"></i>
+                                </div>
+                                <div class="auth-field__error" id="telefonoError"><i class="fas fa-circle-exclamation"></i><span>Ingresa un telefono valido.</span></div>
+                            </div>
+
+                            <div class="auth-field">
+                                <label class="auth-field__label" for="ciudad">Ciudad</label>
+                                <div class="auth-field__input-wrap">
+                                    <input type="text" id="ciudad" name="ciudad" class="auth-field__input" placeholder="Bogota">
+                                    <i class="fas fa-location-dot auth-field__icon"></i>
+                                </div>
+                            </div>
+
+                            <div class="auth-field">
+                                <label class="auth-field__label" for="direccion">Direccion</label>
+                                <div class="auth-field__input-wrap">
+                                    <input type="text" id="direccion" name="direccion" class="auth-field__input" placeholder="Calle 00 #00-00">
+                                    <i class="fas fa-map auth-field__icon"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="perfil-actions">
+                            <button type="button" id="btnEdit" class="perfil-ghost-btn">
+                                <i class="fas fa-pen"></i> Editar perfil
+                            </button>
+                            <button type="button" id="btnCancel" class="perfil-ghost-btn perfil-ghost-btn--hidden">
+                                <i class="fas fa-xmark"></i> Cancelar
+                            </button>
+                            <button type="submit" id="btnSave" class="auth-submit perfil-save-btn perfil-save-btn--hidden">
+                                <i class="fas fa-floppy-disk"></i> Guardar cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <footer class="auth-footer">
+        <div class="container">
+            <div class="auth-footer__bottom">
+                &copy; 2026 Etiquetar Colombia. Todos los derechos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <script src="../../estaticos/js/home.js"></script>
+    <script src="../../estaticos/js/perfil.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra | Pago Seguro con Wompi | Etiquetar Colombia</title>
+    <meta name="description" content="Completa tu compra de equipos para piscinas y tratamiento de agua. Pago seguro con Wompi (Bancolombia). Envío a todo Colombia.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../estaticos/css/home.css">
+    <link rel="stylesheet" href="../../estaticos/css/pages.css">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../home.html" class="navbar__logo"><img src="../../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:42px; width:auto;"></a>
+            <ul class="navbar__menu" id="navMenu">
+                <li><a href="../home.html" class="navbar__link">Inicio</a></li>
+                <li><a href="carrito.html" class="navbar__link">Volver al carrito</a></li>
+            </ul>
+            <div class="navbar__actions">
+                <a href="carrito.html" class="navbar__action-btn" aria-label="Carrito"><i
+                        class="fas fa-shopping-cart"></i><span class="navbar__cart-badge">3</span></a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <nav class="page-header__breadcrumb">
+                <a href="../home.html">Inicio</a><i class="fas fa-chevron-right"></i>
+                <a href="carrito.html">Carrito</a><i class="fas fa-chevron-right"></i>
+                <span class="active">Checkout</span>
+            </nav>
+            <h1 class="page-header__title"><i class="fas fa-credit-card"></i> Finalizar Compra</h1>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Checkout Steps -->
+        <div class="checkout-steps">
+            <div class="checkout-step done"><span class="checkout-step__num"><i class="fas fa-check"></i></span> Carrito
+            </div>
+            <div class="checkout-step__line done"></div>
+            <div class="checkout-step active"><span class="checkout-step__num">2</span> Datos de envío</div>
+            <div class="checkout-step__line"></div>
+            <div class="checkout-step"><span class="checkout-step__num">3</span> Pago</div>
+            <div class="checkout-step__line"></div>
+            <div class="checkout-step"><span class="checkout-step__num">4</span> Confirmación</div>
+        </div>
+
+        <div class="checkout-layout">
+
+            <!-- LEFT: Forms -->
+            <div>
+                <form id="checkoutForm" novalidate>
+                <!-- Shipping Info -->
+                <div class="checkout-section">
+                    <div class="checkout-section__header"><i class="fas fa-truck"></i> Datos de Envío</div>
+                    <div class="checkout-section__body">
+                        <div class="checkout-form__row">
+                            <div class="checkout-form__field">
+                                <label class="checkout-form__label" for="chk-nombre">Nombre *</label>
+                                <input type="text" id="chk-nombre" class="checkout-form__input" placeholder="Juan"
+                                    required>
+                                <small class="checkout-form__error" id="err-chk-nombre">Ingresa tu nombre.</small>
+                            </div>
+                            <div class="checkout-form__field">
+                                <label class="checkout-form__label" for="chk-apellido">Apellido *</label>
+                                <input type="text" id="chk-apellido" class="checkout-form__input" placeholder="Pérez"
+                                    required>
+                                <small class="checkout-form__error" id="err-chk-apellido">Ingresa tu apellido.</small>
+                            </div>
+                        </div>
+                        <div class="checkout-form__row">
+                            <div class="checkout-form__field">
+                                <label class="checkout-form__label" for="chk-email">Correo electrónico *</label>
+                                <input type="email" id="chk-email" class="checkout-form__input"
+                                    placeholder="tu@correo.com" required>
+                                <small class="checkout-form__error" id="err-chk-email">Ingresa un correo válido.</small>
+                            </div>
+                            <div class="checkout-form__field">
+                                <label class="checkout-form__label" for="chk-tel">Teléfono *</label>
+                                <input type="tel" id="chk-tel" class="checkout-form__input"
+                                    placeholder="+57 300 123 4567" required>
+                                <small class="checkout-form__error" id="err-chk-tel">Ingresa un teléfono válido.</small>
+                            </div>
+                        </div>
+                        <div class="checkout-form__field">
+                            <label class="checkout-form__label" for="chk-doc">Cédula / NIT *</label>
+                            <input type="text" id="chk-doc" class="checkout-form__input" placeholder="1.234.567.890" required>
+                            <small class="checkout-form__error" id="err-chk-doc">Ingresa cédula o NIT.</small>
+                        </div>
+                        <div class="checkout-form__field">
+                            <label class="checkout-form__label" for="chk-dir">Dirección de envío *</label>
+                            <input type="text" id="chk-dir" class="checkout-form__input"
+                                placeholder="Cra 50 #45-23, Barrio Centro" required>
+                            <small class="checkout-form__error" id="err-chk-dir">Ingresa la dirección de envío.</small>
+                        </div>
+                        <div class="checkout-form__row">
+                            <div class="checkout-form__field">
+                                <label class="checkout-form__label" for="chk-depto">Departamento *</label>
+                                <select id="chk-depto" class="checkout-form__select" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option>Antioquia</option>
+                                    <option>Atlántico</option>
+                                    <option>Bogotá D.C.</option>
+                                    <option>Bolívar</option>
+                                    <option>Boyacá</option>
+                                    <option>Caldas</option>
+                                    <option>Cundinamarca</option>
+                                    <option>Nariño</option>
+                                    <option>Norte de Santander</option>
+                                    <option>Risaralda</option>
+                                    <option>Santander</option>
+                                    <option>Valle del Cauca</option>
+                                </select>
+                                <small class="checkout-form__error" id="err-chk-depto">Selecciona un departamento.</small>
+                            </div>
+                            <div class="checkout-form__field">
+                                <label class="checkout-form__label" for="chk-city">Ciudad *</label>
+                                <input type="text" id="chk-city" class="checkout-form__input" placeholder="Medellín" required>
+                                <small class="checkout-form__error" id="err-chk-city">Ingresa la ciudad.</small>
+                            </div>
+                        </div>
+                        <div class="checkout-form__field">
+                            <label class="checkout-form__label" for="chk-notes">Notas del pedido (opcional)</label>
+                            <textarea id="chk-notes" class="checkout-form__input" rows="3"
+                                placeholder="Instrucciones especiales de entrega..."
+                                style="resize:vertical;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="checkout-section">
+                    <div class="checkout-section__header"><i class="fas fa-credit-card"></i> Método de Pago</div>
+                    <div class="checkout-section__body">
+                        <div class="payment-methods">
+                            <label class="payment-method selected" onclick="selectPayment(this)">
+                                <input type="radio" name="payment" value="card" checked>
+                                <div class="payment-method__icon"><i class="fas fa-credit-card"></i></div>
+                                <div class="payment-method__info">
+                                    <div class="payment-method__name">Tarjeta de Crédito / Débito</div>
+                                    <div class="payment-method__desc">Visa, Mastercard, American Express</div>
+                                </div>
+                            </label>
+                            <label class="payment-method" onclick="selectPayment(this)">
+                                <input type="radio" name="payment" value="pse">
+                                <div class="payment-method__icon"><i class="fas fa-building-columns"></i></div>
+                                <div class="payment-method__info">
+                                    <div class="payment-method__name">Transferencia PSE</div>
+                                    <div class="payment-method__desc">Pago directo desde tu banco</div>
+                                </div>
+                            </label>
+                            <label class="payment-method" onclick="selectPayment(this)">
+                                <input type="radio" name="payment" value="nequi">
+                                <div class="payment-method__icon"><i class="fas fa-mobile-screen-button"></i></div>
+                                <div class="payment-method__info">
+                                    <div class="payment-method__name">Nequi</div>
+                                    <div class="payment-method__desc">Pago con tu billetera Nequi</div>
+                                </div>
+                            </label>
+                            <label class="payment-method" onclick="selectPayment(this)">
+                                <input type="radio" name="payment" value="efecty">
+                                <div class="payment-method__icon"><i class="fas fa-money-bill-wave"></i></div>
+                                <div class="payment-method__info">
+                                    <div class="payment-method__name">Efecty / Punto de Pago</div>
+                                    <div class="payment-method__desc">Paga en puntos autorizados</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="wompi-badge">
+                            <i class="fas fa-shield-halved" style="color:#27ae60;"></i>
+                            Pago seguro procesado por <strong>Wompi (Bancolombia)</strong>
+                        </div>
+                    </div>
+                </div>
+                </form>
+            </div>
+
+            <!-- RIGHT: Order Summary -->
+            <div class="cart-summary">
+                <div class="cart-summary__header"><i class="fas fa-receipt"></i> Tu Pedido</div>
+                <div class="cart-summary__body">
+                    <!-- Mini items -->
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+                            <span>Bomba 2HP Pentair × 1</span>
+                            <span style="font-weight:600;">$2.450.000</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+                            <span>Ósmosis Inversa 5 Etapas × 1</span>
+                            <span style="font-weight:600;">$980.000</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+                            <span>LED RGB 35W × 2</span>
+                            <span style="font-weight:600;">$760.000</span>
+                        </div>
+                    </div>
+
+                    <div class="cart-summary__divider"></div>
+                    <div class="cart-summary__line"><span>Subtotal</span><span>$4.190.000</span></div>
+                    <div class="cart-summary__line"><span>IVA (19%)</span><span>Incluido</span></div>
+                    <div class="cart-summary__line"><span>Envío nacional</span><span
+                            style="color:#27ae60; font-weight:600;">Gratis</span></div>
+                    <div class="cart-summary__divider"></div>
+                    <div class="cart-summary__total"><span>Total</span><span>$4.190.000</span></div>
+
+                    <div class="cart-summary__checkout" style="margin-top:24px;">
+                        <button class="cart-checkout-btn" id="checkoutSubmitBtn" onclick="placeOrder()">
+                            <i class="fas fa-lock"></i> Pagar con Wompi
+                        </button>
+                    </div>
+                    <div class="cart-summary__secure"><i class="fas fa-shield-halved"></i> Transacción 100% segura y
+                        encriptada</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__bottom">&copy; 2026 Etiquetar Colombia. Todos los derechos reservados.</div>
+        </div>
+    </footer>
+
+    <script src="../../estaticos/js/home.js"></script>
+    <script>
+        function showCheckoutToast(message) {
+            let toast = document.querySelector('.app-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.className = 'app-toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.classList.add('is-visible');
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('is-visible'), 1800);
+        }
+
+        function selectPayment(el) {
+            document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function validateCheckoutField(field) {
+            const error = document.getElementById(`err-${field.id}`);
+            const value = (field.value || '').trim();
+            let valid = true;
+
+            if (field.hasAttribute('required') && !value) valid = false;
+            if (valid && field.id === 'chk-email') {
+                valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            }
+            if (valid && field.id === 'chk-tel') {
+                const digits = value.replace(/\D/g, '');
+                valid = digits.length >= 10;
+            }
+
+            field.classList.toggle('is-error', !valid);
+            field.classList.toggle('is-valid', valid && value.length > 0);
+
+            if (error) {
+                error.classList.toggle('is-visible', !valid);
+            }
+
+            return valid;
+        }
+
+        const requiredFields = [
+            'chk-nombre', 'chk-apellido', 'chk-email', 'chk-tel',
+            'chk-doc', 'chk-dir', 'chk-depto', 'chk-city'
+        ];
+
+        requiredFields.forEach((id) => {
+            const field = document.getElementById(id);
+            if (!field) return;
+            const eventType = field.tagName === 'SELECT' ? 'change' : 'blur';
+            field.addEventListener(eventType, () => validateCheckoutField(field));
+        });
+
+        function placeOrder() {
+            const btn = document.getElementById('checkoutSubmitBtn');
+            const allValid = requiredFields.every((id) => {
+                const field = document.getElementById(id);
+                return field ? validateCheckoutField(field) : true;
+            });
+
+            if (!allValid) {
+                showCheckoutToast('Completa los campos obligatorios para continuar.');
+                const firstError = document.querySelector('.checkout-form__input.is-error, .checkout-form__select.is-error');
+                if (firstError) firstError.focus();
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> ¡Pedido confirmado!';
+                btn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+                showCheckoutToast('Pedido confirmado correctamente.');
+            }, 2000);
+        }
+    </script>
+</body>
+
+</html>

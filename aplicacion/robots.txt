@@ -1,0 +1,20 @@
+# Robots.txt — Etiquetar Colombia
+# Generado: Marzo 2026
+
+User-agent: *
+Allow: /
+
+# Bloquear áreas administrativas y privadas
+Disallow: /admin/
+Disallow: /carrito/
+Disallow: /checkout/
+Disallow: /migraciones/
+Disallow: /pruebas/
+
+# Permitir rastreo de recursos estáticos
+Allow: /estaticos/css/
+Allow: /estaticos/js/
+Allow: /estaticos/img/
+
+# Sitemap
+Sitemap: https://etiquetarcolombia.com/sitemap.xml
