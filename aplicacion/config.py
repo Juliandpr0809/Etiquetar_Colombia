@@ -22,6 +22,10 @@ class Config:
             "CLOUDINARY_PRODUCTS_FOLDER",
             "productos",
         )
+        app.config["CLOUDINARY_BANNERS_FOLDER"] = os.getenv(
+            "CLOUDINARY_BANNERS_FOLDER",
+            "banners",
+        )
 
 
 class DevelopmentConfig(Config):

@@ -1,5 +1,6 @@
 import ipaddress
 import json
+import re
 from functools import lru_cache
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -22,7 +23,7 @@ from aplicacion.modelos import (
     Promocion,
     Usuario,
 )
-from aplicacion.servicios import cloudinary_habilitado, subir_imagen_producto
+from aplicacion.servicios import cloudinary_habilitado, subir_imagen_banner, subir_imagen_producto
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -122,7 +123,40 @@ def _admin_requerido(api=False):
 
 def _decimal(value, default="0"):
     try:
-        return Decimal(str(value).strip())
+        texto = str(value or "").strip().upper()
+        if not texto:
+            return Decimal(default)
+
+        # Permite entradas como: "120000", "120.000", "120,000", "$120.000", "COP 120.000"
+        texto = texto.replace("COP", "").replace("$", "")
+        texto = re.sub(r"\s+", "", texto)
+        texto = re.sub(r"[^0-9,.-]", "", texto)
+
+        if not texto or texto in {"-", ".", ","}:
+            return Decimal(default)
+
+        if "," in texto and "." in texto:
+            # Si la coma está al final, asumimos decimal europeo: 1.234,56
+            if texto.rfind(",") > texto.rfind("."):
+                texto = texto.replace(".", "").replace(",", ".")
+            else:
+                # Formato tipo 1,234.56
+                texto = texto.replace(",", "")
+        elif "," in texto:
+            izquierda, derecha = texto.rsplit(",", 1)
+            if len(derecha) <= 2:
+                texto = izquierda.replace(".", "") + "." + derecha
+            else:
+                texto = texto.replace(",", "")
+        elif texto.count(".") > 1:
+            texto = texto.replace(".", "")
+        elif texto.count(".") == 1:
+            izquierda, derecha = texto.split(".")
+            # En COP, un único punto con 3 dígitos suele ser miles: 120.000
+            if len(derecha) == 3:
+                texto = izquierda + derecha
+
+        return Decimal(texto)
     except Exception:
         return Decimal(default)
 
@@ -456,10 +490,12 @@ def listar_promociones_api():
             "data": [
                 {
                     "id": p.id,
+                    "producto_id": p.producto_id,
                     "producto": p.producto.nombre if p.producto else "-",
                     "porcentaje_descuento": float(p.porcentaje_descuento),
                     "fecha_inicio": p.fecha_inicio.isoformat(),
                     "fecha_fin": p.fecha_fin.isoformat(),
+                    "activa": bool(p.activa),
                     "vigente": bool(p.activa and p.fecha_inicio <= ahora <= p.fecha_fin),
                 }
                 for p in items
@@ -468,18 +504,92 @@ def listar_promociones_api():
     )
 
 
+@admin_bp.patch("/api/promociones/<int:promocion_id>")
+def editar_promocion_api(promocion_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    promocion = Promocion.query.get_or_404(promocion_id)
+
+    if payload.get("producto_id"):
+        producto = Producto.query.get_or_404(int(payload.get("producto_id")))
+        promocion.producto_id = producto.id
+
+    if payload.get("porcentaje_descuento") is not None:
+        porcentaje = _decimal(payload.get("porcentaje_descuento"), str(promocion.porcentaje_descuento))
+        promocion.porcentaje_descuento = max(Decimal("0"), min(porcentaje, Decimal("90")))
+
+    if payload.get("fecha_inicio"):
+        promocion.fecha_inicio = datetime.fromisoformat(payload.get("fecha_inicio"))
+    if payload.get("fecha_fin"):
+        promocion.fecha_fin = datetime.fromisoformat(payload.get("fecha_fin"))
+
+    if payload.get("activa") is not None:
+        promocion.activa = bool(payload.get("activa"))
+
+    db.session.commit()
+    return jsonify({"ok": True, "message": "Promocion actualizada."})
+
+
+@admin_bp.patch("/api/promociones/<int:promocion_id>/estado")
+def cambiar_estado_promocion_api(promocion_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    promocion = Promocion.query.get_or_404(promocion_id)
+    payload = request.get_json(silent=True) or {}
+    promocion.activa = bool(payload.get("activa", not promocion.activa))
+    db.session.commit()
+
+    return jsonify({"ok": True, "message": "Estado de promocion actualizado."})
+
+
+@admin_bp.delete("/api/promociones/<int:promocion_id>")
+def eliminar_promocion_api(promocion_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    promocion = Promocion.query.get_or_404(promocion_id)
+    db.session.delete(promocion)
+    db.session.commit()
+    return jsonify({"ok": True, "message": "Promocion eliminada."})
+
+
 @admin_bp.post("/api/banners")
 def crear_banner_api():
     admin = _admin_requerido(api=True)
     if not isinstance(admin, Usuario):
         return admin
 
-    payload = request.get_json(silent=True) or {}
+    if request.content_type and "multipart/form-data" in request.content_type:
+        payload = request.form or {}
+        archivo = request.files.get("imagen")
+    else:
+        payload = request.get_json(silent=True) or {}
+        archivo = None
+
     titulo = (payload.get("titulo") or "").strip()
     imagen_url = (payload.get("imagen_url") or "").strip()
 
-    if not titulo or not imagen_url:
-        return jsonify({"ok": False, "message": "Titulo e imagen son obligatorios."}), 400
+    if not titulo:
+        return jsonify({"ok": False, "message": "El titulo es obligatorio."}), 400
+
+    if archivo and getattr(archivo, "filename", ""):
+        if not _imagen_valida(archivo):
+            return jsonify({"ok": False, "message": "Formato de imagen no permitido. Usa JPG, PNG o WEBP."}), 400
+        if not cloudinary_habilitado():
+            return jsonify({"ok": False, "message": "Cloudinary no esta configurado en el servidor."}), 500
+
+        slug_banner = f"banner-{titulo.lower().replace(' ', '-')[:60]}"
+        resultado = subir_imagen_banner(archivo, slug=slug_banner)
+        imagen_url = (resultado.get("secure_url") or "").strip()
+
+    if not imagen_url:
+        return jsonify({"ok": False, "message": "Debes cargar una imagen o escribir la URL."}), 400
 
     banner = Banner(
         titulo=titulo,
@@ -517,6 +627,71 @@ def listar_banners_api():
             ],
         }
     )
+
+
+@admin_bp.patch("/api/banners/<int:banner_id>")
+def editar_banner_api(banner_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    banner = Banner.query.get_or_404(banner_id)
+    if request.content_type and "multipart/form-data" in request.content_type:
+        payload = request.form or {}
+        archivo = request.files.get("imagen")
+    else:
+        payload = request.get_json(silent=True) or {}
+        archivo = None
+
+    titulo = (payload.get("titulo") or banner.titulo).strip()
+    enlace_url = (payload.get("enlace_url") or "").strip() or None
+    orden = int(payload.get("orden", banner.orden) or banner.orden)
+    imagen_url = (payload.get("imagen_url") or "").strip() or banner.imagen_url
+
+    if archivo and getattr(archivo, "filename", ""):
+        if not _imagen_valida(archivo):
+            return jsonify({"ok": False, "message": "Formato de imagen no permitido. Usa JPG, PNG o WEBP."}), 400
+        if not cloudinary_habilitado():
+            return jsonify({"ok": False, "message": "Cloudinary no esta configurado en el servidor."}), 500
+        slug_banner = f"banner-{titulo.lower().replace(' ', '-')[:60]}"
+        resultado = subir_imagen_banner(archivo, slug=slug_banner)
+        imagen_url = (resultado.get("secure_url") or "").strip() or imagen_url
+
+    banner.titulo = titulo
+    banner.imagen_url = imagen_url
+    banner.enlace_url = enlace_url
+    banner.orden = orden
+    if payload.get("activo") is not None:
+        banner.activo = bool(payload.get("activo"))
+
+    db.session.commit()
+    return jsonify({"ok": True, "message": "Banner actualizado."})
+
+
+@admin_bp.patch("/api/banners/<int:banner_id>/estado")
+def cambiar_estado_banner_api(banner_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    banner = Banner.query.get_or_404(banner_id)
+    payload = request.get_json(silent=True) or {}
+    banner.activo = bool(payload.get("activo", not banner.activo))
+    db.session.commit()
+
+    return jsonify({"ok": True, "message": "Estado de banner actualizado."})
+
+
+@admin_bp.delete("/api/banners/<int:banner_id>")
+def eliminar_banner_api(banner_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    banner = Banner.query.get_or_404(banner_id)
+    db.session.delete(banner)
+    db.session.commit()
+    return jsonify({"ok": True, "message": "Banner eliminado."})
 
 
 @admin_bp.get("/api/pedidos")
@@ -711,6 +886,43 @@ def listar_envios_api():
     )
 
 
+@admin_bp.patch("/api/envios/<int:envio_id>")
+def editar_envio_api(envio_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    envio = ConfiguracionEnvio.query.get_or_404(envio_id)
+    payload = request.get_json(silent=True) or {}
+
+    ciudad = (payload.get("ciudad") or envio.ciudad).strip()
+    envio.ciudad = ciudad
+    envio.costo = _decimal(payload.get("costo", envio.costo), str(envio.costo))
+
+    gratis_desde = payload.get("gratis_desde", envio.gratis_desde)
+    envio.gratis_desde = _decimal(gratis_desde, "0") if gratis_desde not in [None, ""] else None
+
+    if payload.get("contra_entrega_habilitado") is not None:
+        envio.contra_entrega_habilitado = bool(payload.get("contra_entrega_habilitado"))
+    if payload.get("activo") is not None:
+        envio.activo = bool(payload.get("activo"))
+
+    db.session.commit()
+    return jsonify({"ok": True, "message": "Envio actualizado."})
+
+
+@admin_bp.delete("/api/envios/<int:envio_id>")
+def eliminar_envio_api(envio_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    envio = ConfiguracionEnvio.query.get_or_404(envio_id)
+    db.session.delete(envio)
+    db.session.commit()
+    return jsonify({"ok": True, "message": "Envio eliminado."})
+
+
 @admin_bp.post("/api/notificaciones")
 def crear_notificacion_api():
     admin = _admin_requerido(api=True)
@@ -743,3 +955,61 @@ def crear_notificacion_api():
             "message": f"Notificacion enviada a {len(usuarios)} clientes.",
         }
     )
+
+
+@admin_bp.get("/api/notificaciones")
+def listar_notificaciones_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    items = Notificacion.query.order_by(Notificacion.created_at.desc()).limit(300).all()
+    return jsonify(
+        {
+            "ok": True,
+            "data": [
+                {
+                    "id": n.id,
+                    "titulo": n.titulo,
+                    "mensaje": n.mensaje,
+                    "tipo": n.tipo,
+                    "created_at": n.created_at.isoformat(),
+                }
+                for n in items
+            ],
+        }
+    )
+
+
+@admin_bp.patch("/api/notificaciones/<int:notificacion_id>")
+def editar_notificacion_api(notificacion_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    item = Notificacion.query.get_or_404(notificacion_id)
+
+    item.titulo = (payload.get("titulo") or item.titulo).strip()
+    item.mensaje = (payload.get("mensaje") or item.mensaje).strip()
+    item.tipo = (payload.get("tipo") or item.tipo).strip()
+
+    db.session.commit()
+    return jsonify({"ok": True, "message": "Notificacion actualizada."})
+
+
+@admin_bp.delete("/api/notificaciones/<int:notificacion_id>")
+def eliminar_notificacion_api(notificacion_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    enlaces = NotificacionUsuario.query.filter_by(notificacion_id=notificacion_id).all()
+    for enlace in enlaces:
+        db.session.delete(enlace)
+
+    item = Notificacion.query.get_or_404(notificacion_id)
+    db.session.delete(item)
+    db.session.commit()
+
+    return jsonify({"ok": True, "message": "Notificacion eliminada."})

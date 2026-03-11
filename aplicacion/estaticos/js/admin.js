@@ -5,8 +5,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const successBox = qs('#adminSuccess');
   const errorBox = qs('#adminError');
   const formProducto = qs('#formProducto');
+  const inputPrecioProducto = qs('#prod-precio');
   const productSubmitBtn = formProducto ? formProducto.querySelector('.admin-btn') : null;
   const state = { editingProductId: null, products: [] };
+
+  const fmtCop = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(valor || 0));
+  const parseCop = (texto) => String(texto || '').replace(/COP|\$/gi, '').replace(/\s+/g, '').replace(/[^0-9]/g, '');
 
   const showMsg = (type, text) => {
     successBox.classList.remove('visible');
@@ -32,7 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const setProductFormMode = (editing) => {
     if (!productSubmitBtn) return;
-    productSubmitBtn.textContent = editing ? 'Guardar cambios' : 'Guardar producto';
+    productSubmitBtn.innerHTML = editing
+      ? '<i class="fas fa-save"></i> Guardar cambios'
+      : '<i class="fas fa-save"></i> Guardar producto';
   };
 
   const resetProductForm = () => {
@@ -48,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     formProducto.nombre.value = product.nombre || '';
     formProducto.slug.value = product.slug || '';
     formProducto.linea.value = product.linea || 'piscina';
-    formProducto.precio.value = product.precio || 0;
+    formProducto.precio.value = fmtCop(product.precio || 0);
     formProducto.stock.value = product.stock || 0;
     formProducto.descripcion.value = product.descripcion || '';
     state.editingProductId = product.id;
@@ -61,6 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
       activateTab(btn.dataset.tab);
     });
   });
+
+  if (inputPrecioProducto) {
+    inputPrecioProducto.addEventListener('blur', () => {
+      const limpio = parseCop(inputPrecioProducto.value);
+      inputPrecioProducto.value = limpio ? fmtCop(limpio) : '';
+    });
+  }
 
   const renderList = (selector, items, renderItem) => {
     const root = qs(selector);
@@ -122,16 +135,25 @@ document.addEventListener('DOMContentLoaded', () => {
     ]);
 
     const k = resumen.data;
-    qs('#kpiGrid').innerHTML = `
-      <div class="admin-kpi"><div class="admin-kpi__label">Vendido este mes</div><div class="admin-kpi__value">$${k.ventas_mes.toLocaleString('es-CO')}</div></div>
-      <div class="admin-kpi"><div class="admin-kpi__label">Vendido mes anterior</div><div class="admin-kpi__value">$${k.ventas_mes_anterior.toLocaleString('es-CO')}</div></div>
-      <div class="admin-kpi"><div class="admin-kpi__label">Entradas hoy</div><div class="admin-kpi__value">${k.visitas_hoy}</div></div>
-      <div class="admin-kpi"><div class="admin-kpi__label">Entradas (7 dias)</div><div class="admin-kpi__value">${k.accesos_7d}</div></div>
-      <div class="admin-kpi"><div class="admin-kpi__label">Personas diferentes (7 dias)</div><div class="admin-kpi__value">${k.visitantes_unicos_7d}</div></div>
-      <div class="admin-kpi"><div class="admin-kpi__label">Clientes registrados</div><div class="admin-kpi__value">${k.clientes}</div></div>
-      <div class="admin-kpi"><div class="admin-kpi__label">Productos activos</div><div class="admin-kpi__value">${k.productos}</div></div>
-      <div class="admin-kpi"><div class="admin-kpi__label">Consultas por responder</div><div class="admin-kpi__value">${k.cotizaciones_pendientes}</div></div>
-    `;
+    const kpiItems = [
+      { label: 'Vendido este mes',       value: `$${k.ventas_mes.toLocaleString('es-CO')}`,          icon: 'fa-dollar-sign',   color: 'green'  },
+      { label: 'Mes anterior',           value: `$${k.ventas_mes_anterior.toLocaleString('es-CO')}`, icon: 'fa-chart-bar',     color: 'gray'   },
+      { label: 'Entradas hoy',           value: k.visitas_hoy,                                        icon: 'fa-eye',           color: 'blue'   },
+      { label: 'Entradas (7 días)',       value: k.accesos_7d,                                         icon: 'fa-calendar-week', color: 'blue'   },
+      { label: 'Visitantes únicos (7d)', value: k.visitantes_unicos_7d,                               icon: 'fa-users',         color: 'purple' },
+      { label: 'Clientes registrados',   value: k.clientes,                                            icon: 'fa-user-check',    color: 'purple' },
+      { label: 'Productos activos',      value: k.productos,                                           icon: 'fa-box-open',      color: 'teal'   },
+      { label: 'Consultas pendientes',   value: k.cotizaciones_pendientes,                             icon: 'fa-comments',      color: k.cotizaciones_pendientes > 0 ? 'orange' : 'gray' },
+    ];
+    qs('#kpiGrid').innerHTML = kpiItems.map((item) => `
+      <div class="admin-kpi admin-kpi--${item.color}">
+        <div class="admin-kpi__icon"><i class="fas ${item.icon}"></i></div>
+        <div>
+          <div class="admin-kpi__value">${item.value}</div>
+          <div class="admin-kpi__label">${item.label}</div>
+        </div>
+      </div>
+    `).join('');
 
     const paginasReales = (accesos.data.rutas || []).filter((a) => !a.ruta.includes('/api/') && !a.ruta.endsWith('/logout'));
     renderList('#accesosList', paginasReales, (a) => `<div class="admin-item__row"><strong>${nombreRuta(a.ruta)}</strong><span>${a.visitas} visitas</span></div>`);
@@ -192,12 +214,137 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const loadPromociones = async () => {
     const data = await api('/admin/api/promociones');
-    renderList('#promocionesList', data.data, (p) => `<div class="admin-item__row"><strong>${p.producto}</strong><span>${p.porcentaje_descuento}% (${p.vigente ? 'vigente' : 'programada'})</span></div>`);
+    renderList('#promocionesList', data.data, (p) => `
+      <div class="admin-item__row">
+        <strong>${p.producto}</strong>
+        <span class="admin-badge admin-badge--${p.activa ? 'activo' : 'inactivo'}">${p.activa ? 'Activa' : 'Inactiva'}</span>
+      </div>
+      <div class="admin-meta-text">${p.porcentaje_descuento}% | ${new Date(p.fecha_inicio).toLocaleString('es-CO')} - ${new Date(p.fecha_fin).toLocaleString('es-CO')}</div>
+      <div class="admin-inline-actions" style="margin-top:8px">
+        <button class="admin-mini-btn" data-edit-promocion="${p.id}">Editar</button>
+        <button class="admin-mini-btn" data-toggle-promocion="${p.id}" data-active="${p.activa ? '1' : '0'}">${p.activa ? 'Inactivar' : 'Activar'}</button>
+        <button class="admin-mini-btn admin-mini-btn--danger" data-delete-promocion="${p.id}">Eliminar</button>
+      </div>
+    `);
+
+    qsa('[data-edit-promocion]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = Number(btn.dataset.editPromocion);
+        const item = data.data.find((x) => x.id === id);
+        if (!item) return;
+        const porcentaje = prompt('Nuevo porcentaje de descuento (1-90):', item.porcentaje_descuento);
+        if (porcentaje === null) return;
+        try {
+          await api(`/admin/api/promociones/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ porcentaje_descuento: porcentaje })
+          });
+          showMsg('success', 'Promocion actualizada');
+          loadPromociones();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
+    qsa('[data-toggle-promocion]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await api(`/admin/api/promociones/${btn.dataset.togglePromocion}/estado`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activa: btn.dataset.active !== '1' })
+          });
+          showMsg('success', 'Estado de promocion actualizado');
+          loadPromociones();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
+    qsa('[data-delete-promocion]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Esta accion eliminara la promocion. ¿Continuar?')) return;
+        try {
+          await api(`/admin/api/promociones/${btn.dataset.deletePromocion}`, { method: 'DELETE' });
+          showMsg('success', 'Promocion eliminada');
+          loadPromociones();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
   };
 
   const loadBanners = async () => {
     const data = await api('/admin/api/banners');
-    renderList('#bannersList', data.data, (b) => `<div class="admin-item__row"><strong>${b.titulo}</strong><span>Orden ${b.orden} | ${b.activo ? 'activo' : 'inactivo'}</span></div>`);
+    renderList('#bannersList', data.data, (b) => `
+      <div class="admin-item__row">
+        <strong>${b.titulo}</strong>
+        <span>Orden ${b.orden}</span>
+      </div>
+      <img src="${b.imagen_url}" alt="${b.titulo}" class="admin-banner-thumb">
+      <div class="admin-meta-text">${b.enlace_url || 'Sin enlace de destino'}</div>
+      <div class="admin-inline-actions" style="margin-top:8px">
+        <button class="admin-mini-btn" data-edit-banner="${b.id}">Editar</button>
+        <button class="admin-mini-btn" data-toggle-banner="${b.id}" data-active="${b.activo ? '1' : '0'}">${b.activo ? 'Inactivar' : 'Activar'}</button>
+        <button class="admin-mini-btn admin-mini-btn--danger" data-delete-banner="${b.id}">Eliminar</button>
+      </div>
+    `);
+
+    qsa('[data-edit-banner]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = Number(btn.dataset.editBanner);
+        const item = data.data.find((x) => x.id === id);
+        if (!item) return;
+        const titulo = prompt('Nuevo titulo del anuncio:', item.titulo);
+        if (titulo === null) return;
+        const enlace = prompt('Nuevo enlace (opcional):', item.enlace_url || '') || '';
+        const orden = prompt('Orden del anuncio:', item.orden);
+        try {
+          await api(`/admin/api/banners/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titulo, enlace_url: enlace, orden })
+          });
+          showMsg('success', 'Banner actualizado');
+          loadBanners();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
+    qsa('[data-toggle-banner]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await api(`/admin/api/banners/${btn.dataset.toggleBanner}/estado`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activo: btn.dataset.active !== '1' })
+          });
+          showMsg('success', 'Estado de banner actualizado');
+          loadBanners();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
+    qsa('[data-delete-banner]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Esta accion eliminara el banner. ¿Continuar?')) return;
+        try {
+          await api(`/admin/api/banners/${btn.dataset.deleteBanner}`, { method: 'DELETE' });
+          showMsg('success', 'Banner eliminado');
+          loadBanners();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
   };
 
   const loadPedidos = async () => {
@@ -240,17 +387,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const loadEnvios = async () => {
     const data = await api('/admin/api/envios');
-    renderList('#enviosList', data.data, (e) => `<div class="admin-item__row"><strong>${e.ciudad}</strong><span>$${e.costo.toLocaleString('es-CO')} | Contra entrega: ${e.contra_entrega_habilitado ? 'si' : 'no'}</span></div>`);
+    renderList('#enviosList', data.data, (e) => `
+      <div class="admin-item__row"><strong>${e.ciudad}</strong><span>${fmtCop(e.costo)} | Contra entrega: ${e.contra_entrega_habilitado ? 'si' : 'no'}</span></div>
+      <div class="admin-inline-actions" style="margin-top:8px">
+        <button class="admin-mini-btn" data-edit-envio="${e.id}">Editar</button>
+        <button class="admin-mini-btn admin-mini-btn--danger" data-delete-envio="${e.id}">Eliminar</button>
+      </div>
+    `);
+
+    qsa('[data-edit-envio]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = Number(btn.dataset.editEnvio);
+        const item = data.data.find((x) => x.id === id);
+        if (!item) return;
+        const costo = prompt('Nuevo costo de envio (COP):', item.costo);
+        if (costo === null) return;
+        try {
+          await api(`/admin/api/envios/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ costo })
+          });
+          showMsg('success', 'Envio actualizado');
+          loadEnvios();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
+    qsa('[data-delete-envio]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Esta accion eliminara esta configuracion de envio. ¿Continuar?')) return;
+        try {
+          await api(`/admin/api/envios/${btn.dataset.deleteEnvio}`, { method: 'DELETE' });
+          showMsg('success', 'Envio eliminado');
+          loadEnvios();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
   };
 
   const loadProductos = async () => {
     const data = await api('/admin/api/productos');
     state.products = data.data;
     renderList('#productosList', data.data, (p) => `
-      <div class="admin-item__row"><strong>${p.nombre}</strong><span>${p.linea} | Stock: ${p.stock}</span></div>
-      <div class="admin-item__row"><span>Slug: ${p.slug}</span><span>$${p.precio.toLocaleString('es-CO')}</span></div>
-      <div class="admin-item__row"><span>${p.activo ? 'Activo' : 'Inactivo'}</span><span>${p.imagen_url ? '<a href="' + p.imagen_url + '" target="_blank" rel="noopener">Ver foto</a>' : 'Sin foto'}</span></div>
-      <div class="admin-item__row"><button class="admin-mini-btn" data-edit-product="${p.id}">Editar</button><button class="admin-mini-btn" data-toggle-product="${p.id}" data-active="${p.activo ? '1' : '0'}">${p.activo ? 'Inactivar' : 'Activar'}</button></div>
+      <div style="display:flex;align-items:center;gap:14px">
+        ${p.imagen_url
+          ? `<img src="${p.imagen_url}" class="admin-product-thumb" alt="${p.nombre}">`
+          : `<div class="admin-product-thumb-placeholder"><i class="fas fa-image"></i></div>`
+        }
+        <div class="admin-product-body">
+          <div class="admin-product-name">${p.nombre}</div>
+          <div class="admin-product-meta">
+            <span class="admin-badge admin-badge--${p.linea}">${p.linea}</span>
+            <span class="admin-badge admin-badge--${p.activo ? 'activo' : 'inactivo'}">${p.activo ? '● Activo' : '● Inactivo'}</span>
+            <span style="font-size:0.8rem;color:#6a8fa5">Stock: ${p.stock}</span>
+          </div>
+          <div class="admin-product-price">${fmtCop(p.precio)}</div>
+        </div>
+        <div class="admin-product-actions">
+          <button class="admin-mini-btn" data-edit-product="${p.id}"><i class="fas fa-pen"></i> Editar</button>
+          <button class="admin-mini-btn ${p.activo ? 'admin-mini-btn--danger' : ''}" data-toggle-product="${p.id}" data-active="${p.activo ? '1' : '0'}">${p.activo ? 'Inactivar' : 'Activar'}</button>
+        </div>
+      </div>
     `);
 
     qsa('[data-edit-product]').forEach((btn) => {
@@ -281,6 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     try {
       const body = new FormData(e.target);
+      body.set('precio', parseCop(body.get('precio')) || '0');
       if (state.editingProductId) {
         await api(`/admin/api/productos/${state.editingProductId}`, { method: 'PATCH', body });
         showMsg('success', 'Producto actualizado correctamente');
@@ -315,11 +518,10 @@ document.addEventListener('DOMContentLoaded', () => {
   qs('#formBanner').addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
-      const form = Object.fromEntries(new FormData(e.target).entries());
+      const form = new FormData(e.target);
       await api('/admin/api/banners', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: form
       });
       e.target.reset();
       showMsg('success', 'Banner guardado');
@@ -362,10 +564,60 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       e.target.reset();
       showMsg('success', 'Notificacion enviada a clientes');
+      loadNotificaciones();
     } catch (err) {
       showMsg('error', err.message);
     }
   });
+
+  const loadNotificaciones = async () => {
+    const data = await api('/admin/api/notificaciones');
+    renderList('#notificacionesList', data.data, (n) => `
+      <div class="admin-item__row"><strong>${n.titulo}</strong><span class="admin-badge admin-badge--${n.tipo === 'promocion' ? 'piscina' : 'agua'}">${n.tipo}</span></div>
+      <div class="admin-meta-text">${new Date(n.created_at).toLocaleString('es-CO')}</div>
+      <div>${n.mensaje}</div>
+      <div class="admin-inline-actions" style="margin-top:8px">
+        <button class="admin-mini-btn" data-edit-notificacion="${n.id}">Editar</button>
+        <button class="admin-mini-btn admin-mini-btn--danger" data-delete-notificacion="${n.id}">Eliminar</button>
+      </div>
+    `);
+
+    qsa('[data-edit-notificacion]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = Number(btn.dataset.editNotificacion);
+        const item = data.data.find((x) => x.id === id);
+        if (!item) return;
+        const titulo = prompt('Editar titulo:', item.titulo);
+        if (titulo === null) return;
+        const mensaje = prompt('Editar mensaje:', item.mensaje);
+        if (mensaje === null) return;
+        try {
+          await api(`/admin/api/notificaciones/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titulo, mensaje, tipo: item.tipo })
+          });
+          showMsg('success', 'Notificacion actualizada');
+          loadNotificaciones();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
+    qsa('[data-delete-notificacion]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Esta accion eliminara la notificacion. ¿Continuar?')) return;
+        try {
+          await api(`/admin/api/notificaciones/${btn.dataset.deleteNotificacion}`, { method: 'DELETE' });
+          showMsg('success', 'Notificacion eliminada');
+          loadNotificaciones();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+  };
 
   Promise.all([
     loadResumen(),
@@ -375,7 +627,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBanners(),
     loadPedidos(),
     loadClientes(),
-    loadEnvios()
+    loadEnvios(),
+    loadNotificaciones()
   ]).catch((err) => showMsg('error', err.message));
 
   const params = new URLSearchParams(window.location.search);

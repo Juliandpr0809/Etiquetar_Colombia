@@ -49,3 +49,25 @@ def subir_imagen_producto(archivo, slug: str | None = None) -> dict:
         "public_id": resultado.get("public_id"),
         "secure_url": resultado.get("secure_url"),
     }
+
+
+def subir_imagen_banner(archivo, slug: str | None = None) -> dict:
+    folder = current_app.config.get("CLOUDINARY_BANNERS_FOLDER", "banners")
+    opciones = {
+        "folder": folder,
+        "resource_type": "image",
+        "overwrite": True,
+        "invalidate": True,
+    }
+    if slug:
+        opciones["public_id"] = slug
+        opciones["use_filename"] = False
+    else:
+        opciones["use_filename"] = True
+        opciones["unique_filename"] = True
+
+    resultado = cloudinary.uploader.upload(archivo, **opciones)
+    return {
+        "public_id": resultado.get("public_id"),
+        "secure_url": resultado.get("secure_url"),
+    }

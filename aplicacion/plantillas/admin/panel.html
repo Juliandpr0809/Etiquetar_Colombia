@@ -36,15 +36,15 @@
                     <h1>Panel del negocio</h1>
                 </div>
                 <div class="admin-actions-inline">
-                    <button class="admin-tab-btn active" data-tab="dashboard">Inicio</button>
-                    <button class="admin-tab-btn" data-tab="productos">Productos</button>
-                    <button class="admin-tab-btn" data-tab="cotizaciones">Consultas</button>
-                    <button class="admin-tab-btn" data-tab="promociones">Ofertas</button>
-                    <button class="admin-tab-btn" data-tab="banners">Anuncios</button>
-                    <button class="admin-tab-btn" data-tab="pedidos">Ventas</button>
-                    <button class="admin-tab-btn" data-tab="clientes">Personas</button>
-                    <button class="admin-tab-btn" data-tab="envios">Envios</button>
-                    <button class="admin-tab-btn" data-tab="notificaciones">Mensajes</button>
+                    <button class="admin-tab-btn active" data-tab="dashboard"><i class="fas fa-house"></i> Inicio</button>
+                    <button class="admin-tab-btn" data-tab="productos"><i class="fas fa-box-open"></i> Productos</button>
+                    <button class="admin-tab-btn" data-tab="cotizaciones"><i class="fas fa-comments"></i> Consultas</button>
+                    <button class="admin-tab-btn" data-tab="promociones"><i class="fas fa-tag"></i> Ofertas</button>
+                    <button class="admin-tab-btn" data-tab="banners"><i class="fas fa-bullhorn"></i> Anuncios</button>
+                    <button class="admin-tab-btn" data-tab="pedidos"><i class="fas fa-chart-line"></i> Ventas</button>
+                    <button class="admin-tab-btn" data-tab="clientes"><i class="fas fa-users"></i> Personas</button>
+                    <button class="admin-tab-btn" data-tab="envios"><i class="fas fa-truck"></i> Envíos</button>
+                    <button class="admin-tab-btn" data-tab="notificaciones"><i class="fas fa-bell"></i> Mensajes</button>
                 </div>
             </header>
 
@@ -55,17 +55,17 @@
                 <div class="admin-kpis" id="kpiGrid"></div>
                 <div class="admin-grid-2">
                     <article class="admin-card">
-                        <h3>Paginas mas visitadas</h3>
+                        <h3><i class="fas fa-chart-bar"></i> Páginas más visitadas</h3>
                         <div id="accesosList" class="admin-list"></div>
                     </article>
                     <article class="admin-card">
-                        <h3>Dinero vendido (ultimos 6 meses)</h3>
+                        <h3><i class="fas fa-dollar-sign"></i> Dinero vendido</h3>
                         <canvas id="ventasChart" height="200"></canvas>
                     </article>
                 </div>
                 <div class="admin-grid-2" style="margin-top:12px;">
                     <article class="admin-card">
-                        <h3>Desde donde entran</h3>
+                        <h3><i class="fas fa-map-marker-alt"></i> Desde dónde entran</h3>
                         <div id="origenesList" class="admin-list"></div>
                     </article>
                 </div>
@@ -73,44 +73,87 @@
 
             <section class="admin-tab" id="tab-productos">
                 <article class="admin-card">
-                    <h3>Crear producto nuevo</h3>
+                    <h3><i class="fas fa-plus-circle"></i> Crear producto nuevo</h3>
                     <form id="formProducto" class="admin-form-grid" enctype="multipart/form-data">
-                        <input name="nombre" placeholder="Nombre" required>
-                        <input name="slug" placeholder="slug-producto" required>
-                        <select name="linea">
-                            <option value="piscina">Piscina</option>
-                            <option value="agua">Agua</option>
-                        </select>
-                        <input type="number" step="0.01" min="0" name="precio" placeholder="Precio" required>
-                        <input type="number" min="0" name="stock" placeholder="Stock" required>
-                        <input type="file" name="imagen" accept="image/png,image/jpeg,image/webp">
-                        <textarea name="descripcion" placeholder="Descripcion"></textarea>
-                        <small>La foto se sube a Cloudinary. Los PDFs se seguiran cargando directo en la pagina para cuidar el plan free.</small>
-                        <button type="submit" class="admin-btn">Guardar producto</button>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label for="prod-nombre">Nombre del producto</label>
+                                <input id="prod-nombre" name="nombre" placeholder="Ej: Purificador Acqua Pro" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="prod-slug">Identificador (slug)</label>
+                                <input id="prod-slug" name="slug" placeholder="purificador-acqua-pro" required>
+                            </div>
+                        </div>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label for="prod-linea">Línea de producto</label>
+                                <select id="prod-linea" name="linea">
+                                    <option value="piscina">Piscina</option>
+                                    <option value="agua">Tratamiento de agua</option>
+                                </select>
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="prod-precio">Precio (COP)</label>
+                                <input id="prod-precio" type="text" inputmode="numeric" name="precio" placeholder="COP 0" required>
+                            </div>
+                        </div>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label for="prod-stock">Unidades en stock</label>
+                                <input id="prod-stock" type="number" min="0" name="stock" placeholder="0" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="prod-imagen">Foto del producto</label>
+                                <input id="prod-imagen" type="file" name="imagen" accept="image/png,image/jpeg,image/webp">
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="prod-descripcion">Descripción</label>
+                            <textarea id="prod-descripcion" name="descripcion" placeholder="Describe el producto, sus características y beneficios..."></textarea>
+                        </div>
+                        <p class="admin-form-hint"><i class="fas fa-cloud-upload-alt"></i> La foto se sube a Cloudinary. Los PDFs se cargan directo en la página.</p>
+                        <button type="submit" class="admin-btn"><i class="fas fa-save"></i> Guardar producto</button>
                     </form>
                 </article>
                 <article class="admin-card" style="margin-top:12px;">
-                    <h3>Productos guardados</h3>
+                    <h3><i class="fas fa-boxes-stacked"></i> Productos guardados</h3>
                     <div id="productosList" class="admin-list"></div>
                 </article>
             </section>
 
             <section class="admin-tab" id="tab-cotizaciones">
                 <article class="admin-card">
-                    <h3>Responder cotizaciones</h3>
+                    <h3><i class="fas fa-comments"></i> Consultas recibidas</h3>
                     <div id="cotizacionesList" class="admin-list"></div>
                 </article>
             </section>
 
             <section class="admin-tab" id="tab-promociones">
                 <article class="admin-card">
-                    <h3>Programar promocion automatica</h3>
+                    <h3><i class="fas fa-tag"></i> Programar oferta</h3>
                     <form id="formPromocion" class="admin-form-grid">
-                        <input type="number" name="producto_id" min="1" placeholder="ID producto" required>
-                        <input type="number" name="porcentaje_descuento" min="1" max="90" placeholder="% descuento" required>
-                        <input type="datetime-local" name="fecha_inicio" required>
-                        <input type="datetime-local" name="fecha_fin" required>
-                        <button class="admin-btn" type="submit">Programar</button>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label>ID del producto</label>
+                                <input type="number" name="producto_id" min="1" placeholder="Ej: 3" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label>% de descuento</label>
+                                <input type="number" name="porcentaje_descuento" min="1" max="90" placeholder="Ej: 20" required>
+                            </div>
+                        </div>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label>Fecha de inicio</label>
+                                <input type="datetime-local" name="fecha_inicio" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label>Fecha de fin</label>
+                                <input type="datetime-local" name="fecha_fin" required>
+                            </div>
+                        </div>
+                        <button class="admin-btn" type="submit"><i class="fas fa-tag"></i> Programar oferta</button>
                     </form>
                     <div id="promocionesList" class="admin-list"></div>
                 </article>
@@ -118,13 +161,32 @@
 
             <section class="admin-tab" id="tab-banners">
                 <article class="admin-card">
-                    <h3>Poner anuncios en inicio</h3>
+                    <h3><i class="fas fa-bullhorn"></i> Anuncios en la página</h3>
                     <form id="formBanner" class="admin-form-grid">
-                        <input name="titulo" placeholder="Titulo banner" required>
-                        <input name="imagen_url" placeholder="URL imagen banner" required>
-                        <input name="enlace_url" placeholder="URL destino (opcional)">
-                        <input type="number" name="orden" min="0" placeholder="Orden">
-                        <button type="submit" class="admin-btn">Guardar banner</button>
+                        <div class="admin-form-group">
+                            <label>Título del anuncio</label>
+                            <input name="titulo" placeholder="Ej: Oferta de temporada" required>
+                        </div>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label>URL de la imagen</label>
+                                <input name="imagen_url" placeholder="https://...">
+                            </div>
+                            <div class="admin-form-group">
+                                <label>Enlace al hacer clic (opcional)</label>
+                                <input name="enlace_url" placeholder="https://...">
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label>O cargar imagen desde archivos</label>
+                            <input type="file" name="imagen" accept="image/png,image/jpeg,image/webp">
+                        </div>
+                        <p class="admin-form-hint">Puedes usar URL o archivo. Si cargas archivo, se sube a Cloudinary automáticamente.</p>
+                        <div class="admin-form-group" style="max-width:160px">
+                            <label>Orden de aparición</label>
+                            <input type="number" name="orden" min="0" placeholder="0">
+                        </div>
+                        <button type="submit" class="admin-btn"><i class="fas fa-bullhorn"></i> Guardar anuncio</button>
                     </form>
                     <div id="bannersList" class="admin-list"></div>
                 </article>
@@ -132,27 +194,38 @@
 
             <section class="admin-tab" id="tab-pedidos">
                 <article class="admin-card">
-                    <h3>Gestionar pedidos</h3>
+                    <h3><i class="fas fa-shopping-bag"></i> Pedidos recibidos</h3>
                     <div id="pedidosList" class="admin-list"></div>
                 </article>
             </section>
 
             <section class="admin-tab" id="tab-clientes">
                 <article class="admin-card">
-                    <h3>Personas registradas (datos de contacto)</h3>
+                    <h3><i class="fas fa-users"></i> Personas registradas</h3>
                     <div id="clientesList" class="admin-list"></div>
                 </article>
             </section>
 
             <section class="admin-tab" id="tab-envios">
                 <article class="admin-card">
-                    <h3>Configurar envios y contra entrega</h3>
+                    <h3><i class="fas fa-truck"></i> Envíos y contra entrega</h3>
                     <form id="formEnvio" class="admin-form-grid">
-                        <input name="ciudad" placeholder="Ciudad" required>
-                        <input type="number" step="0.01" min="0" name="costo" placeholder="Costo envio" required>
-                        <input type="number" step="0.01" min="0" name="gratis_desde" placeholder="Gratis desde (opcional)">
-                        <label class="admin-check"><input type="checkbox" name="contra_entrega_habilitado" checked> Contra entrega habilitado</label>
-                        <button class="admin-btn" type="submit">Guardar envio</button>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label>Ciudad</label>
+                                <input name="ciudad" placeholder="Ej: Barranquilla" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label>Costo de envío (COP)</label>
+                                <input type="number" step="0.01" min="0" name="costo" placeholder="0" required>
+                            </div>
+                        </div>
+                        <div class="admin-form-group" style="max-width:260px">
+                            <label>Envío gratis a partir de (opcional)</label>
+                            <input type="number" step="0.01" min="0" name="gratis_desde" placeholder="Ej: 200000">
+                        </div>
+                        <label class="admin-check"><input type="checkbox" name="contra_entrega_habilitado" checked> Habilitar pago contra entrega</label>
+                        <button class="admin-btn" type="submit"><i class="fas fa-truck"></i> Guardar configuración</button>
                     </form>
                     <div id="enviosList" class="admin-list"></div>
                 </article>
@@ -160,16 +233,28 @@
 
             <section class="admin-tab" id="tab-notificaciones">
                 <article class="admin-card">
-                    <h3>Enviar promociones y notificaciones</h3>
+                    <h3><i class="fas fa-bell"></i> Mensajes a clientes</h3>
                     <form id="formNotificacion" class="admin-form-grid">
-                        <input name="titulo" placeholder="Titulo" required>
-                        <textarea name="mensaje" placeholder="Mensaje para todos los clientes" required></textarea>
-                        <select name="tipo">
-                            <option value="promocion">Promocion</option>
-                            <option value="informativo">Informativo</option>
-                        </select>
-                        <button type="submit" class="admin-btn">Enviar notificacion</button>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label>Título del mensaje</label>
+                                <input name="titulo" placeholder="Ej: Gran promoción de temporada" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label>Tipo de mensaje</label>
+                                <select name="tipo">
+                                    <option value="promocion">Promoción</option>
+                                    <option value="informativo">Informativo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Mensaje</label>
+                            <textarea name="mensaje" placeholder="Escribe aquí el mensaje para todos los clientes..." required></textarea>
+                        </div>
+                        <button type="submit" class="admin-btn"><i class="fas fa-paper-plane"></i> Enviar a todos</button>
                     </form>
+                    <div id="notificacionesList" class="admin-list" style="margin-top:12px"></div>
                 </article>
             </section>
         </div>
