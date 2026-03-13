@@ -11,6 +11,8 @@
   --lp-light:     #e8f4fb;
   --lp-promo-bg:  #023E8A;
   --lp-gradient:  linear-gradient(135deg, #023E8A 0%, #0077B6 56%, #00B4D8 100%);
+  --lp-serif:     'Cormorant Garamond', serif;
+  --lp-sans:      'Manrope', 'Barlow', sans-serif;
 }
 
 body.lp-theme--agua {
@@ -20,6 +22,12 @@ body.lp-theme--agua {
   --lp-light:     #e2f5f6;
   --lp-promo-bg:  #0d6e7e;
   --lp-gradient:  linear-gradient(135deg, #0d6e7e 0%, #1B8FA1 56%, #23c0c8 100%);
+}
+
+body.lp-theme--piscina,
+body.lp-theme--agua,
+body.page-gateway {
+  font-family: var(--lp-sans);
 }
 
 /* ── Promo Bar ── */
@@ -1063,6 +1071,176 @@ body.page-gateway .split-hero__cta {
   text-decoration: none;
 }
 .gw-footer__links a:hover { color: #fff; }
+
+/* ── Figma Essence Overrides ── */
+body.lp-theme--piscina .top-bar,
+body.lp-theme--agua .top-bar,
+body.page-gateway .top-bar {
+  background: #f7f7f5;
+  color: #5f6162;
+  border-bottom: 1px solid #e4e4e1;
+  padding: 7px 0;
+}
+
+body.lp-theme--piscina .top-bar a,
+body.lp-theme--agua .top-bar a,
+body.page-gateway .top-bar a {
+  color: #5f6162;
+}
+
+body.lp-theme--piscina .top-bar__item i,
+body.lp-theme--agua .top-bar__item i,
+body.page-gateway .top-bar__item i,
+body.lp-theme--piscina .navbar__link i,
+body.lp-theme--agua .navbar__link i,
+body.page-gateway .navbar__link i {
+  display: none;
+}
+
+body.lp-theme--piscina .navbar,
+body.lp-theme--agua .navbar,
+body.page-gateway .navbar {
+  background: #f7f7f5;
+  border-bottom: 1px solid #e2e2df;
+  box-shadow: none;
+}
+
+body.lp-theme--piscina .navbar .container,
+body.lp-theme--agua .navbar .container,
+body.page-gateway .navbar .container {
+  height: 68px;
+}
+
+body.lp-theme--piscina .navbar__logo img,
+body.lp-theme--agua .navbar__logo img,
+body.page-gateway .navbar__logo img {
+  height: 34px !important;
+}
+
+body.lp-theme--piscina .navbar__link,
+body.lp-theme--agua .navbar__link,
+body.page-gateway .navbar__link {
+  font-family: var(--lp-sans);
+  font-size: 0.94rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border-radius: 3px;
+}
+
+body.lp-theme--piscina .navbar__action-btn,
+body.lp-theme--agua .navbar__action-btn,
+body.page-gateway .navbar__action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+body.lp-theme--piscina .lp-hero__offer,
+body.lp-theme--agua .lp-hero__offer,
+body.lp-theme--piscina .lp-hero__title,
+body.lp-theme--agua .lp-hero__title,
+body.lp-theme--piscina .lp-section__title,
+body.lp-theme--agua .lp-section__title,
+body.lp-theme--piscina .lp-lifestyle__text h2,
+body.lp-theme--agua .lp-lifestyle__text h2,
+body.lp-theme--piscina .lp-statement__inner h2,
+body.lp-theme--agua .lp-statement__inner h2,
+body.page-gateway .split-hero__title {
+  font-family: var(--lp-serif);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+body.page-gateway .split-hero__icon,
+body.page-gateway .split-hero__cta i,
+body.page-gateway .split-hero__count i,
+body.lp-theme--piscina .lp-hero__badge i,
+body.lp-theme--agua .lp-hero__badge i,
+body.lp-theme--piscina .lp-hero__cta i,
+body.lp-theme--agua .lp-hero__cta i,
+body.lp-theme--piscina .lp-prod-card__free-ship i,
+body.lp-theme--agua .lp-prod-card__free-ship i,
+body.lp-theme--piscina .lp-prod-card__btn i,
+body.lp-theme--agua .lp-prod-card__btn i,
+body.lp-theme--piscina .lp-products__see-all i,
+body.lp-theme--agua .lp-products__see-all i,
+body.lp-theme--piscina .lp-info-split__btn i,
+body.lp-theme--agua .lp-info-split__btn i,
+body.lp-theme--piscina .lp-lifestyle__cta i,
+body.lp-theme--agua .lp-lifestyle__cta i,
+body.lp-theme--piscina .lp-statement__cta i,
+body.lp-theme--agua .lp-statement__cta i,
+body.lp-theme--piscina .lp-article-card__meta i,
+body.lp-theme--agua .lp-article-card__meta i,
+body.lp-theme--piscina .lp-newsletter__btn i,
+body.lp-theme--agua .lp-newsletter__btn i {
+  display: none;
+}
+
+body.lp-theme--piscina .lp-cat-chip__icon,
+body.lp-theme--agua .lp-cat-chip__icon {
+  display: none;
+}
+
+body.lp-theme--piscina .lp-cat-chip,
+body.lp-theme--agua .lp-cat-chip {
+  min-width: 170px;
+  max-width: none;
+  align-items: flex-start;
+  padding: 18px 16px;
+  border-radius: 6px;
+}
+
+body.lp-theme--piscina .lp-hero__badge,
+body.lp-theme--agua .lp-hero__badge,
+body.lp-theme--piscina .lp-products__tab,
+body.lp-theme--agua .lp-products__tab,
+body.lp-theme--piscina .lp-prod-card__btn,
+body.lp-theme--agua .lp-prod-card__btn,
+body.lp-theme--piscina .lp-info-split__btn,
+body.lp-theme--agua .lp-info-split__btn,
+body.lp-theme--piscina .lp-lifestyle__cta,
+body.lp-theme--agua .lp-lifestyle__cta,
+body.lp-theme--piscina .lp-statement__cta,
+body.lp-theme--agua .lp-statement__cta,
+body.lp-theme--piscina .lp-newsletter__btn,
+body.lp-theme--agua .lp-newsletter__btn,
+body.lp-theme--piscina .lp-newsletter__input,
+body.lp-theme--agua .lp-newsletter__input,
+body.lp-theme--piscina .lp-promo-bar__badge,
+body.lp-theme--agua .lp-promo-bar__badge,
+body.page-gateway .split-hero__cta {
+  border-radius: 4px;
+}
+
+body.lp-theme--piscina .lp-products__tabs,
+body.lp-theme--agua .lp-products__tabs {
+  border-radius: 6px;
+  padding: 4px;
+}
+
+body.lp-theme--piscina .lp-prod-card,
+body.lp-theme--agua .lp-prod-card,
+body.lp-theme--piscina .lp-review-card,
+body.lp-theme--agua .lp-review-card,
+body.lp-theme--piscina .lp-article-card,
+body.lp-theme--agua .lp-article-card,
+body.lp-theme--piscina .lp-stats__tile,
+body.lp-theme--agua .lp-stats__tile,
+body.lp-theme--piscina .lp-video,
+body.lp-theme--agua .lp-video,
+body.lp-theme--piscina .lp-video__play,
+body.lp-theme--agua .lp-video__play,
+body.page-gateway .split-hero__content {
+  border-radius: 8px;
+}
+
+body.page-gateway .split-hero__content {
+  backdrop-filter: blur(1px);
+  background: linear-gradient(180deg, rgba(6, 16, 24, 0.24) 0%, rgba(6, 16, 24, 0.08) 100%);
+}
 
 /* ── Responsive ── */
 @media (max-width: 1100px) {
