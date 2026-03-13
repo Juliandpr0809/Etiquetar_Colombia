@@ -23,12 +23,15 @@
 
 <body class="lp-theme--piscina">
 
-  <!-- ══ PROMO BAR ══ -->
+  <!-- ══ PROMO BAR (solo si hay oferta activa) ══ -->
+  {% if oferta_activa %}
   <div class="lp-promo-bar">
     <i class="fas fa-swimming-pool"></i>
-    <strong>Temporada de Piscinas</strong> · Hasta 30% OFF en equipos seleccionados · Envío gratis en Colombia
-    <a class="lp-promo-bar__badge" href="/catalogo/piscina">Ver Oferta</a>
+    <strong>{{ oferta_activa.titulo if oferta_activa.titulo else 'Oferta Especial' }}</strong>
+    {% if oferta_activa.descripcion %} · {{ oferta_activa.descripcion }}{% endif %}
+    <a class="lp-promo-bar__badge" href="{{ oferta_activa.enlace if oferta_activa.enlace else '/catalogo/piscina' }}">Ver Oferta</a>
   </div>
+  {% endif %}
 
   <!-- ══ NAVBAR ══ -->
   <div class="top-bar">
@@ -47,7 +50,7 @@
   <nav class="navbar" id="navbar">
     <div class="container">
       <a href="/" class="navbar__logo">
-        <img src="../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:42px;width:auto;">
+        <img src="../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:50px;width:auto;">
       </a>
       <ul class="navbar__menu" id="navMenu">
         <li><a href="/" class="navbar__link">Inicio</a></li>
@@ -72,18 +75,16 @@
 
   <!-- ══ HERO BANNER ══ -->
   <section class="lp-hero">
-    <div class="lp-hero__bg-shape"></div>
-    <div class="lp-hero__inner">
-      <div class="lp-hero__text">
-        <div class="lp-hero__badge"><i class="fas fa-swimming-pool"></i> Piscina & Spa · Temporada</div>
-        <div class="lp-hero__offer">Hasta 30% OFF</div>
-        <h1 class="lp-hero__title">Equipos Profesionales<br>para Tu Piscina Perfecta</h1>
-        <p class="lp-hero__sub">Bombas de alto rendimiento, filtros de arena, robots limpiafondos y todo lo que necesitas para una piscina cristalina. Marcas líderes con garantía y envío a toda Colombia.</p>
-        <a href="/catalogo/piscina" class="lp-hero__cta">Comprar Ahora <i class="fas fa-arrow-right"></i></a>
-      </div>
-      <div class="lp-hero__img">
-        <img src="../estaticos/img/hero_piscina.png" alt="Equipos de piscina y spa">
-      </div>
+    <div class="lp-hero__media">
+      <img src="../estaticos/img/hero_piscina.png" alt="Equipos de piscina y spa">
+    </div>
+    <div class="lp-hero__content">
+      <div class="lp-hero__badge"><i class="fas fa-swimming-pool"></i> Piscina &amp; Spa · Temporada</div>
+      <div class="lp-hero__offer">Tu Piscina Perfecta
+Empieza Aquí</div>
+      <h1 class="lp-hero__title">Equipos Profesionales<br>para Tu Piscina Perfecta</h1>
+      <p class="lp-hero__sub">Bombas de alto rendimiento, filtros de arena y robots limpiafondos. Marcas líderes con garantía y envío a toda Colombia.</p>
+      <a href="/catalogo/piscina" class="lp-hero__cta">Comprar Ahora <i class="fas fa-arrow-right"></i></a>
     </div>
   </section>
 
@@ -235,7 +236,7 @@
   <!-- ══ LIFESTYLE — DISFRUTA TU PISCINA ══ -->
   <div class="lp-lifestyle">
     <div class="lp-lifestyle__img">
-      <img src="../estaticos/img/logistica-confianza.jpg" alt="Disfruta tu piscina al máximo">
+      <img src="../estaticos/img/piscina.jpg" alt="Disfruta tu piscina al máximo">
     </div>
     <div class="lp-lifestyle__text">
       <span class="lp-section__label">Estilo de Vida</span>
@@ -254,7 +255,7 @@
       <p>Con los equipos correctos, el mantenimiento de tu piscina se vuelve simple, económico y eficiente. Asesoría personalizada, marcas líderes y soporte técnico cuando lo necesitas.</p>
       <a href="/catalogo/piscina" class="lp-statement__cta">Ver Catálogo Completo <i class="fas fa-arrow-right"></i></a>
       <div class="lp-statement__img">
-        <img src="../estaticos/img/products_collage.png" alt="Productos de piscina">
+        <img src="../estaticos/img/producto_piscina-removebg-preview.png" alt="Productos de piscina">
       </div>
     </div>
   </section>
@@ -407,14 +408,16 @@
 
   <!-- ══ NEWSLETTER ══ -->
   <div class="lp-newsletter">
-    <div class="lp-newsletter__text">
-      <h3>Mantente al Día con Piscina & Spa</h3>
-      <p>Recibe ofertas exclusivas, consejos de mantenimiento y novedades en equipos directamente en tu correo.</p>
+    <div class="lp-newsletter__inner">
+      <div class="lp-newsletter__text">
+        <h3>Mantente al Día con Piscina & Spa</h3>
+        <p>Recibe ofertas exclusivas, consejos de mantenimiento y novedades en equipos directamente en tu correo.</p>
+      </div>
+      <form class="lp-newsletter__form" onsubmit="return false;">
+        <input type="email" class="lp-newsletter__input" placeholder="tu@correo.com" aria-label="Correo electrónico">
+        <button type="submit" class="lp-newsletter__btn"><i class="fas fa-paper-plane"></i> Suscribirme</button>
+      </form>
     </div>
-    <form class="lp-newsletter__form" onsubmit="return false;">
-      <input type="email" class="lp-newsletter__input" placeholder="tu@correo.com" aria-label="Correo electrónico">
-      <button type="submit" class="lp-newsletter__btn"><i class="fas fa-paper-plane"></i> Suscribirme</button>
-    </form>
   </div>
 
   <!-- ══ FOOTER ══ -->
@@ -422,7 +425,7 @@
     <div class="container">
       <div class="footer__grid">
         <div class="footer__col">
-          <img src="../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:40px;width:auto;display:block;margin-bottom:12px;">
+          <img src="../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:46px;width:auto;display:block;margin-bottom:12px;">
           <p class="footer__desc">Especialistas en equipos de piscina y tratamiento de agua. Cobertura nacional con las mejores marcas y garantía real.</p>
           <div class="footer__social">
             <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>

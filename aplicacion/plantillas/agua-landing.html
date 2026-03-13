@@ -23,12 +23,15 @@
 
 <body class="lp-theme--agua">
 
-  <!-- ══ PROMO BAR ══ -->
+  <!-- ══ PROMO BAR (solo si hay oferta activa) ══ -->
+  {% if oferta_activa %}
   <div class="lp-promo-bar">
     <i class="fas fa-tint"></i>
-    <strong>Agua Segura Para Tu Familia</strong> · Hasta 25% OFF en sistemas de filtración · Envío gratis en Colombia
-    <a class="lp-promo-bar__badge" href="/catalogo/agua">Ver Oferta</a>
+    <strong>{{ oferta_activa.titulo if oferta_activa.titulo else 'Oferta Especial' }}</strong>
+    {% if oferta_activa.descripcion %} · {{ oferta_activa.descripcion }}{% endif %}
+    <a class="lp-promo-bar__badge" href="{{ oferta_activa.enlace if oferta_activa.enlace else '/catalogo/agua' }}">Ver Oferta</a>
   </div>
+  {% endif %}
 
   <!-- ══ TOP BAR + NAVBAR ══ -->
   <div class="top-bar">
@@ -47,7 +50,7 @@
   <nav class="navbar" id="navbar">
     <div class="container">
       <a href="/" class="navbar__logo">
-        <img src="../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:42px;width:auto;">
+        <img src="../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:50px;width:auto;">
       </a>
       <ul class="navbar__menu" id="navMenu">
         <li><a href="/" class="navbar__link">Inicio</a></li>
@@ -72,18 +75,16 @@
 
   <!-- ══ HERO BANNER ══ -->
   <section class="lp-hero">
-    <div class="lp-hero__bg-shape"></div>
-    <div class="lp-hero__inner">
-      <div class="lp-hero__text">
-        <div class="lp-hero__badge"><i class="fas fa-tint"></i> Tratamiento de Agua · Tecnología</div>
-        <div class="lp-hero__offer">Hasta 25% OFF</div>
-        <h1 class="lp-hero__title">Agua Pura Para Tu<br>Hogar y Tu Empresa</h1>
-        <p class="lp-hero__sub">Sistemas de ósmosis inversa, purificadores UV, filtros de carbono activado y cloración automática. Agua segura para consumo, producción e industria. Tecnología de punta con instalación incluida.</p>
-        <a href="/catalogo/agua" class="lp-hero__cta">Comprar Ahora <i class="fas fa-arrow-right"></i></a>
-      </div>
-      <div class="lp-hero__img">
-        <img src="../estaticos/img/hero_agua.png" alt="Sistemas de tratamiento y purificación de agua">
-      </div>
+    <div class="lp-hero__media">
+      <img src="../estaticos/img/agua_home.jpg" alt="Sistemas de tratamiento y purificación de agua">
+    </div>
+    <div class="lp-hero__content">
+      <div class="lp-hero__badge"><i class="fas fa-tint"></i> Tratamiento de Agua · Tecnología</div>
+      <div class="lp-hero__offer">Tu Familia Merece
+Agua Sin Dudas</div>
+      <h1 class="lp-hero__title">Agua Pura Para Tu<br>Hogar y Tu Empresa</h1>
+      <p class="lp-hero__sub">Sistemas de ósmosis inversa, purificadores UV, filtros de carbono activado y cloración automática. Instalación incluida.</p>
+      <a href="/catalogo/agua" class="lp-hero__cta">Comprar Ahora <i class="fas fa-arrow-right"></i></a>
     </div>
   </section>
 
@@ -108,7 +109,7 @@
       <div class="lp-prod-card" data-lp-cat="osmosis">
         <span class="lp-prod-card__badge">-20% OFF</span>
         <div class="lp-prod-card__img-wrap">
-          <img src="../estaticos/img/producto-osmosis-ecommerce.jpg" alt="Sistema Ósmosis Inversa 5 Etapas Premium">
+          <img src="../estaticos/img/producto-osmosis-ecommerce-removebg-preview.png" alt="Sistema Ósmosis Inversa 5 Etapas Premium">
         </div>
         <div class="lp-prod-card__body">
           <div class="lp-prod-card__cat">Ósmosis Inversa</div>
@@ -254,7 +255,7 @@
       <p>¿Sabes cuántas sustancias contiene el agua que consumes a diario? Con nuestros sistemas de filtración, eso deja de importar. Agua certificada, familia protegida.</p>
       <a href="/catalogo/agua" class="lp-statement__cta">Encontrar Mi Sistema <i class="fas fa-arrow-right"></i></a>
       <div class="lp-statement__img">
-        <img src="../estaticos/img/producto-osmosis-ecommerce.jpg" alt="Sistema de ósmosis inversa">
+        <img src="../estaticos/img/producto-osmosis-ecommerce-removebg-preview.png" alt="Sistema de ósmosis inversa">
       </div>
     </div>
   </section>
@@ -407,14 +408,16 @@
 
   <!-- ══ NEWSLETTER ══ -->
   <div class="lp-newsletter">
-    <div class="lp-newsletter__text">
-      <h3>Mantente al Día con Agua Pura</h3>
-      <p>Recibe guías de calidad del agua, ofertas exclusivas y recordatorios de mantenimiento en tu correo.</p>
+    <div class="lp-newsletter__inner">
+      <div class="lp-newsletter__text">
+        <h3>Mantente al Día con Agua Pura</h3>
+        <p>Recibe guías de calidad del agua, ofertas exclusivas y recordatorios de mantenimiento en tu correo.</p>
+      </div>
+      <form class="lp-newsletter__form" onsubmit="return false;">
+        <input type="email" class="lp-newsletter__input" placeholder="tu@correo.com" aria-label="Correo electrónico">
+        <button type="submit" class="lp-newsletter__btn"><i class="fas fa-paper-plane"></i> Suscribirme</button>
+      </form>
     </div>
-    <form class="lp-newsletter__form" onsubmit="return false;">
-      <input type="email" class="lp-newsletter__input" placeholder="tu@correo.com" aria-label="Correo electrónico">
-      <button type="submit" class="lp-newsletter__btn"><i class="fas fa-paper-plane"></i> Suscribirme</button>
-    </form>
   </div>
 
   <!-- ══ FOOTER ══ -->
@@ -422,7 +425,7 @@
     <div class="container">
       <div class="footer__grid">
         <div class="footer__col">
-          <img src="../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:40px;width:auto;display:block;margin-bottom:12px;">
+          <img src="../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:46px;width:auto;display:block;margin-bottom:12px;">
           <p class="footer__desc">Especialistas en sistemas de tratamiento y purificación de agua. Soluciones para hogar, empresa e industria en toda Colombia.</p>
           <div class="footer__social">
             <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>

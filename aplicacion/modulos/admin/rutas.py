@@ -527,7 +527,24 @@ def listar_cotizaciones_api():
     if not isinstance(admin, Usuario):
         return admin
 
-    items = Cotizacion.query.order_by(Cotizacion.created_at.desc()).limit(200).all()
+    estado = (request.args.get("estado") or "").strip().lower()
+    busqueda = (request.args.get("q") or "").strip().lower()
+
+    query = Cotizacion.query
+    if estado and estado != "todas":
+        query = query.filter(Cotizacion.estado == estado)
+
+    if busqueda:
+        patron = f"%{busqueda}%"
+        query = query.filter(
+            func.lower(Cotizacion.nombre).like(patron)
+            | func.lower(Cotizacion.email).like(patron)
+            | func.lower(func.coalesce(Cotizacion.telefono, "")).like(patron)
+            | func.lower(func.coalesce(Cotizacion.ciudad, "")).like(patron)
+            | func.lower(Cotizacion.mensaje).like(patron)
+        )
+
+    items = query.order_by(Cotizacion.created_at.desc()).limit(300).all()
     return jsonify(
         {
             "ok": True,
@@ -543,6 +560,7 @@ def listar_cotizaciones_api():
                     "precio_ofertado": float(c.precio_ofertado) if c.precio_ofertado is not None else None,
                     "respuesta": c.respuesta,
                     "created_at": c.created_at.isoformat(),
+                    "responded_at": c.responded_at.isoformat() if c.responded_at else None,
                 }
                 for c in items
             ],
@@ -571,6 +589,30 @@ def responder_cotizacion_api(cotizacion_id):
     db.session.commit()
 
     return jsonify({"ok": True, "message": "Cotizacion respondida."})
+
+
+@admin_bp.patch("/api/cotizaciones/<int:cotizacion_id>/estado")
+def actualizar_estado_cotizacion_api(cotizacion_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    estado = (payload.get("estado") or "").strip().lower()
+    estados_validos = {"pendiente", "respondida", "descartada"}
+
+    if estado not in estados_validos:
+        return jsonify({"ok": False, "message": "Estado de cotizacion invalido."}), 400
+
+    cotizacion = Cotizacion.query.get_or_404(cotizacion_id)
+    cotizacion.estado = estado
+    if estado == "respondida":
+        cotizacion.responded_at = cotizacion.responded_at or datetime.utcnow()
+    elif estado != "respondida":
+        cotizacion.responded_at = None
+    db.session.commit()
+
+    return jsonify({"ok": True, "message": "Estado de cotizacion actualizado."})
 
 
 @admin_bp.post("/api/promociones")

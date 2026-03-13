@@ -132,10 +132,12 @@ def _register_routes(app):
     def blog_articulo_3():
         return render_template("blog/articulo-3-mantenimiento-piscina.html")
 
+    @app.get("/nosotros")
+    @app.get("/contacto.html")
     @app.get("/contacto")
     @app.get("/pages/contacto.html")
     def contacto():
-        return render_template("pages/contacto.html")
+        return render_template("pages/nosotros.html")
 
     @app.get("/health")
     def health():

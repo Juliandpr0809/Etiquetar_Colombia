@@ -17,7 +17,7 @@
     <nav class="navbar" id="navbar">
         <div class="container">
             <a href="{{ url_for('home') }}" class="navbar__logo">
-                <img src="../../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:42px; width:auto;">
+                <img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:50px; width:auto;">
             </a>
             <div class="navbar__actions">
                 <a href="{{ url_for('autenticacion.perfil') }}" class="navbar__action-btn" aria-label="Perfil"><i class="fas fa-user"></i></a>
@@ -166,6 +166,22 @@
             <section class="admin-tab" id="tab-cotizaciones">
                 <article class="admin-card">
                     <h3><i class="fas fa-comments"></i> Consultas recibidas</h3>
+                    <div class="admin-analytics-toolbar" style="margin-top:4px">
+                        <div class="admin-form-group" style="min-width:210px">
+                            <label for="cotizacionesEstado">Estado</label>
+                            <select id="cotizacionesEstado">
+                                <option value="todas">Todas</option>
+                                <option value="pendiente" selected>Pendientes</option>
+                                <option value="respondida">Respondidas</option>
+                                <option value="descartada">Descartadas</option>
+                            </select>
+                        </div>
+                        <div class="admin-form-group" style="min-width:270px">
+                            <label for="cotizacionesBusqueda">Buscar</label>
+                            <input id="cotizacionesBusqueda" placeholder="Nombre, correo, telefono o ciudad">
+                        </div>
+                        <button class="admin-mini-btn" id="cotizacionesBuscarBtn" type="button" style="margin-bottom:1px">Aplicar</button>
+                    </div>
                     <div id="cotizacionesList" class="admin-list"></div>
                 </article>
             </section>

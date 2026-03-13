@@ -1,9 +1,11 @@
 /* ============================================
-   ETIQUETAR COLOMBIA — Homepage JavaScript
+   ETIQUETAR COLOMBIA — Homepage JavaScript v2
+   "Dos mundos. Una marca. Cero confusión."
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ── Toast Notification ──
   const showToast = (message) => {
     let toast = document.querySelector('.app-toast');
     if (!toast) {
@@ -14,9 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     toast.textContent = message;
     toast.classList.add('is-visible');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => toast.classList.remove('is-visible'), 1800);
+    toast._timer = setTimeout(() => toast.classList.remove('is-visible'), 2000);
   };
 
+  // ── Cart Badge ──
   const updateCartBadge = (count) => {
     document.querySelectorAll('.navbar__cart-badge').forEach((badge) => {
       badge.textContent = count;
@@ -31,9 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch('/carrito/api');
       const payload = await response.json();
       if (payload.ok) updateCartBadge(payload.data.total_items || 0);
-    } catch (error) {
-      // noop
-    }
+    } catch (error) { /* noop */ }
   };
 
   window.etiquetarCart = {
@@ -56,6 +57,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
   syncCartBadge();
 
+  // ── Navbar World Routing + Catalog Switcher ──
+  const nav = document.querySelector('.navbar');
+  if (nav) {
+    // Ensure world links always go to each landing page (not catalog).
+    document.querySelectorAll('.navbar__link--piscina').forEach((link) => {
+      link.setAttribute('href', '/piscina');
+    });
+    document.querySelectorAll('.navbar__link--agua').forEach((link) => {
+      link.setAttribute('href', '/agua');
+    });
+
+    const navMenu = nav.querySelector('.navbar__menu');
+    const catalogTrigger = navMenu
+      ? Array.from(navMenu.querySelectorAll('.navbar__link')).find((link) => {
+          return link.textContent.trim().toLowerCase().includes('cat');
+        })
+      : null;
+
+    if (catalogTrigger && !document.querySelector('.navbar__catalog-bar')) {
+      catalogTrigger.classList.add('navbar__catalog-trigger');
+      catalogTrigger.setAttribute('href', '#');
+      catalogTrigger.setAttribute('aria-expanded', 'false');
+      catalogTrigger.setAttribute('aria-controls', 'catalogSwitcherBar');
+
+      const catalogBar = document.createElement('div');
+      catalogBar.className = 'navbar__catalog-bar';
+      catalogBar.id = 'catalogSwitcherBar';
+      catalogBar.innerHTML = `
+        <div class="container navbar__catalog-bar-inner">
+          <span class="navbar__catalog-label">Elige el catálogo:</span>
+          <a class="navbar__catalog-option navbar__catalog-option--piscina" href="/catalogo/piscina">
+            <i class="fas fa-swimming-pool"></i> Piscina y Spa
+          </a>
+          <a class="navbar__catalog-option navbar__catalog-option--agua" href="/catalogo/agua">
+            <i class="fas fa-tint"></i> Tratamiento de Agua
+          </a>
+        </div>
+      `;
+
+      nav.insertAdjacentElement('afterend', catalogBar);
+
+      const setCatalogOpen = (isOpen) => {
+        catalogBar.classList.toggle('is-open', isOpen);
+        catalogTrigger.classList.toggle('is-open', isOpen);
+        catalogTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      };
+
+      catalogTrigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        setCatalogOpen(!catalogBar.classList.contains('is-open'));
+      });
+
+      catalogBar.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', () => setCatalogOpen(false));
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!catalogBar.classList.contains('is-open')) return;
+        if (catalogBar.contains(e.target) || catalogTrigger.contains(e.target)) return;
+        setCatalogOpen(false);
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') setCatalogOpen(false);
+      });
+    }
+  }
+
   // ── Mobile Menu Toggle ──
   const toggle = document.querySelector('.navbar__toggle');
   const menu = document.querySelector('.navbar__menu');
@@ -77,35 +146,99 @@ document.addEventListener('DOMContentLoaded', () => {
       icon.classList.toggle('fa-times');
     });
 
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closeMenu();
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu();
     });
 
-    document.addEventListener('click', (event) => {
+    document.addEventListener('click', (e) => {
       if (!menu.classList.contains('active')) return;
-      if (menu.contains(event.target) || toggle.contains(event.target)) return;
+      if (menu.contains(e.target) || toggle.contains(e.target)) return;
       closeMenu();
     });
   }
 
-  // ── Product Tabs ──
-  const tabs = document.querySelectorAll('.products__tab');
-  const productCards = document.querySelectorAll('.product-card');
+  // ── Navbar scroll effect ──
+  const navbar = document.querySelector('.navbar');
+  if (navbar) {
+    const handleNavScroll = () => {
+      if (window.scrollY > 20) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    };
+    window.addEventListener('scroll', handleNavScroll, { passive: true });
+    handleNavScroll();
+  }
 
-  const activateProductTab = (line) => {
-    tabs.forEach(t => {
-      t.classList.remove('active--piscina', 'active--agua');
+  // ── Scroll Reveal (Intersection Observer) ──
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => {
+    revealObserver.observe(el);
+  });
+
+  // ── Animated Counters ──
+  const animateCounter = (el) => {
+    const target = parseFloat(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const prefix = el.dataset.prefix || '';
+    const duration = 1500;
+    const start = performance.now();
+
+    const step = (now) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(eased * target);
+      el.textContent = prefix + current.toLocaleString('es-CO') + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+      else el.textContent = prefix + target.toLocaleString('es-CO') + suffix;
+    };
+
+    requestAnimationFrame(step);
+  };
+
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCounter(entry.target);
+        counterObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('[data-counter]').forEach(el => {
+    counterObserver.observe(el);
+  });
+
+  // ── Product Tabs (landing pages) ──
+  const tabs = document.querySelectorAll('.products__tab, .lp-products__tab');
+  const productCards = document.querySelectorAll('.product-card, .lp-prod-card');
+
+  const activateProductTab = (line, tabGroup) => {
+    tabGroup.forEach(t => {
+      t.classList.remove('active--piscina', 'active--agua', 'is-active');
     });
 
-    tabs.forEach(tab => {
-      if (tab.dataset.line === line) {
+    tabGroup.forEach(tab => {
+      const tabLine = tab.dataset.line || tab.dataset.lpCat;
+      if (tabLine === line) {
         if (line === 'agua') tab.classList.add('active--agua');
-        else tab.classList.add('active--piscina');
+        else tab.classList.add('active--piscina', 'is-active');
       }
     });
 
     productCards.forEach(card => {
-      const cardLine = card.dataset.line;
+      const cardLine = card.dataset.line || card.dataset.lpCat;
       if (line === 'todos' || cardLine === line) {
         card.style.display = '';
         card.style.animation = 'fadeInUp 0.4s ease forwards';
@@ -117,52 +250,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      const line = tab.dataset.line;
-      activateProductTab(line);
+      const line = tab.dataset.line || tab.dataset.lpCat;
+      activateProductTab(line, tabs);
     });
   });
 
-  document.querySelectorAll('[data-line-focus]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const line = btn.dataset.lineFocus;
-      if (!line) return;
-      activateProductTab(line);
-      document.querySelector('#productos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
-
-  const initialTab = document.querySelector('.products__tab.active--piscina, .products__tab.active--agua');
-  if (initialTab?.dataset?.line) {
-    activateProductTab(initialTab.dataset.line);
-  }
-
-  // ── Scroll animations (Intersection Observer) ──
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-  };
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('animate-in');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, observerOptions);
-
-  document.querySelectorAll('.category-card, .product-card, .section-title').forEach(el => {
-    el.classList.add('animate-target');
-    observer.observe(el);
-  });
-
-  // ── Add to Cart Animation ──
-  document.querySelectorAll('.product-card__btn').forEach(btn => {
+  // ── Add to Cart ──
+  document.querySelectorAll('.product-card__btn, .lp-prod-card__btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const productoId = btn.dataset.productId;
       if (!productoId) {
-        showToast('Este producto aun no esta conectado al carrito.');
+        showToast('Este producto aún no está conectado al carrito.');
         return;
       }
 
@@ -177,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
           setTimeout(() => {
             btn.innerHTML = original;
             btn.style.pointerEvents = '';
-          }, 1200);
+          }, 1400);
         })
         .catch((error) => {
           btn.innerHTML = original;
@@ -185,19 +284,6 @@ document.addEventListener('DOMContentLoaded', () => {
           showToast(error.message || 'No se pudo agregar el producto');
         });
     });
-  });
-
-  // ── Navbar scroll shadow ──
-  const navbar = document.querySelector('.navbar');
-  let lastScroll = 0;
-  window.addEventListener('scroll', () => {
-    const current = window.scrollY;
-    if (current > 20) {
-      navbar.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
-    } else {
-      navbar.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-    }
-    lastScroll = current;
   });
 
   // ── Search toggle ──
@@ -211,105 +297,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-});
 
-// ── CSS Animations (injected) ──
-const animStyles = document.createElement('style');
-animStyles.textContent = `
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes cartPop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.4); }
-    100% { transform: scale(1); }
-  }
-  .animate-target {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-  }
-  .animate-target.animate-in {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .app-toast {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    z-index: 1100;
-    background: #1A1A2E;
-    color: #fff;
-    border-left: 4px solid #00B4D8;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 0.88rem;
-    opacity: 0;
-    transform: translateY(10px);
-    pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  }
-  .app-toast.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-document.head.appendChild(animStyles);
-
-// ── Global Theme + Language Controls ──
-document.addEventListener('DOMContentLoaded', () => {
-  const storageThemeKey = 'etiquetar_theme';
+  // ── Language/Theme Controls ──
   const storageLangKey = 'etiquetar_lang';
-  const themeToggleEnabled = false;
 
   const dict = {
     es: {
-      'Inicio': 'Inicio',
-      'Nosotros': 'Nosotros',
-      'Contacto': 'Contacto',
-      'Cotizar': 'Cotizar',
-      'Blog': 'Blog',
-      'Piscina & Spa': 'Piscina & Spa',
-      'Tratamiento de Agua': 'Tratamiento de Agua',
-      'Carrito': 'Carrito',
-      'Mi perfil': 'Mi perfil',
-      'Iniciar sesión': 'Iniciar sesión',
-      'Envíanos un Mensaje': 'Envíanos un Mensaje',
-      'Solicitar Cotización': 'Solicitar Cotización',
-      'Nosotros': 'Nosotros',
-      'Ver Catálogo': 'Ver Catálogo',
-      'Comprar': 'Comprar'
+      'Inicio': 'Inicio', 'Nosotros': 'Nosotros', 'Contacto': 'Contacto',
+      'Cotizar': 'Cotizar', 'Blog': 'Blog', 'Purificación': 'Purificación',
+      'Piscinas & Spa': 'Piscinas & Spa', 'Carrito': 'Carrito',
     },
     en: {
-      'Inicio': 'Home',
-      'Nosotros': 'About Us',
-      'Contacto': 'Contact',
-      'Cotizar': 'Quote',
-      'Blog': 'Blog',
-      'Piscina & Spa': 'Pool & Spa',
-      'Tratamiento de Agua': 'Water Treatment',
-      'Carrito': 'Cart',
-      'Mi perfil': 'My Profile',
-      'Iniciar sesión': 'Sign In',
-      'Envíanos un Mensaje': 'Send Us a Message',
-      'Solicitar Cotización': 'Request a Quote',
-      'Ver Catálogo': 'View Catalog',
-      'Comprar': 'Buy'
-    }
-  };
-
-  const applyTheme = (theme) => {
-    const resolvedTheme = themeToggleEnabled && theme === 'dark' ? 'dark' : 'light';
-    document.body.classList.toggle('theme-dark', resolvedTheme === 'dark');
-    localStorage.setItem(storageThemeKey, resolvedTheme);
-    const btn = document.querySelector('[data-site-theme]');
-    if (btn) {
-      btn.innerHTML = resolvedTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-      btn.disabled = !themeToggleEnabled;
-      btn.setAttribute('aria-disabled', String(!themeToggleEnabled));
-      btn.style.display = themeToggleEnabled ? '' : 'none';
+      'Inicio': 'Home', 'Nosotros': 'About Us', 'Contacto': 'Contact',
+      'Cotizar': 'Quote', 'Blog': 'Blog', 'Purificación': 'Water Treatment',
+      'Piscinas & Spa': 'Pool & Spa', 'Carrito': 'Cart',
     }
   };
 
@@ -317,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const target = dict[lang] || dict.es;
     document.documentElement.lang = lang;
 
-    document.querySelectorAll('a, button, h1, h2, h3, h4, p, span, label, summary').forEach((el) => {
+    document.querySelectorAll('a, button, h1, h2, h3, h4, p, span, label').forEach((el) => {
       if (el.children.length > 0) return;
       const txt = (el.textContent || '').trim();
       if (!txt) return;
@@ -337,21 +338,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const dock = document.createElement('div');
     dock.className = 'site-controls';
     dock.innerHTML = `
-      ${themeToggleEnabled ? '<button class="site-control-btn" data-site-theme title="Cambiar tema"><i class="fas fa-moon"></i></button>' : ''}
       <button class="site-control-btn" data-site-lang title="Cambiar idioma">ES</button>
     `;
     document.body.appendChild(dock);
 
-    const themeBtn = dock.querySelector('[data-site-theme]');
     const langBtn = dock.querySelector('[data-site-lang]');
-
-    if (themeBtn) {
-      themeBtn.addEventListener('click', () => {
-        const isDark = document.body.classList.contains('theme-dark');
-        applyTheme(isDark ? 'light' : 'dark');
-      });
-    }
-
     langBtn.addEventListener('click', () => {
       const current = localStorage.getItem(storageLangKey) || 'es';
       translatePage(current === 'es' ? 'en' : 'es');
@@ -359,17 +350,52 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   renderControls();
-  applyTheme('light');
   translatePage(localStorage.getItem(storageLangKey) || 'es');
 });
 
+// ── CSS Animation Keyframes (injected) ──
+const animStyles = document.createElement('style');
+animStyles.textContent = `
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes cartPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
+  .app-toast {
+    position: fixed;
+    right: 20px;
+    bottom: 90px;
+    z-index: 1100;
+    background: #0B1F3A;
+    color: #fff;
+    border-left: 4px solid #4FC3C8;
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 0.88rem;
+    font-family: 'DM Sans', sans-serif;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    max-width: 320px;
+  }
+  .app-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+document.head.appendChild(animStyles);
+
 // ── Gateway Panel Click ──
-// When on the gateway home (body.page-gateway), clicking anywhere on a panel
-// navigates to the destination defined in data-href.
 if (document.body.classList.contains('page-gateway')) {
   document.querySelectorAll('.split-hero__panel[data-href]').forEach(panel => {
     panel.addEventListener('click', (e) => {
-      if (e.target.closest('a, button')) return; // let links/buttons handle themselves
+      if (e.target.closest('a, button')) return;
       window.location.href = panel.dataset.href;
     });
   });

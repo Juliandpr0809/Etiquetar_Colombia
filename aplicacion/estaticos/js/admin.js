@@ -8,11 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputPrecioProducto = qs('#prod-precio');
   const analyticsDays = qs('#analyticsDays');
   const analyticsGranularity = qs('#analyticsGranularity');
+  const cotizacionesEstado = qs('#cotizacionesEstado');
+  const cotizacionesBusqueda = qs('#cotizacionesBusqueda');
+  const cotizacionesBuscarBtn = qs('#cotizacionesBuscarBtn');
   const productSubmitBtn = formProducto ? formProducto.querySelector('.admin-btn') : null;
   const state = { editingProductId: null, products: [] };
 
   const fmtCop = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(valor || 0));
   const parseCop = (texto) => String(texto || '').replace(/COP|\$/gi, '').replace(/\s+/g, '').replace(/[^0-9]/g, '');
+  const fmtDateTime = (valor) => valor ? new Date(valor).toLocaleString('es-CO') : 'Sin fecha';
 
   const showMsg = (type, text) => {
     successBox.classList.remove('visible');
@@ -266,15 +270,28 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const loadCotizaciones = async () => {
-    const data = await api('/admin/api/cotizaciones');
+    const params = new URLSearchParams();
+    if (cotizacionesEstado && cotizacionesEstado.value) params.set('estado', cotizacionesEstado.value);
+    if (cotizacionesBusqueda && cotizacionesBusqueda.value.trim()) params.set('q', cotizacionesBusqueda.value.trim());
+
+    const data = await api(`/admin/api/cotizaciones?${params.toString()}`);
     renderList('#cotizacionesList', data.data, (c) => `
-      <div class="admin-item__row"><strong>${c.nombre}</strong><span>${c.estado}</span></div>
-      <div>${c.email} ${c.telefono || ''}</div>
-      <div>${c.mensaje}</div>
       <div class="admin-item__row">
-        <input id="precio-${c.id}" type="number" step="0.01" placeholder="Precio ofertado" />
-        <input id="resp-${c.id}" placeholder="Respuesta" />
-        <button class="admin-mini-btn" data-cotizacion="${c.id}">Responder</button>
+        <strong>${c.nombre}</strong>
+        <span class="admin-badge admin-badge--${c.estado === 'respondida' ? 'activo' : (c.estado === 'descartada' ? 'inactivo' : 'piscina')}">${c.estado}</span>
+      </div>
+      <div class="admin-meta-text">${c.email} ${c.telefono ? ' | ' + c.telefono : ''} ${c.ciudad ? ' | ' + c.ciudad : ''}</div>
+      <div class="admin-meta-text">Recibida: ${fmtDateTime(c.created_at)}${c.responded_at ? ' | Respondida: ' + fmtDateTime(c.responded_at) : ''}</div>
+      <div style="margin-top:6px">${c.mensaje || 'Sin mensaje'}</div>
+      <div class="admin-form-2col" style="margin-top:8px">
+        <input id="precio-${c.id}" type="number" step="0.01" placeholder="Precio ofertado" value="${c.precio_ofertado ?? ''}" />
+        <input id="resp-${c.id}" placeholder="Respuesta" value="${c.respuesta || ''}" />
+      </div>
+      <div class="admin-inline-actions" style="margin-top:8px">
+        <button class="admin-mini-btn" data-cotizacion="${c.id}">Guardar respuesta</button>
+        <button class="admin-mini-btn" data-cotizacion-estado="${c.id}" data-estado="pendiente">Pendiente</button>
+        <button class="admin-mini-btn" data-cotizacion-estado="${c.id}" data-estado="respondida">Respondida</button>
+        <button class="admin-mini-btn admin-mini-btn--danger" data-cotizacion-estado="${c.id}" data-estado="descartada">Descartar</button>
       </div>
     `);
 
@@ -289,7 +306,23 @@ document.addEventListener('DOMContentLoaded', () => {
               respuesta: qs(`#resp-${btn.dataset.cotizacion}`).value
             })
           });
-          showMsg('success', 'Cotizacion respondida');
+          showMsg('success', 'Cotizacion actualizada');
+          loadCotizaciones();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
+    qsa('[data-cotizacion-estado]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await api(`/admin/api/cotizaciones/${btn.dataset.cotizacionEstado}/estado`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: btn.dataset.estado })
+          });
+          showMsg('success', 'Estado de cotizacion actualizado');
           loadCotizaciones();
         } catch (err) {
           showMsg('error', err.message);
@@ -720,6 +753,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (analyticsDays) analyticsDays.addEventListener('change', () => loadResumen().catch((err) => showMsg('error', err.message)));
   if (analyticsGranularity) analyticsGranularity.addEventListener('change', () => loadResumen().catch((err) => showMsg('error', err.message)));
+  if (cotizacionesEstado) cotizacionesEstado.addEventListener('change', () => loadCotizaciones().catch((err) => showMsg('error', err.message)));
+  if (cotizacionesBuscarBtn) cotizacionesBuscarBtn.addEventListener('click', () => loadCotizaciones().catch((err) => showMsg('error', err.message)));
+  if (cotizacionesBusqueda) {
+    cotizacionesBusqueda.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        loadCotizaciones().catch((err) => showMsg('error', err.message));
+      }
+    });
+  }
 
   const params = new URLSearchParams(window.location.search);
   const requestedTab = params.get('tab');
