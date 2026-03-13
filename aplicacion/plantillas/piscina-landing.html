@@ -55,13 +55,13 @@
         <li><a href="/agua" class="navbar__link navbar__link--agua"><i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
         <li><a href="/catalogo/piscina" class="navbar__link">Catálogo</a></li>
         <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
-        <li><a href="pages/cotizar.html" class="navbar__link">Cotizar</a></li>
-        <li><a href="pages/contacto.html" class="navbar__link">Contacto</a></li>
+        <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
+        <li><a href="/contacto" class="navbar__link">Contacto</a></li>
       </ul>
       <div class="navbar__actions">
         <button class="navbar__action-btn navbar__action-btn--search" aria-label="Buscar"><i class="fas fa-search"></i></button>
         <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta"><i class="fas fa-user"></i></a>
-        <a href="carrito/carrito.html" class="navbar__action-btn" aria-label="Carrito">
+        <a href="/carrito" class="navbar__action-btn" aria-label="Carrito">
           <i class="fas fa-shopping-cart"></i>
           <span class="navbar__cart-badge">0</span>
         </a>
@@ -222,7 +222,7 @@
         <a href="/catalogo/piscina#accesorios" class="lp-info-split__btn lp-info-split__btn--white">
           <i class="fas fa-tools"></i> Ver Repuestos
         </a>
-        <a href="pages/cotizar.html" class="lp-info-split__btn lp-info-split__btn--ghost">
+        <a href="/cotizar" class="lp-info-split__btn lp-info-split__btn--ghost">
           <i class="fas fa-file-alt"></i> Cotizar
         </a>
       </div>
@@ -241,7 +241,7 @@
       <span class="lp-section__label">Estilo de Vida</span>
       <h2>Disfruta Tu Piscina<br>En Su Mejor Condición</h2>
       <p>Un equipo que funciona bien se nota. Agua cristalina, temperatura ideal, iluminación perfecta. Nuestros sistemas están diseñados para que pases más tiempo disfrutando y menos tiempo manteniendo.</p>
-      <a href="pages/cotizar.html" class="lp-lifestyle__cta">Solicitar Asesoría <i class="fas fa-arrow-right"></i></a>
+      <a href="/cotizar" class="lp-lifestyle__cta">Solicitar Asesoría <i class="fas fa-arrow-right"></i></a>
     </div>
   </div>
 
@@ -444,8 +444,8 @@
         <div class="footer__col">
           <h4 class="footer__title">Soporte al Cliente</h4>
           <ul class="footer__links">
-            <li><a href="pages/cotizar.html"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Solicitar Cotización</a></li>
-            <li><a href="pages/contacto.html"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Contacto</a></li>
+            <li><a href="/cotizar"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Solicitar Cotización</a></li>
+            <li><a href="/contacto"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Contacto</a></li>
             <li><a href="/blog"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Blog y Consejos</a></li>
             <li><a href="/agua"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Tratamiento de Agua</a></li>
           </ul>
