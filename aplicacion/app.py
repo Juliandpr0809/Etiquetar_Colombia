@@ -102,6 +102,16 @@ def _register_routes(app):
         )
         return render_template("home.html", banners_activos=banners)
 
+    @app.get("/piscina")
+    @app.get("/piscina-landing")
+    def piscina_landing():
+        return render_template("piscina-landing.html")
+
+    @app.get("/agua")
+    @app.get("/agua-landing")
+    def agua_landing():
+        return render_template("agua-landing.html")
+
     @app.get("/blog")
     @app.get("/blog/listado.html")
     def blog_listado():

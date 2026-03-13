@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipos para Piscinas y Spas en Colombia | Etiquetar Colombia</title>
+  <meta name="description" content="Bombas de agua, filtros de arena, robots limpiafondos, químicos e iluminación LED para piscinas residenciales y comerciales. Envío a toda Colombia.">
+  <meta name="keywords" content="bomba para piscina Colombia, filtro de arena piscina, robot limpiafondos, químicos piscina, equipo piscina Colombia">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Etiquetar de Colombia S.A.S.">
+  <link rel="canonical" href="https://etiquetarcolombia.com/piscina">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Piscina & Spa | Etiquetar Colombia">
+  <meta property="og:description" content="Todo para el mantenimiento perfecto de tu piscina. Bombas, filtros, robots y más.">
+  <meta property="og:url" content="https://etiquetarcolombia.com/piscina">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../estaticos/css/home.css">
+  <link rel="stylesheet" href="../estaticos/css/landing.css">
+</head>
+
+<body class="lp-theme--piscina">
+
+  <!-- ══ PROMO BAR ══ -->
+  <div class="lp-promo-bar">
+    <i class="fas fa-swimming-pool"></i>
+    <strong>Temporada de Piscinas</strong> · Hasta 30% OFF en equipos seleccionados · Envío gratis en Colombia
+    <a class="lp-promo-bar__badge" href="/catalogo/piscina">Ver Oferta</a>
+  </div>
+
+  <!-- ══ NAVBAR ══ -->
+  <div class="top-bar">
+    <div class="container">
+      <div class="top-bar__left">
+        <div class="top-bar__item"><i class="fas fa-phone-alt"></i><a href="tel:+573001234567">+57 300 123 4567</a></div>
+        <div class="top-bar__item"><i class="fas fa-envelope"></i><a href="mailto:info@etiquetarcolombia.com">info@etiquetarcolombia.com</a></div>
+      </div>
+      <div class="top-bar__right">
+        <div class="top-bar__item"><i class="fas fa-truck"></i> Envío a todo Colombia</div>
+        <div class="top-bar__item"><i class="fas fa-clock"></i> Lun - Sáb: 8:00 AM - 6:00 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="/" class="navbar__logo">
+        <img src="../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:42px;width:auto;">
+      </a>
+      <ul class="navbar__menu" id="navMenu">
+        <li><a href="/" class="navbar__link">Inicio</a></li>
+        <li><a href="/piscina" class="navbar__link navbar__link--piscina" style="color:var(--piscina-primary);font-weight:600;"><i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a></li>
+        <li><a href="/agua" class="navbar__link navbar__link--agua"><i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
+        <li><a href="/catalogo/piscina" class="navbar__link">Catálogo</a></li>
+        <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
+        <li><a href="pages/cotizar.html" class="navbar__link">Cotizar</a></li>
+        <li><a href="pages/contacto.html" class="navbar__link">Contacto</a></li>
+      </ul>
+      <div class="navbar__actions">
+        <button class="navbar__action-btn navbar__action-btn--search" aria-label="Buscar"><i class="fas fa-search"></i></button>
+        <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta"><i class="fas fa-user"></i></a>
+        <a href="carrito/carrito.html" class="navbar__action-btn" aria-label="Carrito">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="navbar__cart-badge">0</span>
+        </a>
+        <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ HERO BANNER ══ -->
+  <section class="lp-hero">
+    <div class="lp-hero__bg-shape"></div>
+    <div class="lp-hero__inner">
+      <div class="lp-hero__text">
+        <div class="lp-hero__badge"><i class="fas fa-swimming-pool"></i> Piscina & Spa · Temporada</div>
+        <div class="lp-hero__offer">Hasta 30% OFF</div>
+        <h1 class="lp-hero__title">Equipos Profesionales<br>para Tu Piscina Perfecta</h1>
+        <p class="lp-hero__sub">Bombas de alto rendimiento, filtros de arena, robots limpiafondos y todo lo que necesitas para una piscina cristalina. Marcas líderes con garantía y envío a toda Colombia.</p>
+        <a href="/catalogo/piscina" class="lp-hero__cta">Comprar Ahora <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <div class="lp-hero__img">
+        <img src="../estaticos/img/hero_piscina.png" alt="Equipos de piscina y spa">
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ LOS MÁS VENDIDOS ══ -->
+  <section class="lp-section lp-section--white">
+    <div class="lp-section__head">
+      <span class="lp-section__label">Selección Curada</span>
+      <h2 class="lp-section__title">Los Más Vendidos</h2>
+      <p class="lp-section__sub">Los equipos con mayor rotación y mejor valoración para piscinas residenciales y comerciales.</p>
+    </div>
+
+    <div class="lp-products__tabs" role="tablist">
+      <button class="lp-products__tab is-active" data-lp-cat="bombas" role="tab">Bombas de Agua</button>
+      <button class="lp-products__tab" data-lp-cat="filtros" role="tab">Filtros de Arena</button>
+      <button class="lp-products__tab" data-lp-cat="limpiafondos" role="tab">Robots Limpiafondos</button>
+      <button class="lp-products__tab" data-lp-cat="todos" role="tab">Ver Todos</button>
+    </div>
+
+    <div class="lp-products__grid" id="lpPiscinaGrid">
+
+      <!-- Producto 1 — Bombas -->
+      <div class="lp-prod-card" data-lp-cat="bombas">
+        <span class="lp-prod-card__badge">-15% OFF</span>
+        <div class="lp-prod-card__img-wrap">
+          <img src="../estaticos/img/producto-piscina-ecommerce.jpg" alt="Bomba Centrífuga Pentair WhisperFlo 2HP">
+        </div>
+        <div class="lp-prod-card__body">
+          <div class="lp-prod-card__cat">Bombas de Agua</div>
+          <div class="lp-prod-card__name">Bomba Centrífuga 2HP Pentair WhisperFlo</div>
+          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
+          <div class="lp-prod-card__price">$2.450.000</div>
+          <div class="lp-prod-card__price-old">$2.880.000</div>
+          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
+        </div>
+      </div>
+
+      <!-- Producto 2 — Filtros -->
+      <div class="lp-prod-card" data-lp-cat="filtros">
+        <div class="lp-prod-card__img-wrap">
+          <img src="../estaticos/img/producto-piscina-ecommerce.jpg" alt="Filtro de Arena Hayward Pro Series 24">
+        </div>
+        <div class="lp-prod-card__body">
+          <div class="lp-prod-card__cat">Filtros de Arena</div>
+          <div class="lp-prod-card__name">Filtro de Arena Hayward Pro Series 24"</div>
+          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
+          <div class="lp-prod-card__price">$1.750.000</div>
+          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
+        </div>
+      </div>
+
+      <!-- Producto 3 — Limpiafondos -->
+      <div class="lp-prod-card" data-lp-cat="limpiafondos">
+        <span class="lp-prod-card__badge lp-prod-card__badge--new">Nuevo</span>
+        <div class="lp-prod-card__img-wrap">
+          <img src="../estaticos/img/producto-piscina-ecommerce.jpg" alt="Robot Limpiafondos Dolphin E20">
+        </div>
+        <div class="lp-prod-card__body">
+          <div class="lp-prod-card__cat">Robots Limpiafondos</div>
+          <div class="lp-prod-card__name">Robot Limpiafondos Dolphin E20</div>
+          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
+          <div class="lp-prod-card__price">$3.200.000</div>
+          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
+        </div>
+      </div>
+
+      <!-- Producto 4 — Bombas -->
+      <div class="lp-prod-card" data-lp-cat="bombas">
+        <div class="lp-prod-card__img-wrap">
+          <img src="../estaticos/img/producto-piscina-ecommerce.jpg" alt="Luz LED Subacuática RGB 35W">
+        </div>
+        <div class="lp-prod-card__body">
+          <div class="lp-prod-card__cat">Iluminación</div>
+          <div class="lp-prod-card__name">Luz LED Subacuática RGB 35W con Control</div>
+          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
+          <div class="lp-prod-card__price">$380.000</div>
+          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="lp-products__see-all">
+      <a href="/catalogo/piscina">Ver todos los productos de piscina <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </section>
+
+  <!-- ══ COMPRAR POR CATEGORÍA ══ -->
+  <section class="lp-section lp-section--gray">
+    <div class="lp-section__head">
+      <span class="lp-section__label">Navega Fácil</span>
+      <h2 class="lp-section__title">Comprar Por Categoría</h2>
+    </div>
+    <div class="lp-cats__scroll">
+      <a href="/catalogo/piscina#bombas" class="lp-cat-chip">
+        <div class="lp-cat-chip__icon"><i class="fas fa-fan"></i></div>
+        <div class="lp-cat-chip__name">Bombas de Agua</div>
+      </a>
+      <a href="/catalogo/piscina#filtros" class="lp-cat-chip">
+        <div class="lp-cat-chip__icon"><i class="fas fa-filter"></i></div>
+        <div class="lp-cat-chip__name">Filtros de Arena</div>
+      </a>
+      <a href="/catalogo/piscina#limpiafondos" class="lp-cat-chip">
+        <div class="lp-cat-chip__icon"><i class="fas fa-robot"></i></div>
+        <div class="lp-cat-chip__name">Robots Limpiafondos</div>
+      </a>
+      <a href="/catalogo/piscina#quimicos" class="lp-cat-chip">
+        <div class="lp-cat-chip__icon"><i class="fas fa-flask"></i></div>
+        <div class="lp-cat-chip__name">Químicos y Cloro</div>
+      </a>
+      <a href="/catalogo/piscina#iluminacion" class="lp-cat-chip">
+        <div class="lp-cat-chip__icon"><i class="fas fa-lightbulb"></i></div>
+        <div class="lp-cat-chip__name">Iluminación LED</div>
+      </a>
+      <a href="/catalogo/piscina#accesorios" class="lp-cat-chip">
+        <div class="lp-cat-chip__icon"><i class="fas fa-tools"></i></div>
+        <div class="lp-cat-chip__name">Accesorios</div>
+      </a>
+      <a href="/catalogo/piscina#calentadores" class="lp-cat-chip">
+        <div class="lp-cat-chip__icon"><i class="fas fa-temperature-high"></i></div>
+        <div class="lp-cat-chip__name">Calentadores</div>
+      </a>
+      <a href="/catalogo/piscina#dosificadores" class="lp-cat-chip">
+        <div class="lp-cat-chip__icon"><i class="fas fa-tint"></i></div>
+        <div class="lp-cat-chip__name">Dosificadores</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ══ REPUESTOS Y ACCESORIOS (dark + image) ══ -->
+  <div class="lp-info-split">
+    <div class="lp-info-split__text">
+      <span class="lp-section__label" style="color:rgba(255,255,255,0.7);">Piezas Originales</span>
+      <h2>Repuestos y Accesorios Compatibles</h2>
+      <p>Ofrecemos repuestos originales para todas las marcas que manejamos: Pentair, Hayward, Dolphin, Zodiac y más. Mantén tu equipo funcionando al máximo con piezas certificadas y garantía de instalación.</p>
+      <div class="lp-info-split__actions">
+        <a href="/catalogo/piscina#accesorios" class="lp-info-split__btn lp-info-split__btn--white">
+          <i class="fas fa-tools"></i> Ver Repuestos
+        </a>
+        <a href="pages/cotizar.html" class="lp-info-split__btn lp-info-split__btn--ghost">
+          <i class="fas fa-file-alt"></i> Cotizar
+        </a>
+      </div>
+    </div>
+    <div class="lp-info-split__img">
+      <img src="../estaticos/img/showcase-piscina.jpg" alt="Repuestos y accesorios para piscina">
+    </div>
+  </div>
+
+  <!-- ══ LIFESTYLE — DISFRUTA TU PISCINA ══ -->
+  <div class="lp-lifestyle">
+    <div class="lp-lifestyle__img">
+      <img src="../estaticos/img/logistica-confianza.jpg" alt="Disfruta tu piscina al máximo">
+    </div>
+    <div class="lp-lifestyle__text">
+      <span class="lp-section__label">Estilo de Vida</span>
+      <h2>Disfruta Tu Piscina<br>En Su Mejor Condición</h2>
+      <p>Un equipo que funciona bien se nota. Agua cristalina, temperatura ideal, iluminación perfecta. Nuestros sistemas están diseñados para que pases más tiempo disfrutando y menos tiempo manteniendo.</p>
+      <a href="pages/cotizar.html" class="lp-lifestyle__cta">Solicitar Asesoría <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </div>
+
+  <!-- ══ BOLD STATEMENT ══ -->
+  <section class="lp-statement">
+    <div class="lp-statement__watermark">PISCINA</div>
+    <div class="lp-statement__inner">
+      <span class="lp-section__label">Por Qué Elegirnos</span>
+      <h2>Di Adiós al Agua Verde<br>y los Equipos Que Fallan.</h2>
+      <p>Con los equipos correctos, el mantenimiento de tu piscina se vuelve simple, económico y eficiente. Asesoría personalizada, marcas líderes y soporte técnico cuando lo necesitas.</p>
+      <a href="/catalogo/piscina" class="lp-statement__cta">Ver Catálogo Completo <i class="fas fa-arrow-right"></i></a>
+      <div class="lp-statement__img">
+        <img src="../estaticos/img/productos_collage.png" alt="Productos de piscina">
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ STATS / BENEFICIOS ══ -->
+  <section class="lp-section lp-section--dark">
+    <div class="lp-section__head">
+      <span class="lp-section__label">Beneficios Exclusivos</span>
+      <h2 class="lp-section__title">Por Qué Confían en Nosotros</h2>
+    </div>
+    <div class="lp-stats__top">
+      <div class="lp-stats__item">
+        <div class="lp-stats__num">120+</div>
+        <div class="lp-stats__description">
+          <strong>Productos de Piscina</strong>
+          <span>Catálogo completo para piscinas de todos los tamaños y usos</span>
+        </div>
+      </div>
+      <div class="lp-stats__item">
+        <div class="lp-stats__num">5 Años</div>
+        <div class="lp-stats__description">
+          <strong>Garantía en Equipos</strong>
+          <span>Respaldo técnico y piezas de repuesto para toda la vida útil</span>
+        </div>
+      </div>
+      <div class="lp-stats__item">
+        <div class="lp-stats__num">100%</div>
+        <div class="lp-stats__description">
+          <strong>Cobertura Nacional</strong>
+          <span>Envíos y soporte técnico a toda Colombia, sin excepción</span>
+        </div>
+      </div>
+    </div>
+    <div class="lp-stats__tiles">
+      <div class="lp-stats__tile">
+        <img src="../estaticos/img/showcase-piscina.jpg" alt="Piscinas residenciales">
+        <div class="lp-stats__tile-label">Piscinas Residenciales</div>
+      </div>
+      <div class="lp-stats__tile">
+        <img src="../estaticos/img/hero_piscina.png" alt="Equipos certificados">
+        <div class="lp-stats__tile-label">Equipos Certificados</div>
+      </div>
+      <div class="lp-stats__tile">
+        <img src="../estaticos/img/logistica-confianza.jpg" alt="Entrega confiable">
+        <div class="lp-stats__tile-label">Logística Confiable</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ VIDEO BLOCK ══ -->
+  <div class="lp-video">
+    <div class="lp-video__bg" style="background-image: url('../estaticos/img/poster-video-principal.jpg');"></div>
+    <div class="lp-video__overlay"></div>
+    <div class="lp-video__content">
+      <button class="lp-video__play" aria-label="Reproducir video"><i class="fas fa-play"></i></button>
+      <h3>Mira Cómo Transformamos Una Piscina</h3>
+      <p>Del agua turbia a la piscina perfecta en un solo proyecto. Equipos de alta eficiencia, instalación profesional y resultados garantizados.</p>
+    </div>
+  </div>
+
+  <!-- ══ TESTIMONIALS ══ -->
+  <section class="lp-section lp-section--gray">
+    <div class="lp-section__head">
+      <span class="lp-section__label">Lo Que Dicen Nuestros Clientes</span>
+      <h2 class="lp-section__title">Escucha a Nuestros Usuarios</h2>
+    </div>
+    <div class="lp-testimonials__grid">
+      <div class="lp-review-card">
+        <div class="lp-review-card__stars">
+          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+        </div>
+        <p class="lp-review-card__text">"La bomba Pentair que compré lleva 2 años funcionando perfecto. El agua de mi piscina nunca había estado tan limpia. El servicio técnico también es excelente."</p>
+        <div class="lp-review-card__user">
+          <div class="lp-review-card__avatar">CA</div>
+          <div>
+            <div class="lp-review-card__name">Carlos Arango</div>
+            <div class="lp-review-card__product">Bomba Pentair WhisperFlo · Bogotá</div>
+          </div>
+        </div>
+      </div>
+      <div class="lp-review-card">
+        <div class="lp-review-card__stars">
+          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+        </div>
+        <p class="lp-review-card__text">"El robot limpiafondos Dolphin cambió mi vida. Antes gastaba horas limpiando, ahora solo lo enchufo y listo. Llegó rápido y bien empacado. Totalmente recomendado."</p>
+        <div class="lp-review-card__user">
+          <div class="lp-review-card__avatar">LM</div>
+          <div>
+            <div class="lp-review-card__name">Laura Martínez</div>
+            <div class="lp-review-card__product">Robot Dolphin E20 · Medellín</div>
+          </div>
+        </div>
+      </div>
+      <div class="lp-review-card">
+        <div class="lp-review-card__stars">
+          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+        </div>
+        <p class="lp-review-card__text">"Compré el filtro de arena Hayward para mi club. La calidad del agua mejoró notablemente y el consumo energético bajó. El asesor fue muy útil para elegir la referencia correcta."</p>
+        <div class="lp-review-card__user">
+          <div class="lp-review-card__avatar">JP</div>
+          <div>
+            <div class="lp-review-card__name">Jorge Pedraza</div>
+            <div class="lp-review-card__product">Filtro Hayward Pro Series · Cali</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ BLOG INSPÍRATE ══ -->
+  <section class="lp-section lp-section--white">
+    <div class="lp-section__head">
+      <span class="lp-section__label">Contenido & Consejos</span>
+      <h2 class="lp-section__title">Inspírate</h2>
+      <p class="lp-section__sub">Guías técnicas, consejos de mantenimiento y las últimas tendencias en equipos para piscina.</p>
+    </div>
+    <div class="lp-articles__grid">
+      <a href="/blog/como-elegir-bomba-piscina" class="lp-article-card">
+        <div class="lp-article-card__img">
+          <img src="../estaticos/img/hero_piscina.png" alt="Cómo elegir una bomba de piscina">
+        </div>
+        <div class="lp-article-card__body">
+          <div class="lp-article-card__tag">Guía de Compra</div>
+          <div class="lp-article-card__title">Cómo Elegir la Bomba de Piscina Correcta Según el Tamaño de Tu Piscina</div>
+          <div class="lp-article-card__meta"><i class="fas fa-calendar-alt"></i> Mar 2026 · 5 min lectura</div>
+        </div>
+      </a>
+      <a href="/blog/mantenimiento-piscinas-clima-calido" class="lp-article-card">
+        <div class="lp-article-card__img">
+          <img src="../estaticos/img/showcase-piscina.jpg" alt="Mantenimiento de piscina en clima cálido">
+        </div>
+        <div class="lp-article-card__body">
+          <div class="lp-article-card__tag">Mantenimiento</div>
+          <div class="lp-article-card__title">Mantenimiento de Piscinas en Clima Cálido: Guía Para Colombia</div>
+          <div class="lp-article-card__meta"><i class="fas fa-calendar-alt"></i> Feb 2026 · 7 min lectura</div>
+        </div>
+      </a>
+      <a href="/blog" class="lp-article-card">
+        <div class="lp-article-card__img">
+          <img src="../estaticos/img/producto-piscina-ecommerce.jpg" alt="Robots limpiafondos automáticos">
+        </div>
+        <div class="lp-article-card__body">
+          <div class="lp-article-card__tag">Tecnología</div>
+          <div class="lp-article-card__title">Robots Limpiafondos Automáticos: ¿Por Qué Vale la Pena Invertir en Uno?</div>
+          <div class="lp-article-card__meta"><i class="fas fa-calendar-alt"></i> Ene 2026 · 4 min lectura</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ══ NEWSLETTER ══ -->
+  <div class="lp-newsletter">
+    <div class="lp-newsletter__text">
+      <h3>Mantente al Día con Piscina & Spa</h3>
+      <p>Recibe ofertas exclusivas, consejos de mantenimiento y novedades en equipos directamente en tu correo.</p>
+    </div>
+    <form class="lp-newsletter__form" onsubmit="return false;">
+      <input type="email" class="lp-newsletter__input" placeholder="tu@correo.com" aria-label="Correo electrónico">
+      <button type="submit" class="lp-newsletter__btn"><i class="fas fa-paper-plane"></i> Suscribirme</button>
+    </form>
+  </div>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__col">
+          <img src="../estaticos/img/Logo-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:40px;width:auto;display:block;margin-bottom:12px;">
+          <p class="footer__desc">Especialistas en equipos de piscina y tratamiento de agua. Cobertura nacional con las mejores marcas y garantía real.</p>
+          <div class="footer__social">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+            <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+          </div>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__title">Piscina & Spa</h4>
+          <ul class="footer__links">
+            <li><a href="/catalogo/piscina#bombas"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Bombas de Agua</a></li>
+            <li><a href="/catalogo/piscina#filtros"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Filtros de Arena</a></li>
+            <li><a href="/catalogo/piscina#limpiafondos"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Robots Limpiafondos</a></li>
+            <li><a href="/catalogo/piscina#quimicos"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Químicos y Cloro</a></li>
+            <li><a href="/catalogo/piscina#iluminacion"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Iluminación LED</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__title">Soporte al Cliente</h4>
+          <ul class="footer__links">
+            <li><a href="pages/cotizar.html"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Solicitar Cotización</a></li>
+            <li><a href="pages/contacto.html"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Contacto</a></li>
+            <li><a href="/blog"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Blog y Consejos</a></li>
+            <li><a href="/agua"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Tratamiento de Agua</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__title">Contacto</h4>
+          <ul class="footer__links">
+            <li><a href="tel:+573001234567"><i class="fas fa-phone-alt" style="font-size:0.75rem;"></i> +57 300 123 4567</a></li>
+            <li><a href="mailto:info@etiquetarcolombia.com"><i class="fas fa-envelope" style="font-size:0.75rem;"></i> info@etiquetarcolombia.com</a></li>
+            <li><a href="#"><i class="fas fa-map-marker-alt" style="font-size:0.75rem;"></i> Colombia — Envío Nacional</a></li>
+            <li><a href="https://wa.me/573001234567" target="_blank"><i class="fab fa-whatsapp" style="font-size:0.75rem;"></i> WhatsApp Asesor</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        &copy; 2026 Etiquetar Colombia · Piscina & Spa. Todos los derechos reservados.
+      </div>
+    </div>
+  </footer>
+
+  <!-- WhatsApp Flotante -->
+  <a href="https://wa.me/573001234567" target="_blank" class="whatsapp-btn" aria-label="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <script src="../estaticos/js/home.js"></script>
+  <script>
+    // ── Product Tab Filter (piscina landing) ──
+    const lpTabs  = document.querySelectorAll('.lp-products__tab');
+    const lpCards = document.querySelectorAll('#lpPiscinaGrid .lp-prod-card');
+
+    lpTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        lpTabs.forEach(t => t.classList.remove('is-active'));
+        tab.classList.add('is-active');
+        const cat = tab.dataset.lpCat;
+        lpCards.forEach(card => {
+          card.style.display = (cat === 'todos' || card.dataset.lpCat === cat) ? '' : 'none';
+        });
+      });
+    });
+  </script>
+</body>
+</html>
