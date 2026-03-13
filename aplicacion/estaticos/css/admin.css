@@ -88,6 +88,18 @@
   display: block;
 }
 
+.admin-analytics-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-analytics-toolbar .admin-form-group {
+  min-width: 190px;
+}
+
 /* ---- KPI GRID ---- */
 .admin-kpis {
   display: grid;
@@ -523,4 +535,47 @@
   .admin-kpis {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+/* ---- Modo oscuro neon (admin) ---- */
+body.theme-dark .admin-page {
+  background: radial-gradient(circle at top left, rgba(0,229,255,0.08), transparent 34%), #070b13;
+}
+
+body.theme-dark .admin-tab-btn {
+  background: #0d1525;
+  border-color: #22334a;
+  color: #cfe6ff;
+}
+
+body.theme-dark .admin-tab-btn.active {
+  background: linear-gradient(135deg, #0077b6, #00b8ff);
+  color: #f7fdff;
+  box-shadow: 0 0 0 1px rgba(0,229,255,0.25), 0 0 20px rgba(0,229,255,0.22);
+}
+
+body.theme-dark .admin-kpi {
+  background: #101a2b;
+  border-color: #22334a;
+}
+
+body.theme-dark .admin-kpi__icon {
+  background: rgba(0,229,255,0.14);
+  box-shadow: inset 0 0 0 1px rgba(0,229,255,0.2);
+}
+
+body.theme-dark .admin-card,
+body.theme-dark .admin-item,
+body.theme-dark .admin-message,
+body.theme-dark .admin-mini-btn {
+  background: #0f1829;
+  border-color: #23344b;
+}
+
+body.theme-dark .admin-mini-btn {
+  color: #d6ecff;
+}
+
+body.theme-dark .admin-mini-btn:hover {
+  box-shadow: 0 0 0 1px rgba(0,229,255,0.25), 0 0 14px rgba(0,229,255,0.2);
 }

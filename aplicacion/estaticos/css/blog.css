@@ -191,6 +191,25 @@
 .article-header__meta {
   display: flex;
   gap: 24px;
+
+/* ---- Modo oscuro neon (blog) ---- */
+body.theme-dark .blog-header {
+  background: linear-gradient(135deg, #071120 0%, #0f1d30 100%);
+}
+
+body.theme-dark .blog-card {
+  background: #0f1829;
+  border: 1px solid #22354d;
+}
+
+body.theme-dark .blog-card:hover {
+  box-shadow: 0 0 0 1px rgba(0,229,255,0.22), 0 0 18px rgba(0,229,255,0.18);
+}
+
+body.theme-dark .blog-card__meta,
+body.theme-dark .blog-card__excerpt {
+  color: #9fb4ca;
+}
   font-size: 0.95rem;
   opacity: 0.95;
   flex-wrap: wrap;

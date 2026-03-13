@@ -92,33 +92,49 @@ document.addEventListener('DOMContentLoaded', () => {
   const tabs = document.querySelectorAll('.products__tab');
   const productCards = document.querySelectorAll('.product-card');
 
+  const activateProductTab = (line) => {
+    tabs.forEach(t => {
+      t.classList.remove('active--piscina', 'active--agua');
+    });
+
+    tabs.forEach(tab => {
+      if (tab.dataset.line === line) {
+        if (line === 'agua') tab.classList.add('active--agua');
+        else tab.classList.add('active--piscina');
+      }
+    });
+
+    productCards.forEach(card => {
+      const cardLine = card.dataset.line;
+      if (line === 'todos' || cardLine === line) {
+        card.style.display = '';
+        card.style.animation = 'fadeInUp 0.4s ease forwards';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  };
+
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const line = tab.dataset.line;
-
-      // Update active tab
-      tabs.forEach(t => {
-        t.classList.remove('active--piscina', 'active--agua');
-      });
-      if (line === 'piscina') tab.classList.add('active--piscina');
-      else if (line === 'agua') tab.classList.add('active--agua');
-      else {
-        // "Todos" tab — use piscina style for active
-        tab.classList.add('active--piscina');
-      }
-
-      // Filter products with animation
-      productCards.forEach(card => {
-        const cardLine = card.dataset.line;
-        if (line === 'todos' || cardLine === line) {
-          card.style.display = '';
-          card.style.animation = 'fadeInUp 0.4s ease forwards';
-        } else {
-          card.style.display = 'none';
-        }
-      });
+      activateProductTab(line);
     });
   });
+
+  document.querySelectorAll('[data-line-focus]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const line = btn.dataset.lineFocus;
+      if (!line) return;
+      activateProductTab(line);
+      document.querySelector('#productos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  const initialTab = document.querySelector('.products__tab.active--piscina, .products__tab.active--agua');
+  if (initialTab?.dataset?.line) {
+    activateProductTab(initialTab.dataset.line);
+  }
 
   // ── Scroll animations (Intersection Observer) ──
   const observerOptions = {
@@ -241,3 +257,108 @@ animStyles.textContent = `
   }
 `;
 document.head.appendChild(animStyles);
+
+// ── Global Theme + Language Controls ──
+document.addEventListener('DOMContentLoaded', () => {
+  const storageThemeKey = 'etiquetar_theme';
+  const storageLangKey = 'etiquetar_lang';
+  const themeToggleEnabled = false;
+
+  const dict = {
+    es: {
+      'Inicio': 'Inicio',
+      'Nosotros': 'Nosotros',
+      'Contacto': 'Contacto',
+      'Cotizar': 'Cotizar',
+      'Blog': 'Blog',
+      'Piscina & Spa': 'Piscina & Spa',
+      'Tratamiento de Agua': 'Tratamiento de Agua',
+      'Carrito': 'Carrito',
+      'Mi perfil': 'Mi perfil',
+      'Iniciar sesión': 'Iniciar sesión',
+      'Envíanos un Mensaje': 'Envíanos un Mensaje',
+      'Solicitar Cotización': 'Solicitar Cotización',
+      'Nosotros': 'Nosotros',
+      'Ver Catálogo': 'Ver Catálogo',
+      'Comprar': 'Comprar'
+    },
+    en: {
+      'Inicio': 'Home',
+      'Nosotros': 'About Us',
+      'Contacto': 'Contact',
+      'Cotizar': 'Quote',
+      'Blog': 'Blog',
+      'Piscina & Spa': 'Pool & Spa',
+      'Tratamiento de Agua': 'Water Treatment',
+      'Carrito': 'Cart',
+      'Mi perfil': 'My Profile',
+      'Iniciar sesión': 'Sign In',
+      'Envíanos un Mensaje': 'Send Us a Message',
+      'Solicitar Cotización': 'Request a Quote',
+      'Ver Catálogo': 'View Catalog',
+      'Comprar': 'Buy'
+    }
+  };
+
+  const applyTheme = (theme) => {
+    const resolvedTheme = themeToggleEnabled && theme === 'dark' ? 'dark' : 'light';
+    document.body.classList.toggle('theme-dark', resolvedTheme === 'dark');
+    localStorage.setItem(storageThemeKey, resolvedTheme);
+    const btn = document.querySelector('[data-site-theme]');
+    if (btn) {
+      btn.innerHTML = resolvedTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+      btn.disabled = !themeToggleEnabled;
+      btn.setAttribute('aria-disabled', String(!themeToggleEnabled));
+      btn.style.display = themeToggleEnabled ? '' : 'none';
+    }
+  };
+
+  const translatePage = (lang) => {
+    const target = dict[lang] || dict.es;
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll('a, button, h1, h2, h3, h4, p, span, label, summary').forEach((el) => {
+      if (el.children.length > 0) return;
+      const txt = (el.textContent || '').trim();
+      if (!txt) return;
+      if (!el.dataset.i18nOrig) el.dataset.i18nOrig = txt;
+      const orig = el.dataset.i18nOrig;
+      if (target[orig]) el.textContent = target[orig];
+      else if (lang === 'es') el.textContent = orig;
+    });
+
+    localStorage.setItem(storageLangKey, lang);
+    const btn = document.querySelector('[data-site-lang]');
+    if (btn) btn.textContent = lang.toUpperCase();
+  };
+
+  const renderControls = () => {
+    if (document.querySelector('.site-controls')) return;
+    const dock = document.createElement('div');
+    dock.className = 'site-controls';
+    dock.innerHTML = `
+      ${themeToggleEnabled ? '<button class="site-control-btn" data-site-theme title="Cambiar tema"><i class="fas fa-moon"></i></button>' : ''}
+      <button class="site-control-btn" data-site-lang title="Cambiar idioma">ES</button>
+    `;
+    document.body.appendChild(dock);
+
+    const themeBtn = dock.querySelector('[data-site-theme]');
+    const langBtn = dock.querySelector('[data-site-lang]');
+
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const isDark = document.body.classList.contains('theme-dark');
+        applyTheme(isDark ? 'light' : 'dark');
+      });
+    }
+
+    langBtn.addEventListener('click', () => {
+      const current = localStorage.getItem(storageLangKey) || 'es';
+      translatePage(current === 'es' ? 'en' : 'es');
+    });
+  };
+
+  renderControls();
+  applyTheme('light');
+  translatePage(localStorage.getItem(storageLangKey) || 'es');
+});

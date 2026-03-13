@@ -52,6 +52,26 @@
             <div class="admin-message admin-message--error" id="adminError"></div>
 
             <section class="admin-tab active" id="tab-dashboard">
+                <div class="admin-analytics-toolbar">
+                    <div class="admin-form-group">
+                        <label for="analyticsDays">Periodo</label>
+                        <select id="analyticsDays">
+                            <option value="7">Últimos 7 días</option>
+                            <option value="30" selected>Últimos 30 días</option>
+                            <option value="90">Últimos 90 días</option>
+                            <option value="180">Últimos 180 días</option>
+                        </select>
+                    </div>
+                    <div class="admin-form-group">
+                        <label for="analyticsGranularity">Agrupar por</label>
+                        <select id="analyticsGranularity">
+                            <option value="auto" selected>Automático</option>
+                            <option value="day">Día</option>
+                            <option value="week">Semana</option>
+                            <option value="month">Mes</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="admin-kpis" id="kpiGrid"></div>
                 <div class="admin-grid-2">
                     <article class="admin-card">
@@ -59,14 +79,28 @@
                         <div id="accesosList" class="admin-list"></div>
                     </article>
                     <article class="admin-card">
-                        <h3><i class="fas fa-dollar-sign"></i> Dinero vendido</h3>
-                        <canvas id="ventasChart" height="200"></canvas>
+                        <h3><i class="fas fa-wave-square"></i> Evolución comercial</h3>
+                        <canvas id="negocioChart" height="220"></canvas>
                     </article>
                 </div>
                 <div class="admin-grid-2" style="margin-top:12px;">
                     <article class="admin-card">
                         <h3><i class="fas fa-map-marker-alt"></i> Desde dónde entran</h3>
                         <div id="origenesList" class="admin-list"></div>
+                    </article>
+                    <article class="admin-card">
+                        <h3><i class="fas fa-user-clock"></i> Accesos con usuario</h3>
+                        <div id="usuariosAccesosList" class="admin-list"></div>
+                    </article>
+                </div>
+                <div class="admin-grid-2" style="margin-top:12px;">
+                    <article class="admin-card">
+                        <h3><i class="fas fa-filter"></i> Embudo de conversión</h3>
+                        <canvas id="funnelChart" height="200"></canvas>
+                    </article>
+                    <article class="admin-card">
+                        <h3><i class="fas fa-chart-pie"></i> Distribución de actividad</h3>
+                        <canvas id="mixChart" height="200"></canvas>
                     </article>
                 </div>
             </section>
@@ -268,6 +302,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../../estaticos/js/home.js"></script>
     <script src="../../estaticos/js/admin.js"></script>
 </body>
 

@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorBox = qs('#adminError');
   const formProducto = qs('#formProducto');
   const inputPrecioProducto = qs('#prod-precio');
+  const analyticsDays = qs('#analyticsDays');
+  const analyticsGranularity = qs('#analyticsGranularity');
   const productSubmitBtn = formProducto ? formProducto.querySelector('.admin-btn') : null;
   const state = { editingProductId: null, products: [] };
 
@@ -128,22 +130,30 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const loadResumen = async () => {
-    const [resumen, accesos, ventas] = await Promise.all([
+    const days = analyticsDays ? analyticsDays.value : '30';
+    const granularity = analyticsGranularity ? analyticsGranularity.value : 'auto';
+
+    const [resumen, accesos, stats] = await Promise.all([
       api('/admin/api/resumen'),
       api('/admin/api/accesos'),
-      api('/admin/api/ventas-grafica')
+      api(`/admin/api/estadisticas?days=${encodeURIComponent(days)}&granularity=${encodeURIComponent(granularity)}`)
     ]);
 
     const k = resumen.data;
+    const s = stats.data;
+    const st = s.totals || {};
     const kpiItems = [
-      { label: 'Vendido este mes',       value: `$${k.ventas_mes.toLocaleString('es-CO')}`,          icon: 'fa-dollar-sign',   color: 'green'  },
-      { label: 'Mes anterior',           value: `$${k.ventas_mes_anterior.toLocaleString('es-CO')}`, icon: 'fa-chart-bar',     color: 'gray'   },
-      { label: 'Entradas hoy',           value: k.visitas_hoy,                                        icon: 'fa-eye',           color: 'blue'   },
-      { label: 'Entradas (7 días)',       value: k.accesos_7d,                                         icon: 'fa-calendar-week', color: 'blue'   },
-      { label: 'Visitantes únicos (7d)', value: k.visitantes_unicos_7d,                               icon: 'fa-users',         color: 'purple' },
+      { label: `Ventas (${s.days} días)`, value: fmtCop(st.ventas || 0),                                   icon: 'fa-dollar-sign',   color: 'green'  },
+      { label: 'Crecimiento ventas',      value: `${Number(st.growth_ventas || 0).toFixed(1)}%`,          icon: 'fa-chart-line',    color: Number(st.growth_ventas || 0) >= 0 ? 'green' : 'orange' },
+      { label: `Visitas (${s.days} días)`, value: Number(st.visitas || 0).toLocaleString('es-CO'),         icon: 'fa-eye',           color: 'blue'   },
+      { label: 'Crecimiento visitas',     value: `${Number(st.growth_visitas || 0).toFixed(1)}%`,         icon: 'fa-arrow-trend-up',color: Number(st.growth_visitas || 0) >= 0 ? 'blue' : 'orange' },
+      { label: 'Pedidos cerrados',        value: Number(st.pedidos || 0).toLocaleString('es-CO'),         icon: 'fa-bag-shopping',  color: 'teal'   },
+      { label: 'Ticket promedio',         value: fmtCop(st.ticket_promedio || 0),                         icon: 'fa-receipt',       color: 'teal'   },
+      { label: 'Conv. visita → pedido',   value: `${Number(st.conv_visita_pedido || 0).toFixed(2)}%`,     icon: 'fa-funnel-dollar', color: 'purple' },
+      { label: 'Conv. visita → consulta', value: `${Number(st.conv_visita_cotizacion || 0).toFixed(2)}%`, icon: 'fa-comments',      color: 'purple' },
       { label: 'Clientes registrados',   value: k.clientes,                                            icon: 'fa-user-check',    color: 'purple' },
-      { label: 'Productos activos',      value: k.productos,                                           icon: 'fa-box-open',      color: 'teal'   },
-      { label: 'Consultas pendientes',   value: k.cotizaciones_pendientes,                             icon: 'fa-comments',      color: k.cotizaciones_pendientes > 0 ? 'orange' : 'gray' },
+      { label: 'Productos activos',      value: k.productos,                                           icon: 'fa-box-open',      color: 'gray'   },
+      { label: 'Consultas pendientes',   value: k.cotizaciones_pendientes,                             icon: 'fa-envelope-open-text', color: k.cotizaciones_pendientes > 0 ? 'orange' : 'gray' },
     ];
     qs('#kpiGrid').innerHTML = kpiItems.map((item) => `
       <div class="admin-kpi admin-kpi--${item.color}">
@@ -157,24 +167,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const paginasReales = (accesos.data.rutas || []).filter((a) => !a.ruta.includes('/api/') && !a.ruta.endsWith('/logout'));
     renderList('#accesosList', paginasReales, (a) => `<div class="admin-item__row"><strong>${nombreRuta(a.ruta)}</strong><span>${a.visitas} visitas</span></div>`);
-    renderList('#origenesList', accesos.data.origenes || [], (o) => `<div class="admin-item__row"><strong>${o.origen}</strong><span>${o.visitas} entradas</span></div>`);
+    renderList('#origenesList', accesos.data.origenes || [], (o) => `<div class="admin-item__row"><strong>${o.origen}</strong><span>${o.visitas} visitas</span></div>`);
+    renderList('#usuariosAccesosList', accesos.data.usuarios || [], (u) => `<div class="admin-item__row"><strong>${u.usuario}</strong><span>${u.visitas} visitas</span></div>`);
 
-    const ctx = qs('#ventasChart');
-    if (window.__ventasChart) {
-      window.__ventasChart.destroy();
+    const labels = (s.series && s.series.labels) || [];
+
+    if (!window.__charts) window.__charts = {};
+    if (window.__charts.negocio) {
+      window.__charts.negocio.destroy();
     }
-    window.__ventasChart = new Chart(ctx, {
+    const negocioCtx = qs('#negocioChart');
+    window.__charts.negocio = new Chart(negocioCtx, {
       type: 'line',
       data: {
-        labels: ventas.data.map((p) => p.mes),
+        labels,
         datasets: [{
-          label: 'Ventas',
-          data: ventas.data.map((p) => p.total),
+          label: 'Ventas (COP)',
+          data: (s.series && s.series.ventas) || [],
           borderColor: '#0077B6',
           backgroundColor: 'rgba(0,119,182,0.18)',
           fill: true,
           tension: 0.3
+        }, {
+          label: 'Visitas',
+          data: (s.series && s.series.visitas) || [],
+          borderColor: '#4f46e5',
+          backgroundColor: 'rgba(79,70,229,0.12)',
+          fill: false,
+          tension: 0.25,
+          yAxisID: 'y1'
+        }, {
+          label: 'Pedidos',
+          data: (s.series && s.series.pedidos) || [],
+          borderColor: '#059669',
+          backgroundColor: 'rgba(5,150,105,0.12)',
+          fill: false,
+          tension: 0.25,
+          yAxisID: 'y1'
         }]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: (v) => fmtCop(v) }
+          },
+          y1: {
+            beginAtZero: true,
+            position: 'right',
+            grid: { drawOnChartArea: false }
+          }
+        }
+      }
+    });
+
+    if (window.__charts.funnel) {
+      window.__charts.funnel.destroy();
+    }
+    const funnelCtx = qs('#funnelChart');
+    window.__charts.funnel = new Chart(funnelCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Visitas', 'Consultas', 'Pedidos'],
+        datasets: [{
+          label: 'Embudo',
+          data: [Number(st.visitas || 0), Number(st.cotizaciones || 0), Number(st.pedidos || 0)],
+          backgroundColor: ['#4f46e5', '#f59e0b', '#059669'],
+          borderRadius: 8
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    if (window.__charts.mix) {
+      window.__charts.mix.destroy();
+    }
+    const mixCtx = qs('#mixChart');
+    window.__charts.mix = new Chart(mixCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Visitas', 'Consultas', 'Pedidos'],
+        datasets: [{
+          data: [Number(st.visitas || 0), Number(st.cotizaciones || 0), Number(st.pedidos || 0)],
+          backgroundColor: ['#6366f1', '#f59e0b', '#10b981']
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' }
+        }
       }
     });
   };
@@ -631,6 +717,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadEnvios(),
     loadNotificaciones()
   ]).catch((err) => showMsg('error', err.message));
+
+  if (analyticsDays) analyticsDays.addEventListener('change', () => loadResumen().catch((err) => showMsg('error', err.message)));
+  if (analyticsGranularity) analyticsGranularity.addEventListener('change', () => loadResumen().catch((err) => showMsg('error', err.message)));
 
   const params = new URLSearchParams(window.location.search);
   const requestedTab = params.get('tab');

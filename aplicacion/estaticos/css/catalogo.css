@@ -839,6 +839,41 @@
     color: var(--piscina-primary);
 }
 
+/* ---- Modo oscuro neon (catalogo) ---- */
+body.theme-dark .catalog-header {
+    background: linear-gradient(135deg, #08111d 0%, #0f1c2c 100%);
+}
+
+body.theme-dark .catalog-search {
+    background: #0d1525;
+    border-color: #24364d;
+}
+
+body.theme-dark .catalog-search:focus-within {
+    box-shadow: 0 0 0 1px rgba(0,229,255,0.3), 0 0 16px rgba(0,229,255,0.2);
+}
+
+body.theme-dark .catalog-card {
+    background: #0f1829;
+    border-color: #23354c;
+}
+
+body.theme-dark .catalog-card__badge--sale {
+    background: linear-gradient(135deg, #ff2ea6, #ff5cc8);
+    color: #fff;
+}
+
+body.theme-dark .catalog-card__quote-btn {
+    background: #0f1b2b;
+    border-color: #2a3f59;
+    color: #b8cde1;
+}
+
+body.theme-dark .catalog-card__quote-btn:hover,
+body.theme-dark .catalog-card__cart-btn:hover {
+    box-shadow: 0 0 0 1px rgba(0,229,255,0.25), 0 0 14px rgba(0,229,255,0.2);
+}
+
 /* --- Pagination --- */
 .catalog-pagination {
     display: flex;

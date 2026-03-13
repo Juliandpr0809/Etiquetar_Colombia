@@ -1,6 +1,8 @@
 import ipaddress
 import json
 import re
+from collections import Counter
+from collections import defaultdict
 from functools import lru_cache
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -8,7 +10,7 @@ from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen
 
-from flask import Blueprint, current_app, flash, g, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, g, jsonify, redirect, render_template, request, session, url_for
 from sqlalchemy import func
 from werkzeug.utils import secure_filename
 
@@ -84,23 +86,92 @@ def _texto_origen(ciudad: str | None, region: str | None, pais: str | None, ip: 
     partes = [parte for parte in [ciudad, region, pais] if parte]
     if partes:
         return ", ".join(partes)
-    return ip or "Sin dato"
+    return "Ubicacion no identificada"
+
+
+def _ruta_comercial(path: str) -> bool:
+    if not path:
+        return False
+    if path.startswith("/estaticos") or path.startswith("/placeholder"):
+        return False
+    if path.startswith("/favicon") or path.startswith("/health"):
+        return False
+    if "/api/" in path:
+        return False
+    return True
+
+
+def _normalizar_param_analytics(days_raw: str | None, granularity_raw: str | None):
+    opciones = {7, 14, 30, 60, 90, 180}
+    try:
+        dias = int(days_raw or 30)
+    except (TypeError, ValueError):
+        dias = 30
+
+    if dias not in opciones:
+        dias = 30
+
+    granularity = (granularity_raw or "auto").strip().lower()
+    if granularity not in {"auto", "day", "week", "month"}:
+        granularity = "auto"
+
+    if granularity == "auto":
+        if dias <= 31:
+            granularity = "day"
+        elif dias <= 90:
+            granularity = "week"
+        else:
+            granularity = "month"
+
+    return dias, granularity
+
+
+def _bucket_key(dt: datetime, granularity: str):
+    if granularity == "day":
+        return dt.strftime("%Y-%m-%d")
+    if granularity == "week":
+        y, w, _ = dt.isocalendar()
+        return f"{y}-W{w:02d}"
+    return dt.strftime("%Y-%m")
 
 
 @admin_bp.before_app_request
 def registrar_acceso_pagina():
     path = request.path or ""
-    if path.startswith("/estaticos") or path.startswith("/placeholder"):
+    if request.method != "GET":
         return
-    if path.startswith("/favicon"):
+    if not _ruta_comercial(path):
         return
 
     ip_cliente = _ip_cliente()
     origen = _resolver_origen_por_ip(ip_cliente)
+    usuario_id = session.get("user_id") or getattr(getattr(g, "usuario_actual", None), "id", None)
+    ruta = path[:250] or "/"
+
+    # Para visitantes sin login, evita inflar cifras con repeticiones técnicas del mismo día.
+    if not usuario_id:
+        inicio_dia = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        fin_dia = inicio_dia + timedelta(days=1)
+        ciudad = origen.get("ciudad") or ""
+        region = origen.get("region") or ""
+        pais = origen.get("pais") or ""
+
+        existe_hoy = (
+            db.session.query(AccesoPagina.id)
+            .filter(AccesoPagina.usuario_id.is_(None))
+            .filter(AccesoPagina.ruta == ruta)
+            .filter(func.coalesce(AccesoPagina.ciudad, "") == ciudad)
+            .filter(func.coalesce(AccesoPagina.region, "") == region)
+            .filter(func.coalesce(AccesoPagina.pais, "") == pais)
+            .filter(AccesoPagina.created_at >= inicio_dia, AccesoPagina.created_at < fin_dia)
+            .first()
+        )
+        if existe_hoy:
+            return
 
     acceso = AccesoPagina(
-        ruta=(path[:250] or "/"),
-        usuario_id=getattr(getattr(g, "usuario_actual", None), "id", None),
+        ruta=ruta,
+        usuario_id=usuario_id,
         ip=ip_cliente,
         ciudad=origen.get("ciudad"),
         region=origen.get("region"),
@@ -232,16 +303,25 @@ def resumen_api():
     accesos_7d = (
         db.session.query(func.count(AccesoPagina.id))
         .filter(AccesoPagina.created_at >= ahora - timedelta(days=7))
+        .filter(~AccesoPagina.ruta.contains('/api/'))
+        .filter(~AccesoPagina.ruta.startswith('/estaticos'))
+        .filter(~AccesoPagina.ruta.startswith('/placeholder'))
         .scalar()
     )
     visitantes_unicos_7d = (
         db.session.query(func.count(func.distinct(AccesoPagina.ip)))
         .filter(AccesoPagina.created_at >= ahora - timedelta(days=7))
+        .filter(~AccesoPagina.ruta.contains('/api/'))
+        .filter(~AccesoPagina.ruta.startswith('/estaticos'))
+        .filter(~AccesoPagina.ruta.startswith('/placeholder'))
         .scalar()
     )
     visitas_hoy = (
         db.session.query(func.count(AccesoPagina.id))
         .filter(AccesoPagina.created_at >= ahora.replace(hour=0, minute=0, second=0, microsecond=0))
+        .filter(~AccesoPagina.ruta.contains('/api/'))
+        .filter(~AccesoPagina.ruta.startswith('/estaticos'))
+        .filter(~AccesoPagina.ruta.startswith('/placeholder'))
         .scalar()
     )
 
@@ -819,32 +899,57 @@ def accesos_api():
     if not isinstance(admin, Usuario):
         return admin
 
-    rutas = (
-        db.session.query(AccesoPagina.ruta, func.count(AccesoPagina.id).label("visitas"))
-        .group_by(AccesoPagina.ruta)
-        .order_by(func.count(AccesoPagina.id).desc())
-        .limit(20)
+    ventana = datetime.utcnow() - timedelta(days=30)
+    filas = (
+        db.session.query(
+            AccesoPagina.ruta,
+            AccesoPagina.usuario_id,
+            AccesoPagina.ciudad,
+            AccesoPagina.region,
+            AccesoPagina.pais,
+            AccesoPagina.created_at,
+            Usuario.nombre,
+            Usuario.apellido,
+            Usuario.email,
+        )
+        .outerjoin(Usuario, Usuario.id == AccesoPagina.usuario_id)
+        .filter(AccesoPagina.created_at >= ventana)
+        .order_by(AccesoPagina.created_at.desc())
+        .limit(6000)
         .all()
     )
 
-    origenes = (
-        db.session.query(
-            AccesoPagina.ciudad,
-            AccesoPagina.region,
-            AccesoPagina.pais,
-            AccesoPagina.ip,
-            func.count(AccesoPagina.id).label("visitas"),
-        )
-        .group_by(
-            AccesoPagina.ciudad,
-            AccesoPagina.region,
-            AccesoPagina.pais,
-            AccesoPagina.ip,
-        )
-        .order_by(func.count(AccesoPagina.id).desc())
-        .limit(20)
-        .all()
-    )
+    rutas_counter = Counter()
+    origenes_counter = Counter()
+    usuarios_counter = Counter()
+    anon_vistos = set()
+
+    for fila in filas:
+        ruta = (fila.ruta or "/").strip() or "/"
+        if not _ruta_comercial(ruta):
+            continue
+
+        origen = _texto_origen(fila.ciudad, fila.region, fila.pais, None)
+        fecha = fila.created_at.date() if fila.created_at else None
+
+        if fila.usuario_id:
+            rutas_counter[ruta] += 1
+            origenes_counter[origen] += 1
+
+            nombre = f"{(fila.nombre or '').strip()} {(fila.apellido or '').strip()}".strip()
+            nombre = nombre or (fila.email or f"Usuario {fila.usuario_id}")
+            usuarios_counter[f"{nombre} - {origen}"] += 1
+        else:
+            clave_anon = (fecha, ruta, origen)
+            if clave_anon in anon_vistos:
+                continue
+            anon_vistos.add(clave_anon)
+            rutas_counter[ruta] += 1
+            origenes_counter[origen] += 1
+
+    rutas = rutas_counter.most_common(20)
+    origenes = origenes_counter.most_common(20)
+    accesos_usuarios = usuarios_counter.most_common(20)
 
     return jsonify(
         {
@@ -853,10 +958,17 @@ def accesos_api():
                 "rutas": [{"ruta": r, "visitas": int(v)} for r, v in rutas],
                 "origenes": [
                     {
-                        "origen": _texto_origen(ciudad, region, pais, ip),
+                        "origen": origen,
                         "visitas": int(visitas),
                     }
-                    for ciudad, region, pais, ip, visitas in origenes
+                    for origen, visitas in origenes
+                ],
+                "usuarios": [
+                    {
+                        "usuario": usuario_origen,
+                        "visitas": int(visitas),
+                    }
+                    for usuario_origen, visitas in accesos_usuarios
                 ],
             },
         }
@@ -882,6 +994,166 @@ def ventas_grafica_api():
         puntos.append({"mes": inicio.strftime("%Y-%m"), "total": float(total or 0)})
 
     return jsonify({"ok": True, "data": puntos})
+
+
+@admin_bp.get("/api/estadisticas")
+def estadisticas_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    dias, granularity = _normalizar_param_analytics(
+        request.args.get("days"),
+        request.args.get("granularity"),
+    )
+    ahora = datetime.utcnow()
+    inicio = ahora - timedelta(days=dias)
+    inicio_prev = inicio - timedelta(days=dias)
+
+    accesos_raw = (
+        db.session.query(
+            AccesoPagina.ruta,
+            AccesoPagina.usuario_id,
+            AccesoPagina.ip,
+            AccesoPagina.ciudad,
+            AccesoPagina.region,
+            AccesoPagina.pais,
+            AccesoPagina.created_at,
+        )
+        .filter(AccesoPagina.created_at >= inicio_prev)
+        .order_by(AccesoPagina.created_at.asc())
+        .all()
+    )
+
+    pedidos_raw = (
+        db.session.query(Pedido.created_at, Pedido.total)
+        .filter(Pedido.created_at >= inicio_prev)
+        .order_by(Pedido.created_at.asc())
+        .all()
+    )
+
+    cotizaciones_raw = (
+        db.session.query(Cotizacion.created_at)
+        .filter(Cotizacion.created_at >= inicio_prev)
+        .order_by(Cotizacion.created_at.asc())
+        .all()
+    )
+
+    series = defaultdict(lambda: {"visitas": 0, "pedidos": 0, "cotizaciones": 0, "ventas": 0.0})
+    series_prev = defaultdict(lambda: {"visitas": 0, "pedidos": 0, "cotizaciones": 0, "ventas": 0.0})
+
+    anon_vistos = set()
+    anon_vistos_prev = set()
+
+    total_visitas = 0
+    total_visitas_prev = 0
+
+    for a in accesos_raw:
+        ruta = (a.ruta or "").strip()
+        if not _ruta_comercial(ruta):
+            continue
+        dt = a.created_at
+        if not dt:
+            continue
+
+        bucket = _bucket_key(dt, granularity)
+        origen = _texto_origen(a.ciudad, a.region, a.pais, None)
+
+        if dt >= inicio:
+            if a.usuario_id:
+                series[bucket]["visitas"] += 1
+                total_visitas += 1
+            else:
+                clave = (dt.date(), ruta, origen)
+                if clave in anon_vistos:
+                    continue
+                anon_vistos.add(clave)
+                series[bucket]["visitas"] += 1
+                total_visitas += 1
+        else:
+            if a.usuario_id:
+                series_prev[bucket]["visitas"] += 1
+                total_visitas_prev += 1
+            else:
+                clave = (dt.date(), ruta, origen)
+                if clave in anon_vistos_prev:
+                    continue
+                anon_vistos_prev.add(clave)
+                series_prev[bucket]["visitas"] += 1
+                total_visitas_prev += 1
+
+    total_pedidos = 0
+    total_pedidos_prev = 0
+    total_ventas = 0.0
+    total_ventas_prev = 0.0
+    for created_at, total in pedidos_raw:
+        if not created_at:
+            continue
+        bucket = _bucket_key(created_at, granularity)
+        if created_at >= inicio:
+            series[bucket]["pedidos"] += 1
+            series[bucket]["ventas"] += float(total or 0)
+            total_pedidos += 1
+            total_ventas += float(total or 0)
+        else:
+            series_prev[bucket]["pedidos"] += 1
+            series_prev[bucket]["ventas"] += float(total or 0)
+            total_pedidos_prev += 1
+            total_ventas_prev += float(total or 0)
+
+    total_cotizaciones = 0
+    total_cotizaciones_prev = 0
+    for (created_at,) in cotizaciones_raw:
+        if not created_at:
+            continue
+        bucket = _bucket_key(created_at, granularity)
+        if created_at >= inicio:
+            series[bucket]["cotizaciones"] += 1
+            total_cotizaciones += 1
+        else:
+            series_prev[bucket]["cotizaciones"] += 1
+            total_cotizaciones_prev += 1
+
+    labels = sorted(series.keys())
+    data = {
+        "labels": labels,
+        "visitas": [int(series[l]["visitas"]) for l in labels],
+        "pedidos": [int(series[l]["pedidos"]) for l in labels],
+        "cotizaciones": [int(series[l]["cotizaciones"]) for l in labels],
+        "ventas": [round(float(series[l]["ventas"]), 2) for l in labels],
+    }
+
+    def _growth(actual, prev):
+        if prev <= 0:
+            return 100.0 if actual > 0 else 0.0
+        return round(((actual - prev) / prev) * 100.0, 2)
+
+    ticket_promedio = round((total_ventas / total_pedidos), 2) if total_pedidos > 0 else 0.0
+    conv_visita_pedido = round((total_pedidos / total_visitas) * 100.0, 2) if total_visitas > 0 else 0.0
+    conv_visita_cotizacion = round((total_cotizaciones / total_visitas) * 100.0, 2) if total_visitas > 0 else 0.0
+
+    return jsonify(
+        {
+            "ok": True,
+            "data": {
+                "days": dias,
+                "granularity": granularity,
+                "series": data,
+                "totals": {
+                    "ventas": round(total_ventas, 2),
+                    "visitas": int(total_visitas),
+                    "pedidos": int(total_pedidos),
+                    "cotizaciones": int(total_cotizaciones),
+                    "ticket_promedio": ticket_promedio,
+                    "conv_visita_pedido": conv_visita_pedido,
+                    "conv_visita_cotizacion": conv_visita_cotizacion,
+                    "growth_ventas": _growth(total_ventas, total_ventas_prev),
+                    "growth_visitas": _growth(total_visitas, total_visitas_prev),
+                    "growth_pedidos": _growth(total_pedidos, total_pedidos_prev),
+                },
+            },
+        }
+    )
 
 
 @admin_bp.post("/api/envios")
