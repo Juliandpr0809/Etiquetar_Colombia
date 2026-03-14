@@ -112,33 +112,33 @@
   <!-- NAVBAR -->
   <nav class="navbar" id="navbar">
     <div class="container">
-      <a href="../home.html" class="navbar__logo">
+      <a href="/" class="navbar__logo">
         <img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:50px; width:auto;">
       </a>
 
       <ul class="navbar__menu" id="navMenu">
-        <li><a href="../home.html" class="navbar__link">Inicio</a></li>
-        <li><a href="/contacto.html" class="navbar__link">Nosotros</a></li>
-        <li><a href="../catalogo/piscina.html" class="navbar__link navbar__link--piscina">
+        <li><a href="/" class="navbar__link">Inicio</a></li>
+        <li><a href="/nosotros" class="navbar__link">Nosotros</a></li>
+        <li><a href="/catalogo/piscina" class="navbar__link navbar__link--piscina">
             <i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa
           </a></li>
-        <li><a href="../catalogo/agua.html" class="navbar__link navbar__link--agua">
+        <li><a href="/catalogo/agua" class="navbar__link navbar__link--agua">
             <i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua
           </a></li>
-        <li><a href="listado.html" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
-        <li><a href="../pages/cotizar.html" class="navbar__link">Cotizar</a></li>
+        <li><a href="/blog" class="navbar__link active"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
+        <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
       </ul>
 
       <div class="navbar__actions">
         <button class="navbar__action-btn navbar__action-btn--search" aria-label="Buscar">
           <i class="fas fa-search"></i>
         </button>
-        <a href="../autenticacion/login.html" class="navbar__action-btn" aria-label="Cuenta">
+        <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta">
           <i class="fas fa-user"></i>
         </a>
-        <a href="../carrito/carrito.html" class="navbar__action-btn" aria-label="Carrito">
+        <a href="/carrito" class="navbar__action-btn" aria-label="Carrito">
           <i class="fas fa-shopping-cart"></i>
-          <span class="navbar__cart-badge">0</span>
+          <span class="navbar__cart-badge">{{ carrito_count }}</span>
         </a>
         <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false">
           <i class="fas fa-bars"></i>
@@ -149,9 +149,9 @@
 
   <!-- BREADCRUMB -->
   <div class="breadcrumb">
-    <a href="../home.html">Inicio</a>
+    <a href="/">Inicio</a>
     <span>/</span>
-    <a href="listado.html">Blog</a>
+    <a href="/blog">Blog</a>
     <span>/</span>
     <span>Mantenimiento de Piscinas</span>
   </div>
@@ -381,7 +381,7 @@
           <a href="../home.html" style="color: #1B8FA1; text-decoration: underline;">Inicio</a> • 
           <a href="../catalogo/piscina.html" style="color: #1B8FA1; text-decoration: underline;">Piscina</a> • 
           <a href="../catalogo/agua.html" style="color: #1B8FA1; text-decoration: underline;">Agua</a> • 
-          <a href="listado.html" style="color: #1B8FA1; text-decoration: underline;">Blog</a>
+          <a href="/blog" style="color: #1B8FA1; text-decoration: underline;">Blog</a>
         </p>
       </div>
     </div>

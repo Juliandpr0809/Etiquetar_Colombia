@@ -104,28 +104,28 @@
       </a>
 
       <ul class="navbar__menu" id="navMenu">
-        <li><a href="../home.html" class="navbar__link">Inicio</a></li>
-        <li><a href="/contacto.html" class="navbar__link">Nosotros</a></li>
-        <li><a href="../catalogo/piscina.html" class="navbar__link navbar__link--piscina">
+        <li><a href="/" class="navbar__link">Inicio</a></li>
+        <li><a href="/nosotros" class="navbar__link">Nosotros</a></li>
+        <li><a href="/catalogo/piscina" class="navbar__link navbar__link--piscina">
             <i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa
           </a></li>
-        <li><a href="../catalogo/agua.html" class="navbar__link navbar__link--agua">
+        <li><a href="/catalogo/agua" class="navbar__link navbar__link--agua">
             <i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua
           </a></li>
-        <li><a href="listado.html" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
-        <li><a href="../pages/cotizar.html" class="navbar__link">Cotizar</a></li>
+        <li><a href="/blog" class="navbar__link active"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
+        <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
       </ul>
 
       <div class="navbar__actions">
         <button class="navbar__action-btn navbar__action-btn--search" aria-label="Buscar">
           <i class="fas fa-search"></i>
         </button>
-        <a href="../autenticacion/login.html" class="navbar__action-btn" aria-label="Cuenta">
+        <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta">
           <i class="fas fa-user"></i>
         </a>
-        <a href="../carrito/carrito.html" class="navbar__action-btn" aria-label="Carrito">
+        <a href="/carrito" class="navbar__action-btn" aria-label="Carrito">
           <i class="fas fa-shopping-cart"></i>
-          <span class="navbar__cart-badge">0</span>
+          <span class="navbar__cart-badge">{{ carrito_count }}</span>
         </a>
         <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false">
           <i class="fas fa-bars"></i>
@@ -166,7 +166,7 @@
           <p class="blog-card__excerpt">
             Aprende cuáles son los factores clave para elegir la bomba perfecta para tu piscina. Tamaño, potencia, tipo y caudal explicado de forma sencilla.
           </p>
-          <a href="articulo-1-bomba-piscina.html" class="blog-card__link">
+          <a href="/blog/como-elegir-bomba-piscina" class="blog-card__link">
             Leer artículo
             <i class="fas fa-arrow-right"></i>
           </a>
@@ -189,7 +189,7 @@
           <p class="blog-card__excerpt">
             Análisis completo de precios, sistemas disponibles y comparación entre purificadores para hogar. Find la mejor relación precio-calidad.
           </p>
-          <a href="articulo-2-purificador-agua.html" class="blog-card__link">
+          <a href="/blog/purificador-agua-casa-precio-colombia" class="blog-card__link">
             Leer artículo
             <i class="fas fa-arrow-right"></i>
           </a>
@@ -198,21 +198,21 @@
 
       <!-- Artículo 3 -->
       <article class="blog-card">
-        <div class="blog-card__image" style="background: linear-gradient(135deg, #023E8A 0%, #0077B6 100%);"></div>
+        <div class="blog-card__image" style="background: linear-gradient(135deg, #00A676 0%, #0077B6 100%);"></div>
         <div class="blog-card__body">
           <div class="blog-card__meta">
             <span>
-              <i class="fas fa-calendar-alt"></i> 10 Mar 2026
+              <i class="fas fa-calendar-alt"></i> 08 Mar 2026
             </span>
             <span>
-              <i class="fas fa-clock"></i> 7 min lectura
+              <i class="fas fa-clock"></i> 5 min lectura
             </span>
           </div>
-          <h2 class="blog-card__title">Guía Completa de Mantenimiento de Piscinas en Clima Cálido</h2>
+          <h2 class="blog-card__title">Mantenimiento de Piscinas en Clima Cálido</h2>
           <p class="blog-card__excerpt">
-            Aprende los secretos para mantener tu piscina limpia, con el pH correcto y cristalina todo el año. Paso a paso y mes a mes.
+            Guía práctica para mantener el agua cristalina y saludable en regiones calurosas de Colombia. Tips sobre cloro y filtración.
           </p>
-          <a href="articulo-3-mantenimiento-piscina.html" class="blog-card__link">
+          <a href="/blog/mantenimiento-piscinas-clima-calido" class="blog-card__link">
             Leer artículo
             <i class="fas fa-arrow-right"></i>
           </a>

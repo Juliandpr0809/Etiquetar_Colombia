@@ -84,6 +84,40 @@
 <body class="page-gateway">
 
   <!-- ══════════════════════════════
+       PROMO BANNER (TOP)
+       ══════════════════════════════ -->
+  {% set top_banner = banners_activos|selectattr("tipo", "equalto", "top")|first %}
+  {% if top_banner %}
+  <div class="promo-banner" id="topPromoBanner" data-end="{{ top_banner.fecha_fin.isoformat() if top_banner.fecha_fin else '' }}">
+    <div class="promo-banner__container">
+      <div class="promo-banner__content">
+        <span>{{ top_banner.titulo }}</span>
+        <div class="promo-banner__timer">
+          <div class="promo-banner__timer-unit">
+            <span class="promo-banner__timer-num" id="days">00</span>
+            <span class="promo-banner__timer-label">Días</span>
+          </div>
+          <div class="promo-banner__timer-unit">
+            <span class="promo-banner__timer-num" id="hours">00</span>
+            <span class="promo-banner__timer-label">Hrs</span>
+          </div>
+          <div class="promo-banner__timer-unit">
+            <span class="promo-banner__timer-num" id="mins">00</span>
+            <span class="promo-banner__timer-label">Min</span>
+          </div>
+          <div class="promo-banner__timer-unit">
+            <span class="promo-banner__timer-num" id="secs">00</span>
+            <span class="promo-banner__timer-label">Seg</span>
+          </div>
+        </div>
+        <a href="{{ top_banner.enlace_url or '#' }}" class="promo-banner__cta">{{ top_banner.texto_boton or 'Comprar Ahora' }}</a>
+      </div>
+      <i class="fas fa-times promo-banner__close" onclick="document.getElementById('topPromoBanner').style.display='none'"></i>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══════════════════════════════
        TOP BAR
        ══════════════════════════════ -->
   <div class="top-bar">
@@ -170,53 +204,47 @@
   {% endif %}
 
   <!-- ══════════════════════════════
-       SPLIT HERO
+       HERO BANNER (DB DRIVEN)
        ══════════════════════════════ -->
-  <section class="split-hero" id="hero">
-    <!-- Panel Piscina -->
-    <div class="split-hero__panel split-hero__panel--piscina" data-href="/piscina">
-      <div class="split-hero__bg" style="background-image: url('../estaticos/img/hero_piscina.png');"></div>
-      <div class="split-hero__overlay"></div>
-      <div class="split-hero__content">
-        <div class="split-hero__icon">
-          <i class="fas fa-swimming-pool"></i>
+  <section class="split-hero">
+    {% set hero_banners = banners_activos|selectattr("tipo", "equalto", "hero")|list %}
+    {% if hero_banners and hero_banners|length > 0 %}
+      {% for banner in hero_banners[:2] %}
+      <div class="split-hero__panel split-hero__panel--{{ 'piscina' if loop.index == 1 else 'agua' }}" style="background: radial-gradient(circle at center, {{ banner.color_fondo }} 0%, #f8fbf8 100%);">
+        <div class="split-hero__content">
+          {% if banner.subtitulo %}
+            <span class="split-hero__kicker">{{ banner.subtitulo }}</span>
+          {% endif %}
+          <h1 class="split-hero__title">{{ banner.titulo }}</h1>
+          {% if banner.descripcion %}
+            <p class="split-hero__desc">{{ banner.descripcion|safe }}</p>
+          {% endif %}
+          <a href="{{ banner.enlace_url or '#' }}" class="split-hero__cta">{{ banner.texto_boton or 'Comprar Ahora' }}</a>
+          <img src="{{ banner.imagen_url }}" alt="{{ banner.titulo }}" class="split-hero__product-img">
         </div>
-        <h1 class="split-hero__title">Piscina & Spa</h1>
-        <p class="split-hero__subtitle">
-          Todo para el mantenimiento perfecto de tu piscina. Bombas, filtros, químicos y más.
-        </p>
-        <a href="/piscina" class="split-hero__cta">
-          Explorar Piscina & Spa <i class="fas fa-arrow-right"></i>
-        </a>
       </div>
-      <div class="split-hero__count">
-        <i class="fas fa-box"></i> <span>120+</span> productos disponibles
-      </div>
-    </div>
-
-    <!-- Divider -->
-    <div class="split-hero__divider"></div>
-
-    <!-- Panel Agua -->
-    <div class="split-hero__panel split-hero__panel--agua" data-href="/agua">
-      <div class="split-hero__bg" style="background-image: url('../estaticos/img/hero_agua.png');"></div>
-      <div class="split-hero__overlay"></div>
-      <div class="split-hero__content">
-        <div class="split-hero__icon">
-          <i class="fas fa-tint"></i>
+      {% endfor %}
+    {% else %}
+      <!-- Fallback si no hay banners en DB -->
+      <div class="split-hero__panel split-hero__panel--agua">
+        <div class="split-hero__content">
+          <span class="split-hero__kicker">Oferta de Lanzamiento</span>
+          <h1 class="split-hero__title">PURIFICACIÓN PREMIUM</h1>
+          <p class="split-hero__desc">Soluciones avanzadas para agua potable en tu hogar.</p>
+          <a href="/catalogo/agua" class="split-hero__cta">Ver Catálogo</a>
+          <img src="/placeholder/400x400/e8f4f4/4a6741?text=Purificador+3D" alt="Purificador" class="split-hero__product-img">
         </div>
-        <h1 class="split-hero__title">Tratamiento de Agua</h1>
-        <p class="split-hero__subtitle">
-          Purificación y filtración profesional para hogares, edificios y empresas.
-        </p>
-        <a href="/agua" class="split-hero__cta">
-          Explorar Tratamiento de Agua <i class="fas fa-arrow-right"></i>
-        </a>
       </div>
-      <div class="split-hero__count">
-        <i class="fas fa-box"></i> <span>85+</span> productos disponibles
+      <div class="split-hero__panel split-hero__panel--piscina">
+        <div class="split-hero__content">
+          <span class="split-hero__kicker">Equipos Profesionales</span>
+          <h1 class="split-hero__title">MUNDO PISCINA</h1>
+          <p class="split-hero__desc">Todo lo que necesitas para tu piscina en un solo lugar.</p>
+          <a href="/catalogo/piscina" class="split-hero__cta">Explorar Ahora</a>
+          <img src="/placeholder/400x400/f0f7f4/4a6741?text=Bomba+3D" alt="Bomba" class="split-hero__product-img">
+        </div>
       </div>
-    </div>
+    {% endif %}
   </section>
 
   <!-- Qué hacemos y qué vendemos -->
@@ -355,5 +383,53 @@
 
   <script src="../estaticos/js/home.js"></script>
 
+  <script>
+    // Timer para el Banner de Promo
+    function updatePromoTimer() {
+      const banner = document.getElementById('topPromoBanner');
+      if (!banner) return;
+      
+      const endStr = banner.dataset.end;
+      let targetDate;
+      
+      if (endStr) {
+        targetDate = new Date(endStr);
+      } else {
+        // Fallback: 3 días desde ahora si no hay fecha en DB
+        targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + 3);
+      }
+      
+      function update() {
+        const now = new Date();
+        const diff = targetDate - now;
+        
+        if (diff <= 0) {
+          banner.style.display = 'none';
+          return;
+        }
+        
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minsEl = document.getElementById('mins');
+        const secsEl = document.getElementById('secs');
+        
+        if (daysEl) daysEl.innerText = String(d).padStart(2, '0');
+        if (hoursEl) hoursEl.innerText = String(h).padStart(2, '0');
+        if (minsEl) minsEl.innerText = String(m).padStart(2, '0');
+        if (secsEl) secsEl.innerText = String(s).padStart(2, '0');
+      }
+      
+      setInterval(update, 1000);
+      update();
+    }
+    
+    document.addEventListener('DOMContentLoaded', updatePromoTimer);
+  </script>
 </body>
 </html>

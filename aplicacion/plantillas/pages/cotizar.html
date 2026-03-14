@@ -24,21 +24,23 @@
     <!-- NAVBAR -->
     <nav class="navbar" id="navbar">
         <div class="container">
-            <a href="../home.html" class="navbar__logo"><img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:50px; width:auto;"></a>
+            <a href="/" class="navbar__logo"><img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:50px; width:auto;"></a>
             <ul class="navbar__menu" id="navMenu">
-                <li><a href="../home.html" class="navbar__link">Inicio</a></li>
-                <li><a href="../catalogo/piscina.html" class="navbar__link navbar__link--piscina"><i
+                <li><a href="/" class="navbar__link">Inicio</a></li>
+                <li><a href="/nosotros" class="navbar__link">Nosotros</a></li>
+                <li><a href="/catalogo/piscina" class="navbar__link navbar__link--piscina"><i
                             class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a></li>
-                <li><a href="../catalogo/agua.html" class="navbar__link navbar__link--agua"><i
+                <li><a href="/catalogo/agua" class="navbar__link navbar__link--agua"><i
                             class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
-                <li><a href="../blog/listado.html" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
-                <li><a href="contacto.html" class="navbar__link">Contacto</a></li>
+                <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
+                <li><a href="/cotizar" class="navbar__link active">Cotizar</a></li>
+                <li><a href="/contacto" class="navbar__link">Contacto</a></li>
             </ul>
             <div class="navbar__actions">
-                <a href="../autenticacion/login.html" class="navbar__action-btn" aria-label="Cuenta"><i
+                <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta"><i
                         class="fas fa-user"></i></a>
-                <a href="../carrito/carrito.html" class="navbar__action-btn" aria-label="Carrito"><i
-                        class="fas fa-shopping-cart"></i><span class="navbar__cart-badge">0</span></a>
+                <a href="/carrito" class="navbar__action-btn" aria-label="Carrito"><i
+                        class="fas fa-shopping-cart"></i><span class="navbar__cart-badge">{{ carrito_count }}</span></a>
                 <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
             </div>
         </div>
@@ -48,7 +50,7 @@
     <div class="page-header">
         <div class="container">
             <nav class="page-header__breadcrumb">
-                <a href="../home.html">Inicio</a><i class="fas fa-chevron-right"></i><span
+                <a href="/">Inicio</a><i class="fas fa-chevron-right"></i><span
                     class="active">Solicitar Cotización</span>
             </nav>
             <h1 class="page-header__title"><i class="fas fa-file-alt"></i> Solicitar Cotización</h1>
@@ -166,18 +168,56 @@
 
     <script src="../../estaticos/js/home.js"></script>
     <script>
+        let currentLine = 'piscina';
         function selectLine(el, line) {
+            currentLine = line;
             document.querySelectorAll('.quote-line-option').forEach(o => o.classList.remove('selected--piscina', 'selected--agua'));
             el.classList.add(`selected--${line}`);
         }
-        document.getElementById('quoteForm').addEventListener('submit', (e) => {
+        document.getElementById('quoteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('.quote-submit');
+            const originalHTML = btn.innerHTML;
+            
+            const payload = {
+                'linea': currentLine,
+                'nombre': document.getElementById('q-nombre').value,
+                'empresa': document.getElementById('q-empresa').value,
+                'email': document.getElementById('q-email').value,
+                'telefono': document.getElementById('q-tel').value,
+                'ciudad': document.getElementById('q-city').value,
+                'tipo': document.getElementById('q-type').value,
+                'mensaje': document.getElementById('q-products').value,
+                'notas': document.getElementById('q-notes').value,
+            };
+
+            btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fas fa-check"></i> ¡Cotización enviada!';
-                btn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
-            }, 1500);
+            
+            try {
+                const response = await fetch('/cotizar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                
+                if (data.ok) {
+                    btn.innerHTML = '<i class="fas fa-check"></i> ¡Cotización enviada!';
+                    btn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+                    e.target.reset();
+                    alert(data.message);
+                } else {
+                    alert(data.message || 'Error al enviar la solicitud.');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('No se pudo conectar con el servidor.');
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
         });
     </script>
 </body>

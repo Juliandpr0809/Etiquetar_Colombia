@@ -29,7 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderProductCard = (product) => {
         const price = Number(product.precio_final || product.precio || 0);
-        const oldPrice = Number(product.descuento || 0) > 0 ? Number(product.precio || 0) : null;
+        const precioAnterior = product.precio_anterior != null ? Number(product.precio_anterior) : null;
+        const descuentoPromo = Number(product.descuento || 0);
+        const oldPrice = (precioAnterior != null && precioAnterior > price)
+            ? precioAnterior
+            : (descuentoPromo > 0 ? Number(product.precio || 0) : null);
+        const descuentoPercent = descuentoPromo > 0
+            ? Math.round(descuentoPromo)
+            : (oldPrice != null && oldPrice > 0 ? Math.round((1 - price / oldPrice) * 100) : 0);
+        const showBadge = descuentoPercent > 0;
         const image = product.imagen_url || `/placeholder/400x300/${line === 'piscina' ? 'F0F7FF/0077B6' : 'E8F4F8/1B8FA1'}?text=${encodeURIComponent(product.nombre)}`;
         const lineClass = line === 'piscina' ? 'piscina' : 'agua';
         const lineLabel = line === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua';
@@ -38,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return `
             <div class="catalog-card" data-price="${price}" data-name="${product.nombre}" data-product-id="${product.id}">
-                ${Number(product.descuento || 0) > 0 ? `<span class="catalog-card__badge catalog-card__badge--sale">-${Math.round(product.descuento)}%</span>` : ''}
+                ${showBadge ? `<span class="catalog-card__badge catalog-card__badge--sale">-${descuentoPercent}%</span>` : ''}
                 <div class="catalog-card__actions">
                     <button class="catalog-card__action ${lineClass}-hover" data-action="wishlist" title="Favoritos"><i class="far fa-heart"></i></button>
                     <button class="catalog-card__action ${lineClass}-hover" data-action="quickview" title="Vista rápida"><i class="far fa-eye"></i></button>
@@ -63,7 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             : `<button class="catalog-card__quote-btn" title="Cotizar"><i class="fas fa-file-alt"></i></button>`
                         }
                     </div>
-                    ${isAdmin ? `<div class="catalog-card__admin"><a class="catalog-card__admin-link" href="/admin/?tab=productos&producto=${product.id}"><i class="fas fa-pen"></i> Editar</a></div>` : ''}
+                    ${isAdmin ? `
+                        <div class="catalog-card__admin">
+                            <a class="catalog-card__admin-link" href="/admin/?tab=productos&producto=${product.id}"><i class="fas fa-pen"></i> Prod</a>
+                            <a class="catalog-card__admin-link" href="/admin/?tab=promociones&producto_id=${product.id}" style="background:#f59e0b; color:white; border-color:#f59e0b;"><i class="fas fa-tag"></i> Oferta</a>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;

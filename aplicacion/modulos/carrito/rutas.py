@@ -39,8 +39,9 @@ def _cart_payload() -> dict:
         if not producto or not producto.activo:
             continue
 
-        precio = float(producto.precio)
-        subtotal_item = precio * cantidad_int
+        precio_original = float(producto.precio)
+        precio_final = float(producto.precio_final)
+        subtotal_item = precio_final * cantidad_int
         subtotal += subtotal_item
         total_items += cantidad_int
         items.append(
@@ -49,7 +50,10 @@ def _cart_payload() -> dict:
                 "nombre": producto.nombre,
                 "slug": producto.slug,
                 "linea": producto.linea,
-                "precio": precio,
+                "precio": precio_final,
+                "precio_original": precio_original,
+                "tiene_descuento": producto.tiene_promocion,
+                "porcentaje_descuento": float(producto.promocion_activa.porcentaje_descuento) if producto.tiene_promocion else 0,
                 "cantidad": cantidad_int,
                 "stock": producto.stock,
                 "imagen_url": producto.imagen_url,

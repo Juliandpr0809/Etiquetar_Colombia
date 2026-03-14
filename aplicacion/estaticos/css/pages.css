@@ -139,10 +139,23 @@
     gap: 12px;
 }
 
+.cart-item__price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
 .cart-item__price {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700;
     font-size: 1.2rem;
+}
+
+.cart-item__price-old {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-decoration: line-through;
 }
 
 .cart-item__price--piscina {

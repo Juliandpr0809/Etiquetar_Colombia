@@ -69,29 +69,28 @@
     <!-- NAVBAR -->
     <nav class="navbar" id="navbar">
         <div class="container">
-            <a href="../home.html" class="navbar__logo">
+            <a href="/" class="navbar__logo">
                 <img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:50px; width:auto;">
             </a>
             <ul class="navbar__menu" id="navMenu">
-                <li><a href="../home.html" class="navbar__link">Inicio</a></li>
-                <li><a href="/contacto.html" class="navbar__link">Nosotros</a></li>
-                <li><a href="../catalogo/piscina.html" class="navbar__link navbar__link--piscina"
-                        style="color:var(--piscina-primary); font-weight:600;">
+                <li><a href="/" class="navbar__link">Inicio</a></li>
+                <li><a href="/nosotros" class="navbar__link">Nosotros</a></li>
+                <li><a href="/catalogo/piscina" class="navbar__link navbar__link--piscina active">
                         <i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa
                     </a></li>
-                <li><a href="../catalogo/agua.html" class="navbar__link navbar__link--agua">
+                <li><a href="/catalogo/agua" class="navbar__link navbar__link--agua">
                         <i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua
                     </a></li>
-                <li><a href="../blog/listado.html" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
-                <li><a href="../pages/cotizar.html" class="navbar__link">Cotizar</a></li>
-                <li><a href="../pages/contacto.html" class="navbar__link">Contacto</a></li>
+                <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
+                <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
+                <li><a href="/contacto" class="navbar__link">Contacto</a></li>
             </ul>
             <div class="navbar__actions">
                 <button class="navbar__action-btn" aria-label="Buscar"><i class="fas fa-search"></i></button>
-                <a href="../autenticacion/login.html" class="navbar__action-btn" aria-label="Cuenta"><i class="fas fa-user"></i></a>
-                <a href="../carrito/carrito.html" class="navbar__action-btn" aria-label="Carrito">
+                <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta"><i class="fas fa-user"></i></a>
+                <a href="/carrito" class="navbar__action-btn" aria-label="Carrito">
                     <i class="fas fa-shopping-cart"></i>
-                    <span class="navbar__cart-badge">0</span>
+                    <span class="navbar__cart-badge">{{ carrito_count }}</span>
                 </a>
                 <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
             </div>

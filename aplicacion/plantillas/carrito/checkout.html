@@ -195,28 +195,17 @@
                 <div class="cart-summary__header"><i class="fas fa-receipt"></i> Tu Pedido</div>
                 <div class="cart-summary__body">
                     <!-- Mini items -->
-                    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
-                        <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
-                            <span>Bomba 2HP Pentair × 1</span>
-                            <span style="font-weight:600;">$2.450.000</span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
-                            <span>Ósmosis Inversa 5 Etapas × 1</span>
-                            <span style="font-weight:600;">$980.000</span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
-                            <span>LED RGB 35W × 2</span>
-                            <span style="font-weight:600;">$760.000</span>
-                        </div>
+                    <div id="checkoutItemsList" style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+                        <div style="font-size:0.85rem; color:var(--text-muted);">Cargando pedido...</div>
                     </div>
 
                     <div class="cart-summary__divider"></div>
-                    <div class="cart-summary__line"><span>Subtotal</span><span>$4.190.000</span></div>
+                    <div class="cart-summary__line"><span>Subtotal</span><span id="chk-subtotal">$0</span></div>
                     <div class="cart-summary__line"><span>IVA (19%)</span><span>Incluido</span></div>
-                    <div class="cart-summary__line"><span>Envío nacional</span><span
+                    <div class="cart-summary__line"><span>Envío nacional</span><span id="chk-envio"
                             style="color:#27ae60; font-weight:600;">Gratis</span></div>
                     <div class="cart-summary__divider"></div>
-                    <div class="cart-summary__total"><span>Total</span><span>$4.190.000</span></div>
+                    <div class="cart-summary__total"><span>Total</span><span id="chk-total">$0</span></div>
 
                     <div class="cart-summary__checkout" style="margin-top:24px;">
                         <button class="cart-checkout-btn" id="checkoutSubmitBtn" onclick="placeOrder()">
@@ -285,6 +274,36 @@
             'chk-nombre', 'chk-apellido', 'chk-email', 'chk-tel',
             'chk-doc', 'chk-dir', 'chk-depto', 'chk-city'
         ];
+
+        const priceFormat = (v) => '$' + Number(v).toLocaleString('es-CO');
+
+        async function refreshCheckout() {
+            const res = await fetch('/carrito/api');
+            const payload = await res.json();
+            if (!payload.ok) return;
+            const data = payload.data;
+
+            const listEl = document.getElementById('checkoutItemsList');
+            if (data.items && data.items.length > 0) {
+                listEl.innerHTML = data.items.map(item => `
+                    <div style="display:flex; justify-content:space-between; font-size:0.88rem; gap:12px;">
+                        <span>${item.nombre} × ${item.cantidad}</span>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                            <span style="font-weight:600;">${priceFormat(item.subtotal)}</span>
+                            ${item.tiene_descuento ? `<span style="font-size:0.75rem; color:#8fa8b5; text-decoration:line-through;">${priceFormat(item.precio_original * item.cantidad)}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                listEl.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted);">El carrito está vacío</div>';
+                document.getElementById('checkoutSubmitBtn').disabled = true;
+            }
+
+            document.getElementById('chk-subtotal').textContent = priceFormat(data.subtotal);
+            document.getElementById('chk-total').textContent = priceFormat(data.subtotal);
+        }
+
+        refreshCheckout();
 
         requiredFields.forEach((id) => {
             const field = document.getElementById(id);

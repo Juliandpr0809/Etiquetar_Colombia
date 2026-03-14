@@ -38,7 +38,7 @@
                 <div class="admin-actions-inline">
                     <button class="admin-tab-btn active" data-tab="dashboard"><i class="fas fa-house"></i> Inicio</button>
                     <button class="admin-tab-btn" data-tab="productos"><i class="fas fa-box-open"></i> Productos</button>
-                    <button class="admin-tab-btn" data-tab="cotizaciones"><i class="fas fa-comments"></i> Consultas</button>
+                    <button class="admin-tab-btn" data-tab="cotizaciones"><i class="fas fa-file-invoice-dollar"></i> Cotizaciones</button>
                     <button class="admin-tab-btn" data-tab="promociones"><i class="fas fa-tag"></i> Ofertas</button>
                     <button class="admin-tab-btn" data-tab="banners"><i class="fas fa-bullhorn"></i> Anuncios</button>
                     <button class="admin-tab-btn" data-tab="pedidos"><i class="fas fa-chart-line"></i> Ventas</button>
@@ -52,6 +52,7 @@
             <div class="admin-message admin-message--error" id="adminError"></div>
 
             <section class="admin-tab active" id="tab-dashboard">
+                <div id="insightContainer" class="admin-insights"></div>
                 <div class="admin-analytics-toolbar">
                     <div class="admin-form-group">
                         <label for="analyticsDays">Periodo</label>
@@ -80,81 +81,149 @@
                     </article>
                     <article class="admin-card">
                         <h3><i class="fas fa-wave-square"></i> Evolución comercial</h3>
-                        <canvas id="negocioChart" height="220"></canvas>
+                        <div style="height: 350px; position: relative;">
+                            <canvas id="negocioChart"></canvas>
+                        </div>
                     </article>
                 </div>
                 <div class="admin-grid-2" style="margin-top:12px;">
                     <article class="admin-card">
-                        <h3><i class="fas fa-map-marker-alt"></i> Desde dónde entran</h3>
+                        <h3><i class="fas fa-map-marker-alt"></i> Ubicación del tráfico</h3>
                         <div id="origenesList" class="admin-list"></div>
                     </article>
                     <article class="admin-card">
-                        <h3><i class="fas fa-user-clock"></i> Accesos con usuario</h3>
+                        <h3><i class="fas fa-user-clock"></i> Visitas por usuario</h3>
                         <div id="usuariosAccesosList" class="admin-list"></div>
                     </article>
                 </div>
                 <div class="admin-grid-2" style="margin-top:12px;">
                     <article class="admin-card">
                         <h3><i class="fas fa-filter"></i> Embudo de conversión</h3>
-                        <canvas id="funnelChart" height="200"></canvas>
+                        <div style="height: 300px; position: relative;">
+                            <canvas id="funnelChart"></canvas>
+                        </div>
                     </article>
                     <article class="admin-card">
                         <h3><i class="fas fa-chart-pie"></i> Distribución de actividad</h3>
-                        <canvas id="mixChart" height="200"></canvas>
+                        <div style="height: 300px; position: relative;">
+                            <canvas id="mixChart"></canvas>
+                        </div>
                     </article>
                 </div>
             </section>
 
             <section class="admin-tab" id="tab-productos">
-                <article class="admin-card">
-                    <h3><i class="fas fa-plus-circle"></i> Crear producto nuevo</h3>
-                    <form id="formProducto" class="admin-form-grid" enctype="multipart/form-data">
-                        <div class="admin-form-2col">
-                            <div class="admin-form-group">
-                                <label for="prod-nombre">Nombre del producto</label>
-                                <input id="prod-nombre" name="nombre" placeholder="Ej: Purificador Acqua Pro" required>
+                <article class="admin-card admin-card--product-form">
+                    <div class="product-form-header">
+                        <div class="product-form-header__icon"><i class="fas fa-plus"></i></div>
+                        <div class="product-form-header__text">
+                            <h3 class="product-form-title">Nuevo producto</h3>
+                            <span class="product-form-steps-pill">3 pasos</span>
+                        </div>
+                        <p class="product-form-subtitle">Completa la información para publicar</p>
+                    </div>
+                    <nav class="product-form-stepper" aria-label="Pasos del formulario">
+                        <button type="button" class="product-form-step product-form-step--active" data-step="1" aria-current="step">
+                            <span class="product-form-step__num">①</span> Básico
+                        </button>
+                        <button type="button" class="product-form-step" data-step="2">
+                            <span class="product-form-step__num">②</span> Detalles
+                        </button>
+                        <button type="button" class="product-form-step" data-step="3">
+                            <span class="product-form-step__num">③</span> Publicar
+                        </button>
+                    </nav>
+                    <form id="formProducto" class="product-form admin-form-grid" enctype="multipart/form-data">
+                        <input type="hidden" id="prod-linea" name="linea" value="piscina">
+                        <div class="product-form-panel" data-step-panel="1">
+                            <div class="product-form-section">
+                                <h4 class="product-form-section__title">Línea de producto</h4>
+                                <div class="product-form-linea-toggles" role="group" aria-label="Línea de producto">
+                                    <button type="button" class="product-form-linea-btn" data-linea="piscina" aria-pressed="true">
+                                        <i class="fas fa-umbrella-beach"></i> Piscina &amp; Spa
+                                    </button>
+                                    <button type="button" class="product-form-linea-btn" data-linea="agua" aria-pressed="false">
+                                        <i class="fas fa-droplet"></i> Tratamiento de Agua
+                                    </button>
+                                </div>
                             </div>
-                            <div class="admin-form-group">
-                                <label for="prod-slug">Identificador (slug)</label>
-                                <input id="prod-slug" name="slug" placeholder="purificador-acqua-pro" required>
+                            <div class="product-form-section">
+                                <h4 class="product-form-section__title">Información principal</h4>
+                                <div class="product-form-2col">
+                                    <div class="admin-form-group">
+                                        <label for="prod-nombre">Nombre del producto</label>
+                                        <input id="prod-nombre" name="nombre" class="product-form-input" placeholder="Ej: Bomba Hayward Pro 1.5HP" required>
+                                    </div>
+                                    <div class="admin-form-group">
+                                        <label for="prod-slug">Slug (URL)</label>
+                                        <input id="prod-slug" name="slug" class="product-form-input" placeholder="bomba-hayward-pro" required>
+                                        <span class="product-form-hint">Se genera automáticamente</span>
+                                    </div>
+                                </div>
+                            </div>
+                                <div class="product-form-section">
+                                <div class="product-form-2col">
+                                    <div class="admin-form-group">
+                                        <label for="prod-precio">Precio (COP)</label>
+                                        <input id="prod-precio" type="text" inputmode="numeric" name="precio" class="product-form-input" placeholder="0" value="0" required>
+                                    </div>
+                                    <div class="admin-form-group">
+                                        <label for="prod-precio-anterior">Precio tachado (opcional)</label>
+                                        <input id="prod-precio-anterior" type="text" inputmode="numeric" name="precio_anterior" class="product-form-input" placeholder="Precio anterior para mostrar oferta">
+                                        <span class="product-form-hint">Opcional — muestra precio anterior tachado en catálogo</span>
+                                    </div>
+                                </div>
+                                <div class="product-form-2col">
+                                    <div class="admin-form-group">
+                                        <label for="prod-stock">Stock</label>
+                                        <div class="product-form-stock-wrap">
+                                            <button type="button" class="product-form-stock-btn" data-action="minus" aria-label="Reducir stock"><i class="fas fa-minus"></i></button>
+                                            <input id="prod-stock" type="number" min="0" name="stock" class="product-form-input product-form-stock-input" value="0" required>
+                                            <button type="button" class="product-form-stock-btn" data-action="plus" aria-label="Aumentar stock"><i class="fas fa-plus"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="product-form-footer">
+                                <span class="product-form-preview-label">Vista previa del precio</span>
+                                <span class="product-form-preview-value" id="productFormPreviewPrice">$0</span>
+                            </div>
+                            <div class="product-form-nav">
+                                <button type="button" class="product-form-btn product-form-btn--next">Siguiente <i class="fas fa-arrow-right"></i></button>
                             </div>
                         </div>
-                        <div class="admin-form-2col">
-                            <div class="admin-form-group">
-                                <label for="prod-linea">Línea de producto</label>
-                                <select id="prod-linea" name="linea">
-                                    <option value="piscina">Piscina</option>
-                                    <option value="agua">Tratamiento de agua</option>
-                                </select>
+                        <div class="product-form-panel" data-step-panel="2" hidden>
+                            <div class="product-form-section">
+                                <h4 class="product-form-section__title">Imagen y documentos</h4>
+                                <div class="admin-form-group">
+                                    <label for="prod-imagen">Foto del producto</label>
+                                    <input id="prod-imagen" type="file" name="imagen" class="product-form-input" accept="image/png,image/jpeg,image/webp">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="prod-ficha">Ficha técnica (PDF)</label>
+                                    <input id="prod-ficha" type="file" name="ficha_pdf" class="product-form-input" accept="application/pdf,.pdf">
+                                </div>
+                                <label class="admin-check product-form-check"><input type="checkbox" name="eliminar_ficha"> Quitar ficha actual</label>
                             </div>
-                            <div class="admin-form-group">
-                                <label for="prod-precio">Precio (COP)</label>
-                                <input id="prod-precio" type="text" inputmode="numeric" name="precio" placeholder="COP 0" required>
+                            <div class="product-form-section">
+                                <label for="prod-descripcion">Descripción</label>
+                                <textarea id="prod-descripcion" name="descripcion" class="product-form-input" placeholder="Describe el producto, sus características y beneficios..."></textarea>
+                            </div>
+                            <p class="admin-form-hint product-form-hint-block"><i class="fas fa-cloud-upload-alt"></i> La foto se sube a Cloudinary. Los PDFs se cargan en la página.</p>
+                            <div class="product-form-nav">
+                                <button type="button" class="product-form-btn product-form-btn--prev"><i class="fas fa-arrow-left"></i> Anterior</button>
+                                <button type="button" class="product-form-btn product-form-btn--next">Siguiente <i class="fas fa-arrow-right"></i></button>
                             </div>
                         </div>
-                        <div class="admin-form-2col">
-                            <div class="admin-form-group">
-                                <label for="prod-stock">Unidades en stock</label>
-                                <input id="prod-stock" type="number" min="0" name="stock" placeholder="0" required>
+                        <div class="product-form-panel" data-step-panel="3" hidden>
+                            <div class="product-form-section product-form-summary">
+                                <p class="product-form-summary-text">Revisa los datos y guarda el producto.</p>
                             </div>
-                            <div class="admin-form-group">
-                                <label for="prod-imagen">Foto del producto</label>
-                                <input id="prod-imagen" type="file" name="imagen" accept="image/png,image/jpeg,image/webp">
+                            <div class="product-form-nav">
+                                <button type="button" class="product-form-btn product-form-btn--prev"><i class="fas fa-arrow-left"></i> Anterior</button>
+                                <button type="submit" class="admin-btn product-form-btn product-form-btn--submit"><i class="fas fa-save"></i> Guardar producto</button>
                             </div>
                         </div>
-                        <div class="admin-form-2col">
-                            <div class="admin-form-group">
-                                <label for="prod-ficha">Ficha técnica (PDF local)</label>
-                                <input id="prod-ficha" type="file" name="ficha_pdf" accept="application/pdf,.pdf">
-                            </div>
-                            <label class="admin-check" style="margin-top:28px"><input type="checkbox" name="eliminar_ficha"> Quitar ficha actual</label>
-                        </div>
-                        <div class="admin-form-group">
-                            <label for="prod-descripcion">Descripción</label>
-                            <textarea id="prod-descripcion" name="descripcion" placeholder="Describe el producto, sus características y beneficios..."></textarea>
-                        </div>
-                        <p class="admin-form-hint"><i class="fas fa-cloud-upload-alt"></i> La foto se sube a Cloudinary. Los PDFs se cargan directo en la página.</p>
-                        <button type="submit" class="admin-btn"><i class="fas fa-save"></i> Guardar producto</button>
                     </form>
                 </article>
                 <article class="admin-card" style="margin-top:12px;">
@@ -165,7 +234,7 @@
 
             <section class="admin-tab" id="tab-cotizaciones">
                 <article class="admin-card">
-                    <h3><i class="fas fa-comments"></i> Consultas recibidas</h3>
+                    <h3><i class="fas fa-file-invoice-dollar"></i> Cotizaciones recibidas</h3>
                     <div class="admin-analytics-toolbar" style="margin-top:4px">
                         <div class="admin-form-group" style="min-width:210px">
                             <label for="cotizacionesEstado">Estado</label>
@@ -192,8 +261,10 @@
                     <form id="formPromocion" class="admin-form-grid">
                         <div class="admin-form-2col">
                             <div class="admin-form-group">
-                                <label>ID del producto</label>
-                                <input type="number" name="producto_id" min="1" placeholder="Ej: 3" required>
+                                <label>Seleccionar producto</label>
+                                <select name="producto_id" id="selectProductoPromo" required>
+                                    <option value="">Cargando productos...</option>
+                                </select>
                             </div>
                             <div class="admin-form-group">
                                 <label>% de descuento</label>
@@ -210,6 +281,9 @@
                                 <input type="datetime-local" name="fecha_fin" required>
                             </div>
                         </div>
+                        <div class="admin-form-group">
+                            <label class="admin-check"><input type="checkbox" name="activa" checked> Oferta activa</label>
+                        </div>
                         <button class="admin-btn" type="submit"><i class="fas fa-tag"></i> Programar oferta</button>
                     </form>
                     <div id="promocionesList" class="admin-list"></div>
@@ -220,28 +294,56 @@
                 <article class="admin-card">
                     <h3><i class="fas fa-bullhorn"></i> Anuncios en la página</h3>
                     <form id="formBanner" class="admin-form-grid">
-                        <div class="admin-form-group">
-                            <label>Título del anuncio</label>
-                            <input name="titulo" placeholder="Ej: Oferta de temporada" required>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label>Tipo de Anuncio</label>
+                                <select name="tipo">
+                                    <option value="hero">Hero Principal</option>
+                                    <option value="top">Barra Superior (Promo)</option>
+                                </select>
+                            </div>
+                            <div class="admin-form-group">
+                                <label>Título (Grande)</label>
+                                <input name="titulo" placeholder="Ej: HASTA 20% OFF" required>
+                            </div>
                         </div>
                         <div class="admin-form-2col">
                             <div class="admin-form-group">
-                                <label>URL de la imagen</label>
+                                <label>Kicker (Pequeño arriba)</label>
+                                <input name="subtitulo" placeholder="Ej: Mar. 10th - Mar. 16th">
+                            </div>
+                            <div class="admin-form-group">
+                                <label>Texto del botón</label>
+                                <input name="texto_boton" placeholder="Ej: Comprar Ahora" value="Comprar Ahora">
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Descripción / Cuerpo</label>
+                            <textarea name="descripcion" placeholder="Explica brevemente la oferta..." rows="2"></textarea>
+                        </div>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label>Color de fondo (HEX)</label>
+                                <input type="color" name="color_fondo" value="#f8fbf8" style="height:45px; padding:2px;">
+                            </div>
+                            <div class="admin-form-group">
+                                <label>Orden</label>
+                                <input type="number" name="orden" min="0" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label>URL de la imagen (Fondo)</label>
                                 <input name="imagen_url" placeholder="https://...">
                             </div>
                             <div class="admin-form-group">
-                                <label>Enlace al hacer clic (opcional)</label>
+                                <label>Enlace al hacer clic</label>
                                 <input name="enlace_url" placeholder="https://...">
                             </div>
                         </div>
                         <div class="admin-form-group">
-                            <label>O cargar imagen desde archivos</label>
+                            <label>O cargar imagen de fondo</label>
                             <input type="file" name="imagen" accept="image/png,image/jpeg,image/webp">
-                        </div>
-                        <p class="admin-form-hint">Puedes usar URL o archivo. Si cargas archivo, se sube a Cloudinary automáticamente.</p>
-                        <div class="admin-form-group" style="max-width:160px">
-                            <label>Orden de aparición</label>
-                            <input type="number" name="orden" min="0" placeholder="0">
                         </div>
                         <button type="submit" class="admin-btn"><i class="fas fa-bullhorn"></i> Guardar anuncio</button>
                     </form>

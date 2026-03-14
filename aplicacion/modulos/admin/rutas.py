@@ -11,7 +11,7 @@ from urllib.error import URLError
 from urllib.request import urlopen
 
 from flask import Blueprint, current_app, flash, g, jsonify, redirect, render_template, request, session, url_for
-from sqlalchemy import func
+from sqlalchemy import func, text
 from werkzeug.utils import secure_filename
 
 from aplicacion.extensiones import db
@@ -263,6 +263,53 @@ def _guardar_ficha_local(archivo, slug: str) -> str:
     return f"/estaticos/manuales/{nombre_archivo}"
 
 
+@admin_bp.get("/api/reparar-db")
+def reparar_db_banners():
+    """
+    Ruta temporal para agregar columnas faltantes a la tabla banners manualmente
+    si las migraciones automáticas fallan.
+    """
+    try:
+        # 1. Agregar columna 'tipo'
+        try:
+            db.session.execute(text("ALTER TABLE banners ADD COLUMN tipo VARCHAR(20) DEFAULT 'hero' NOT NULL AFTER id"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+        # 2. Agregar columna 'subtitulo'
+        try:
+            db.session.execute(text("ALTER TABLE banners ADD COLUMN subtitulo VARCHAR(180) NULL AFTER titulo"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+        # 3. Agregar columna 'descripcion'
+        try:
+            db.session.execute(text("ALTER TABLE banners ADD COLUMN descripcion TEXT NULL AFTER subtitulo"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+        # 4. Agregar columna 'texto_boton'
+        try:
+            db.session.execute(text("ALTER TABLE banners ADD COLUMN texto_boton VARCHAR(50) DEFAULT 'Comprar Ahora' NULL AFTER descripcion"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+        # 5. Agregar columna 'color_fondo'
+        try:
+            db.session.execute(text("ALTER TABLE banners ADD COLUMN color_fondo VARCHAR(20) DEFAULT '#f8fbf8' NULL AFTER enlace_url"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+        return jsonify({"ok": True, "message": "Columnas de banners actualizadas correctamente."})
+    except Exception as e:
+        return jsonify({"ok": False, "message": str(e)}), 500
+
+
 @admin_bp.get("/")
 def panel():
     admin = _admin_requerido(api=False)
@@ -358,6 +405,8 @@ def crear_producto_api():
     linea = (request.form.get("linea") or "piscina").strip().lower()
     descripcion = (request.form.get("descripcion") or "").strip()
     precio = _decimal(request.form.get("precio"), "0")
+    precio_anterior_raw = (request.form.get("precio_anterior") or "").strip()
+    precio_anterior = _decimal(precio_anterior_raw, "0") if precio_anterior_raw else None
     stock = int(request.form.get("stock") or 0)
     imagen_url = (request.form.get("imagen_url") or "").strip() or None
     imagen = request.files.get("imagen")
@@ -396,6 +445,7 @@ def crear_producto_api():
         linea=linea if linea in {"piscina", "agua"} else "piscina",
         descripcion=descripcion or None,
         precio=precio,
+        precio_anterior=precio_anterior,
         stock=max(stock, 0),
         activo=True,
         imagen_url=imagen_url,
@@ -426,6 +476,7 @@ def listar_productos_api():
                     "linea": p.linea,
                     "descripcion": p.descripcion or "",
                     "precio": float(p.precio),
+                    "precio_anterior": float(p.precio_anterior) if p.precio_anterior is not None else None,
                     "stock": p.stock,
                     "imagen_url": p.imagen_url,
                     "ficha_url": p.ficha_url,
@@ -449,6 +500,8 @@ def editar_producto_api(producto_id):
     linea = (request.form.get("linea") or producto.linea).strip().lower()
     descripcion = (request.form.get("descripcion") or "").strip()
     precio = _decimal(request.form.get("precio", producto.precio), str(producto.precio))
+    precio_anterior_raw = (request.form.get("precio_anterior") or "").strip()
+    precio_anterior = _decimal(precio_anterior_raw, "0") if precio_anterior_raw else None
     stock = int(request.form.get("stock", producto.stock) or producto.stock)
     imagen = request.files.get("imagen")
     ficha_pdf = request.files.get("ficha_pdf")
@@ -485,6 +538,7 @@ def editar_producto_api(producto_id):
     producto.linea = linea if linea in {"piscina", "agua"} else producto.linea
     producto.descripcion = descripcion or None
     producto.precio = precio
+    producto.precio_anterior = precio_anterior
     producto.stock = max(stock, 0)
     db.session.commit()
 
@@ -763,7 +817,12 @@ def crear_banner_api():
         return jsonify({"ok": False, "message": "Debes cargar una imagen o escribir la URL."}), 400
 
     banner = Banner(
+        tipo=(payload.get("tipo") or "hero").strip(),
         titulo=titulo,
+        subtitulo=(payload.get("subtitulo") or "").strip() or None,
+        descripcion=(payload.get("descripcion") or "").strip() or None,
+        texto_boton=(payload.get("texto_boton") or "Comprar Ahora").strip(),
+        color_fondo=(payload.get("color_fondo") or "#f8fbf8").strip(),
         imagen_url=imagen_url,
         enlace_url=(payload.get("enlace_url") or "").strip() or None,
         orden=int(payload.get("orden") or 0),
@@ -788,7 +847,12 @@ def listar_banners_api():
             "data": [
                 {
                     "id": b.id,
+                    "tipo": b.tipo,
                     "titulo": b.titulo,
+                    "subtitulo": b.subtitulo or "",
+                    "descripcion": b.descripcion or "",
+                    "texto_boton": b.texto_boton or "Comprar Ahora",
+                    "color_fondo": b.color_fondo or "#f8fbf8",
                     "imagen_url": b.imagen_url,
                     "enlace_url": b.enlace_url,
                     "activo": b.activo,
@@ -814,7 +878,12 @@ def editar_banner_api(banner_id):
         payload = request.get_json(silent=True) or {}
         archivo = None
 
+    tipo = (payload.get("tipo") or banner.tipo).strip()
     titulo = (payload.get("titulo") or banner.titulo).strip()
+    subtitulo = (payload.get("subtitulo") or banner.subtitulo or "").strip()
+    descripcion = (payload.get("descripcion") or banner.descripcion or "").strip()
+    texto_boton = (payload.get("texto_boton") or banner.texto_boton or "Comprar Ahora").strip()
+    color_fondo = (payload.get("color_fondo") or banner.color_fondo or "#f8fbf8").strip()
     enlace_url = (payload.get("enlace_url") or "").strip() or None
     orden = int(payload.get("orden", banner.orden) or banner.orden)
     imagen_url = (payload.get("imagen_url") or "").strip() or banner.imagen_url
@@ -828,7 +897,12 @@ def editar_banner_api(banner_id):
         resultado = subir_imagen_banner(archivo, slug=slug_banner)
         imagen_url = (resultado.get("secure_url") or "").strip() or imagen_url
 
+    banner.tipo = tipo
     banner.titulo = titulo
+    banner.subtitulo = subtitulo or None
+    banner.descripcion = descripcion or None
+    banner.texto_boton = texto_boton
+    banner.color_fondo = color_fondo
     banner.imagen_url = imagen_url
     banner.enlace_url = enlace_url
     banner.orden = orden

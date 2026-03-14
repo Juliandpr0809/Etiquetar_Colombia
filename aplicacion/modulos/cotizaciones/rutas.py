@@ -14,13 +14,29 @@ def cotizar_form():
 
 @cotizaciones_bp.post("/cotizar")
 def cotizar_submit():
-    nombre = (request.form.get("nombre") or "").strip()
-    email = (request.form.get("email") or "").strip().lower()
-    telefono = (request.form.get("telefono") or "").strip()
-    ciudad = (request.form.get("ciudad") or "").strip()
-    mensaje = (request.form.get("mensaje") or "").strip()
+    if request.is_json:
+        payload = request.get_json()
+    else:
+        payload = request.form
 
-    if not nombre or not email or not mensaje:
+    nombre = (payload.get("nombre") or payload.get("q-nombre") or "").strip()
+    email = (payload.get("email") or payload.get("q-email") or "").strip().lower()
+    telefono = (payload.get("telefono") or payload.get("q-tel") or "").strip()
+    ciudad = (payload.get("ciudad") or payload.get("q-city") or "").strip()
+    
+    # Consolidar mensaje de varios campos del form si vienen por ID del HTML
+    mensaje_principal = (payload.get("mensaje") or payload.get("q-products") or "").strip()
+    tipo_solicitud = (payload.get("tipo") or payload.get("q-type") or "").strip()
+    empresa = (payload.get("empresa") or payload.get("q-empresa") or "").strip()
+    notas = (payload.get("notas") or payload.get("q-notes") or "").strip()
+
+    full_mensaje = f"Línea: {payload.get('linea', 'No especificada')}\n"
+    if tipo_solicitud: full_mensaje += f"Tipo: {tipo_solicitud}\n"
+    if empresa: full_mensaje += f"Empresa: {empresa}\n"
+    full_mensaje += f"\nREQUERIMIENTO:\n{mensaje_principal}"
+    if notas: full_mensaje += f"\n\nNOTAS ADICIONALES:\n{notas}"
+
+    if not nombre or not email or not mensaje_principal:
         return {
             "ok": False,
             "message": "Nombre, correo y requerimiento son obligatorios.",
@@ -31,7 +47,7 @@ def cotizar_submit():
         email=email,
         telefono=telefono or None,
         ciudad=ciudad or None,
-        mensaje=mensaje,
+        mensaje=full_mensaje,
         estado="pendiente",
     )
     db.session.add(cotizacion)
@@ -39,6 +55,6 @@ def cotizar_submit():
 
     return {
         "ok": True,
-        "message": "Solicitud recibida. Pronto te enviaremos una cotizacion.",
+        "message": "Solicitud recibida. Pronto te enviaremos una cotización personalizada.",
         "data": {"id": cotizacion.id},
     }, 201

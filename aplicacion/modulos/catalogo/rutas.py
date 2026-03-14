@@ -22,19 +22,12 @@ def catalogo_agua():
 
 @catalogo_bp.get("/api/productos")
 def api_productos():
-    ahora = datetime.utcnow()
     productos = (
         Producto.query.filter_by(activo=True)
         .order_by(Producto.created_at.desc())
         .limit(100)
         .all()
     )
-    promociones_activas = (
-        Promocion.query.filter_by(activa=True)
-        .filter(Promocion.fecha_inicio <= ahora, Promocion.fecha_fin >= ahora)
-        .all()
-    )
-    promo_por_producto = {p.producto_id: p for p in promociones_activas}
 
     data = [
         {
@@ -43,16 +36,9 @@ def api_productos():
             "slug": p.slug,
             "linea": p.linea,
             "precio": float(p.precio),
-            "precio_final": (
-                float(p.precio)
-                if p.id not in promo_por_producto
-                else round(float(p.precio) * (1 - float(promo_por_producto[p.id].porcentaje_descuento) / 100), 2)
-            ),
-            "descuento": (
-                float(promo_por_producto[p.id].porcentaje_descuento)
-                if p.id in promo_por_producto
-                else 0
-            ),
+            "precio_anterior": float(p.precio_anterior) if p.precio_anterior is not None else None,
+            "precio_final": float(p.precio_final),
+            "descuento": float(p.promocion_activa.porcentaje_descuento) if p.tiene_promocion else 0,
             "stock": p.stock,
             "imagen_url": p.imagen_url,
             "ficha_url": p.ficha_url,
