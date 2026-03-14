@@ -12,7 +12,7 @@ class Banner(db.Model):
     subtitulo = db.Column(db.String(180), nullable=True) # Kicker
     descripcion = db.Column(db.Text, nullable=True)
     texto_boton = db.Column(db.String(50), nullable=True, default="Comprar Ahora")
-    imagen_url = db.Column(db.String(600), nullable=False) # Imagen del producto 3D
+    imagen_url = db.Column(db.String(600), nullable=True) # Imagen opcional para la barra superior
     enlace_url = db.Column(db.String(600), nullable=True)
     color_fondo = db.Column(db.String(20), nullable=True, default="#f8fbf8")
     activo = db.Column(db.Boolean, nullable=False, default=True, index=True)

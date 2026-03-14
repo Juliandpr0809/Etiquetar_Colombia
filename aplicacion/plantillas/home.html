@@ -186,65 +186,33 @@
     </div>
   </nav>
 
-  {% if banners_activos %}
-  <section class="home-banners" aria-label="Anuncios destacados">
-    <div class="container">
-      <div class="home-banners__track">
-        {% for banner in banners_activos %}
-        <article class="home-banner-item">
-          {% if banner.enlace_url %}<a href="{{ banner.enlace_url }}">{% endif %}
-            <img src="{{ banner.imagen_url }}" alt="{{ banner.titulo }}">
-          {% if banner.enlace_url %}</a>{% endif %}
-          <div class="home-banner-item__caption">{{ banner.titulo }}</div>
-        </article>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-  {% endif %}
-
   <!-- ══════════════════════════════
-       HERO BANNER (DB DRIVEN)
+       SPLIT HERO (ORIGINAL STATIC DESIGN)
        ══════════════════════════════ -->
   <section class="split-hero">
-    {% set hero_banners = banners_activos|selectattr("tipo", "equalto", "hero")|list %}
-    {% if hero_banners and hero_banners|length > 0 %}
-      {% for banner in hero_banners[:2] %}
-      <div class="split-hero__panel split-hero__panel--{{ 'piscina' if loop.index == 1 else 'agua' }}" style="background: radial-gradient(circle at center, {{ banner.color_fondo }} 0%, #f8fbf8 100%);">
-        <div class="split-hero__content">
-          {% if banner.subtitulo %}
-            <span class="split-hero__kicker">{{ banner.subtitulo }}</span>
-          {% endif %}
-          <h1 class="split-hero__title">{{ banner.titulo }}</h1>
-          {% if banner.descripcion %}
-            <p class="split-hero__desc">{{ banner.descripcion|safe }}</p>
-          {% endif %}
-          <a href="{{ banner.enlace_url or '#' }}" class="split-hero__cta">{{ banner.texto_boton or 'Comprar Ahora' }}</a>
-          <img src="{{ banner.imagen_url }}" alt="{{ banner.titulo }}" class="split-hero__product-img">
-        </div>
+    <!-- Panel Agua -->
+    <div class="split-hero__panel split-hero__panel--agua">
+      <div class="split-hero__bg" style="background-image: url('/estaticos/img/hero_agua.png');"></div>
+      <div class="split-hero__overlay"></div>
+      <div class="split-hero__content">
+        <span class="split-hero__kicker">Purificación de Agua</span>
+        <h1 class="split-hero__title">AGUA PURA Y SANA</h1>
+        <p class="split-hero__desc">Sistemas de filtración profesional para hogares y empresas.</p>
+        <a href="/catalogo/agua" class="split-hero__cta">Explorar Soluciones <i class="fas fa-chevron-right" style="margin-left:8px;"></i></a>
       </div>
-      {% endfor %}
-    {% else %}
-      <!-- Fallback si no hay banners en DB -->
-      <div class="split-hero__panel split-hero__panel--agua">
-        <div class="split-hero__content">
-          <span class="split-hero__kicker">Oferta de Lanzamiento</span>
-          <h1 class="split-hero__title">PURIFICACIÓN PREMIUM</h1>
-          <p class="split-hero__desc">Soluciones avanzadas para agua potable en tu hogar.</p>
-          <a href="/catalogo/agua" class="split-hero__cta">Ver Catálogo</a>
-          <img src="/placeholder/400x400/e8f4f4/4a6741?text=Purificador+3D" alt="Purificador" class="split-hero__product-img">
-        </div>
+    </div>
+
+    <!-- Panel Piscina -->
+    <div class="split-hero__panel split-hero__panel--piscina">
+      <div class="split-hero__bg" style="background-image: url('/estaticos/img/hero_piscina.png');"></div>
+      <div class="split-hero__overlay"></div>
+      <div class="split-hero__content">
+        <span class="split-hero__kicker">Mundo Piscina & Spa</span>
+        <h1 class="split-hero__title">TODO PARA TU PISCINA</h1>
+        <p class="split-hero__desc">Mantén tu piscina cristalina con los mejores equipos y químicos.</p>
+        <a href="/catalogo/piscina" class="split-hero__cta">Explorar Mundo Piscina <i class="fas fa-chevron-right" style="margin-left:8px;"></i></a>
       </div>
-      <div class="split-hero__panel split-hero__panel--piscina">
-        <div class="split-hero__content">
-          <span class="split-hero__kicker">Equipos Profesionales</span>
-          <h1 class="split-hero__title">MUNDO PISCINA</h1>
-          <p class="split-hero__desc">Todo lo que necesitas para tu piscina en un solo lugar.</p>
-          <a href="/catalogo/piscina" class="split-hero__cta">Explorar Ahora</a>
-          <img src="/placeholder/400x400/f0f7f4/4a6741?text=Bomba+3D" alt="Bomba" class="split-hero__product-img">
-        </div>
-      </div>
-    {% endif %}
+    </div>
   </section>
 
   <!-- Qué hacemos y qué vendemos -->

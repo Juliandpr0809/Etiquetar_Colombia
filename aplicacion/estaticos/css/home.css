@@ -535,115 +535,138 @@ h4 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
 }
 
 /* ============================================
-   SPLIT HERO — "WATERDROP STYLE" (REFINED)
+   SPLIT HERO — "EL DISEÑO ORIGINAL"
    ============================================ */
 
 .split-hero {
   display: flex;
   width: 100%;
-  height: 85vh;
-  min-height: 600px;
-  background: #f8fbf8;
+  height: 92vh;
+  min-height: 560px;
+  max-height: 860px;
   overflow: hidden;
   position: relative;
 }
 
 .split-hero__panel {
-  flex: 1;
+  flex: 1 1 50%;
   position: relative;
+  overflow: hidden;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px;
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  transition: flex 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
 }
 
-.split-hero__panel--agua {
-  background: radial-gradient(circle at center, #eef7f7 0%, #f8fbfb 100%);
+/* Hover: active panel expands, sibling contracts */
+.split-hero:hover .split-hero__panel { flex: 0.85; }
+.split-hero .split-hero__panel:hover { flex: 1.3; }
+
+.split-hero__panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-smooth);
+  pointer-events: none;
+  z-index: 2;
+}
+.split-hero:hover .split-hero__panel:not(:hover)::after { opacity: 1; }
+
+.split-hero__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.split-hero__panel:hover .split-hero__bg { transform: scale(1.06); }
+
+.split-hero__overlay {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
 }
 
-.split-hero__panel--piscina {
-  background: radial-gradient(circle at center, #f2f9f5 0%, #f8fbf8 100%);
+/* Gradients for the overlays */
+.split-hero__panel--piscina .split-hero__overlay {
+  background: linear-gradient(160deg, rgba(0,61,61,0.92) 0%, rgba(0,107,107,0.78) 40%, rgba(0,194,178,0.1) 100%);
+}
+.split-hero__panel--agua .split-hero__overlay {
+  background: linear-gradient(160deg, rgba(11,30,58,0.92) 0%, rgba(11,46,74,0.78) 40%, rgba(79,195,200,0.1) 100%);
 }
 
 .split-hero__content {
-  text-align: center;
+  position: relative;
   z-index: 10;
-  max-width: 550px;
-  color: #1a1a1a;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  color: white;
+  padding: 48px 40px;
+  max-width: 460px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: all 0.6s var(--ease-smooth);
+}
+
+.split-hero__panel:hover .split-hero__content {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
 }
 
 .split-hero__kicker {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #4a6741;
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: 12px;
+  opacity: 0.9;
 }
 
 .split-hero__title {
-  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-size: 2.8rem;
   font-weight: 800;
-  color: #1a1a1a;
   line-height: 1.1;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
 .split-hero__desc {
-  font-size: 1.05rem;
-  color: #555;
-  margin-bottom: 30px;
-  line-height: 1.5;
-}
-
-.split-hero__product-img {
-  width: 100%;
-  max-width: 420px;
-  height: auto;
-  margin-top: 20px;
-  filter: drop-shadow(0 15px 35px rgba(0,0,0,0.08));
-  transition: transform 0.6s ease;
-  animation: floatProduct 6s ease-in-out infinite;
-}
-
-@keyframes floatProduct {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(1deg); }
-}
-
-.split-hero__panel:hover .split-hero__product-img {
-  transform: scale(1.05);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 28px;
+  opacity: 0.9;
 }
 
 .split-hero__cta {
-  background: #1a1a1a;
-  color: white;
-  padding: 16px 36px;
-  border-radius: 50px;
-  font-weight: 700;
-  text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  gap: 12px;
+  padding: 16px 32px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 50px;
+  color: white;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
+  transition: all 0.4s var(--ease-smooth);
 }
 
 .split-hero__cta:hover {
-  background: #333;
-  transform: translateY(-3px);
-  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-}
-
-/* Limpiar estilos antiguos que causan el bloque oscuro */
-.split-hero__overlay, .split-hero__bg {
-  display: none !important;
+  background: white;
+  color: #1a1a1a;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 
 /* Content card */

@@ -305,7 +305,17 @@ def reparar_db_banners():
         except Exception:
             db.session.rollback()
 
-        return jsonify({"ok": True, "message": "Columnas de banners actualizadas correctamente."})
+        # 6. Asegurar que imagen_url sea nullable (Opcional si el workaround de "" funciona)
+        try:
+            db.session.execute(text("ALTER TABLE banners MODIFY imagen_url VARCHAR(600) NULL"))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+
+        return jsonify({
+            "ok": True, 
+            "message": "¡Sistema sincronizado con éxito! Ya puedes crear anuncios. Si la imagen no carga, el sistema usará un espacio reservado invisible."
+        })
     except Exception as e:
         return jsonify({"ok": False, "message": str(e)}), 500
 
@@ -813,9 +823,6 @@ def crear_banner_api():
         resultado = subir_imagen_banner(archivo, slug=slug_banner)
         imagen_url = (resultado.get("secure_url") or "").strip()
 
-    if not imagen_url:
-        return jsonify({"ok": False, "message": "Debes cargar una imagen o escribir la URL."}), 400
-
     banner = Banner(
         tipo=(payload.get("tipo") or "hero").strip(),
         titulo=titulo,
@@ -823,10 +830,12 @@ def crear_banner_api():
         descripcion=(payload.get("descripcion") or "").strip() or None,
         texto_boton=(payload.get("texto_boton") or "Comprar Ahora").strip(),
         color_fondo=(payload.get("color_fondo") or "#f8fbf8").strip(),
-        imagen_url=imagen_url,
+        imagen_url=imagen_url or "", # Usar string vacío para evitar IntegrityError si la DB es NOT NULL
         enlace_url=(payload.get("enlace_url") or "").strip() or None,
         orden=int(payload.get("orden") or 0),
         activo=bool(payload.get("activo", True)),
+        fecha_inicio=datetime.fromisoformat(payload.get("fecha_inicio")) if payload.get("fecha_inicio") else None,
+        fecha_fin=datetime.fromisoformat(payload.get("fecha_fin")) if payload.get("fecha_fin") else None,
     )
     db.session.add(banner)
     db.session.commit()
@@ -857,6 +866,8 @@ def listar_banners_api():
                     "enlace_url": b.enlace_url,
                     "activo": b.activo,
                     "orden": b.orden,
+                    "fecha_inicio": b.fecha_inicio.isoformat() if b.fecha_inicio else None,
+                    "fecha_fin": b.fecha_fin.isoformat() if b.fecha_fin else None,
                 }
                 for b in banners
             ],
@@ -903,9 +914,19 @@ def editar_banner_api(banner_id):
     banner.descripcion = descripcion or None
     banner.texto_boton = texto_boton
     banner.color_fondo = color_fondo
-    banner.imagen_url = imagen_url
+    banner.imagen_url = imagen_url or ""
     banner.enlace_url = enlace_url
     banner.orden = orden
+    if payload.get("fecha_inicio"):
+        banner.fecha_inicio = datetime.fromisoformat(payload.get("fecha_inicio"))
+    elif "fecha_inicio" in payload:
+        banner.fecha_inicio = None
+
+    if payload.get("fecha_fin"):
+        banner.fecha_fin = datetime.fromisoformat(payload.get("fecha_fin"))
+    elif "fecha_fin" in payload:
+        banner.fecha_fin = None
+
     if payload.get("activo") is not None:
         banner.activo = bool(payload.get("activo"))
 

@@ -683,6 +683,8 @@ document.addEventListener('DOMContentLoaded', () => {
         form.imagen_url.value = item.imagen_url || '';
         form.enlace_url.value = item.enlace_url || '';
         form.orden.value = item.orden || 0;
+        form.fecha_inicio.value = item.fecha_inicio ? item.fecha_inicio.substring(0, 16) : '';
+        form.fecha_fin.value = item.fecha_fin ? item.fecha_fin.substring(0, 16) : '';
         
         form.querySelector('.admin-btn').innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
         

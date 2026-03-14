@@ -333,7 +333,17 @@
                         </div>
                         <div class="admin-form-2col">
                             <div class="admin-form-group">
-                                <label>URL de la imagen (Fondo)</label>
+                                <label>Fecha de inicio</label>
+                                <input type="datetime-local" name="fecha_inicio">
+                            </div>
+                            <div class="admin-form-group">
+                                <label>Fecha de fin (Programar)</label>
+                                <input type="datetime-local" name="fecha_fin">
+                            </div>
+                        </div>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label>URL de la imagen (Opcional para barra)</label>
                                 <input name="imagen_url" placeholder="https://...">
                             </div>
                             <div class="admin-form-group">
@@ -342,7 +352,7 @@
                             </div>
                         </div>
                         <div class="admin-form-group">
-                            <label>O cargar imagen de fondo</label>
+                            <label>O cargar imagen</label>
                             <input type="file" name="imagen" accept="image/png,image/jpeg,image/webp">
                         </div>
                         <button type="submit" class="admin-btn"><i class="fas fa-bullhorn"></i> Guardar anuncio</button>
