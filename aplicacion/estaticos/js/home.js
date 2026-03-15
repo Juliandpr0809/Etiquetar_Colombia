@@ -90,28 +90,30 @@ document.addEventListener('DOMContentLoaded', () => {
         })
       : null;
 
-    if (catalogTrigger && !document.querySelector('.navbar__catalog-bar')) {
+    if (catalogTrigger) {
       catalogTrigger.classList.add('navbar__catalog-trigger');
       catalogTrigger.setAttribute('href', '#');
       catalogTrigger.setAttribute('aria-expanded', 'false');
-      catalogTrigger.setAttribute('aria-controls', 'catalogSwitcherBar');
+      catalogTrigger.setAttribute('aria-controls', 'catalogBar');
 
-      const catalogBar = document.createElement('div');
-      catalogBar.className = 'navbar__catalog-bar';
-      catalogBar.id = 'catalogSwitcherBar';
-      catalogBar.innerHTML = `
-        <div class="container navbar__catalog-bar-inner">
-          <span class="navbar__catalog-label">Elige el catálogo:</span>
-          <a class="navbar__catalog-option navbar__catalog-option--piscina" href="/catalogo/piscina">
-            <i class="fas fa-swimming-pool"></i> Piscina y Spa
-          </a>
-          <a class="navbar__catalog-option navbar__catalog-option--agua" href="/catalogo/agua">
-            <i class="fas fa-tint"></i> Tratamiento de Agua
-          </a>
-        </div>
-      `;
-
-      nav.insertAdjacentElement('afterend', catalogBar);
+      let catalogBar = document.getElementById('catalogBar');
+      if (!catalogBar) {
+        catalogBar = document.createElement('div');
+        catalogBar.className = 'navbar__catalog-bar';
+        catalogBar.id = 'catalogBar';
+        catalogBar.innerHTML = `
+          <div class="navbar__catalog-bar-inner">
+            <span class="navbar__catalog-label">Elige el catálogo:</span>
+            <a class="navbar__catalog-option navbar__catalog-option--piscina" href="/catalogo/piscina">
+              <i class="fas fa-swimming-pool"></i> Piscina y Spa
+            </a>
+            <a class="navbar__catalog-option navbar__catalog-option--agua" href="/catalogo/agua">
+              <i class="fas fa-tint"></i> Tratamiento de Agua
+            </a>
+          </div>
+        `;
+        nav.appendChild(catalogBar);
+      }
 
       const setCatalogOpen = (isOpen) => {
         catalogBar.classList.toggle('is-open', isOpen);

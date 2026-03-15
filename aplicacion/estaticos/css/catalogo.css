@@ -4,9 +4,11 @@
 
 /* --- Page Header / Breadcrumb --- */
 .catalog-header {
-    background: linear-gradient(135deg, var(--bg-light) 0%, var(--white) 100%);
-    padding: 32px 0 24px;
-    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, #083D44 0%, #0A5C66 100%);
+    color: white;
+    padding: 40px clamp(16px, 4vw, 64px);
+    border-radius: 0 0 32px 32px;
+    border-bottom: none;
 }
 
 .catalog-header__breadcrumb {
@@ -14,17 +16,17 @@
     align-items: center;
     gap: 8px;
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.7);
     margin-bottom: 16px;
 }
 
 .catalog-header__breadcrumb a {
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.7);
     transition: color var(--transition);
 }
 
 .catalog-header__breadcrumb a:hover {
-    color: var(--piscina-primary);
+    color: #fff;
 }
 
 .catalog-header__breadcrumb i {
@@ -32,7 +34,7 @@
 }
 
 .catalog-header__breadcrumb .active {
-    color: var(--text-dark);
+    color: #fff;
     font-weight: 500;
 }
 
@@ -75,38 +77,40 @@
     font-size: 1.8rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: var(--text-dark);
+    color: #fff;
 }
 
 .catalog-header__count {
     font-size: 0.9rem;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .catalog-header__count span {
     font-weight: 600;
-    color: #3A7CA5; /* Azul corporativo sólido */
+    color: #fff;
 }
 
 /* Search Bar */
 .catalog-search {
     display: flex;
     align-items: center;
-    background: var(--white);
-    border: 2px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50px;
     padding: 4px 4px 4px 20px;
     width: 380px;
     max-width: 100%;
-    transition: border-color var(--transition);
+    transition: all var(--transition);
+    backdrop-filter: blur(10px);
 }
 
 .catalog-search:focus-within {
-    border-color: var(--piscina-primary);
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .catalog-search--agua:focus-within {
-    border-color: var(--agua-primary);
+    border-color: #fff;
 }
 
 .catalog-search input {
@@ -115,12 +119,12 @@
     outline: none;
     font-family: 'Barlow', sans-serif;
     font-size: 0.9rem;
-    color: var(--text-dark);
+    color: #fff;
     background: transparent;
 }
 
 .catalog-search input::placeholder {
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .catalog-search__btn {
@@ -166,35 +170,43 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
 }
 
 .sidebar-card {
     background: var(--white);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
     overflow: hidden;
 }
 
 .sidebar-card__header {
-    padding: 16px 20px;
-    font-family: 'Barlow Condensed', sans-serif;
+    padding: 14px 20px;
+    font-family: 'Manrope', sans-serif;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--white);
+    letter-spacing: 0.15em;
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
+    background: #083D44;
+    border-radius: 10px 10px 0 0;
 }
 
 .sidebar-card__header--piscina {
-    background: var(--piscina-primary);
+    background: #083D44;
 }
 
 .sidebar-card__header--agua {
-    background: var(--agua-primary);
+    background: #083D44;
 }
 
 .sidebar-card__header i {
@@ -562,19 +574,20 @@
 /* Product Card Enhancements for Catalog */
 .catalog-card {
     background: var(--white);
-    border-radius: var(--radius-md);
+    border-radius: 20px;
     overflow: hidden;
-    border: 1px solid var(--border-color);
-    transition: all var(--transition);
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
     position: relative;
     display: flex;
     flex-direction: column;
 }
 
 .catalog-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border: 1px solid #E5EEF1;
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border: none;
 }
 
 /* Quick actions on hover */
@@ -752,17 +765,18 @@
 }
 
 .catalog-card__price {
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Cormorant Garamond', serif;
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1.6rem;
+    color: #083D44;
 }
 
 .catalog-card__price--piscina {
-    color: var(--piscina-primary);
+    color: #083D44;
 }
 
 .catalog-card__price--agua {
-    color: var(--agua-primary);
+    color: #083D44;
 }
 
 .catalog-card__price-old {

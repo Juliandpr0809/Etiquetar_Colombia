@@ -91,15 +91,7 @@
 
 /* ── Promo Banner (Top) ── */
 .promo-banner {
-  background: #4a6741; /* Verde Waterdrop */
-  color: white;
-  padding: 8px 0;
-  font-size: 0.85rem;
-  font-weight: 500;
-  position: relative;
-  z-index: 1001;
-  border: none !important;
-  box-shadow: none !important;
+  display: none !important;
 }
 
 .promo-banner__container {
@@ -253,6 +245,9 @@ h4 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
    ============================================ */
 .top-bar {
   display: none !important;
+  border: none !important;
+  height: 0;
+  overflow: hidden;
 }
 .top-bar .container {
   display: flex;
@@ -280,7 +275,10 @@ h4 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
   background: rgba(255,255,255,0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: none !important; /* Eliminamos bordes en todo estado */
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  outline: none !important;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -310,6 +308,9 @@ body.nosotros-page .navbar {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   box-shadow: none !important;
+  border: none !important; /* Re-añadido para eliminar la línea blanca */
+  border-bottom: none !important;
+  outline: none !important;
   position: absolute;
   width: 100%;
   top: 0;
@@ -482,33 +483,79 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
 }
 
 .navbar__catalog-bar {
-  position: sticky;
-  top: 84px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   z-index: 999;
-  background: rgba(255,255,255,0.97);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-soft);
+  background: rgba(255,255,255,0.98);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
   max-height: 0;
   overflow: hidden;
   transition: max-height var(--transition-normal);
+  display: flex; /* Asegurar que el contenido se alinea bien */
+  align-items: center;
 }
 
 .navbar__catalog-bar.is-open {
-  max-height: 100px;
+  max-height: 84px; /* Ajustado a la altura del contenido */
 }
 
 .navbar__catalog-bar-inner {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 64px;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  height: 84px;
+}
+
+.navbar__catalog-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  background: rgba(0,0,0,0.03);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all var(--transition-fast);
+  border: none !important;
+}
+
+.navbar__catalog-option:hover {
+  background: rgba(0,0,0,0.06);
+  transform: translateY(-2px);
 }
 
 .navbar__catalog-label {
-  font-size: 0.84rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-muted);
+}
+
+/* Fix text visibility in transparent state */
+.navbar:not(.scrolled) .navbar__catalog-bar {
+  background: rgba(10, 77, 104, 0.98); /* Azul profundo corporativo */
+  border: none !important;
+  border-bottom: none !important;
+}
+
+.navbar:not(.scrolled) .navbar__catalog-bar .navbar__catalog-label {
+  color: rgba(255,255,255,0.85);
+}
+
+.navbar:not(.scrolled) .navbar__catalog-bar .navbar__catalog-option {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.navbar:not(.scrolled) .navbar__catalog-bar .navbar__catalog-option:hover {
+  background: rgba(255,255,255,0.2);
 }
 
 .navbar__catalog-option {
@@ -591,6 +638,7 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   display: flex;
   align-items: center;
   gap: 8px;
+  border: none !important;
 }
 .navbar__action-btn {
   width: 40px; height: 40px;
@@ -751,57 +799,71 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
 }
 
 /* Gradients for the overlays */
-.split-hero__panel--piscina .split-hero__overlay {
-  background: linear-gradient(160deg, rgba(10, 77, 104, 0.85) 0%, rgba(8, 131, 149, 0.7) 40%, rgba(5, 191, 219, 0.1) 100%);
-}
 .split-hero__panel--agua .split-hero__overlay {
-  background: linear-gradient(160deg, rgba(28, 46, 61, 0.85) 0%, rgba(10, 77, 104, 0.7) 40%, rgba(8, 131, 149, 0.1) 100%);
+  background: linear-gradient(
+    160deg,
+    rgba(8, 45, 55, 0.82) 0%,
+    rgba(10, 77, 104, 0.65) 50%,
+    rgba(10, 191, 202, 0.08) 100%
+  );
+}
+.split-hero__panel--piscina .split-hero__overlay {
+  background: linear-gradient(
+    160deg,
+    rgba(10, 45, 56, 0.82) 0%,
+    rgba(10, 77, 104, 0.6) 50%,
+    rgba(12, 175, 122, 0.08) 100%
+  );
 }
 
 .split-hero__content {
   position: relative;
   z-index: 10;
   color: white;
-  padding: 48px 40px;
+  background: rgba(255,255,255,0.04) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.1) !important;
+  padding: 44px 40px !important;
+  border-radius: 28px !important;
   max-width: 460px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.1);
   text-align: center;
   transition: all 0.6s var(--ease-smooth);
 }
 
 .split-hero__panel:hover .split-hero__content {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+  background: rgba(255,255,255,0.08) !important;
+  border-color: rgba(255,255,255,0.2) !important;
+  transform: scale(1.02);
+  transition: all 0.5s ease;
 }
 
 .split-hero__kicker {
-  font-size: 0.85rem;
+  color: rgba(255,255,255,0.85) !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 2px;
   margin-bottom: 12px;
-  opacity: 0.9;
 }
 
 .split-hero__title {
-  font-size: 2.8rem;
+  color: #ffffff !important;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.05;
   margin-bottom: 16px;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
 .split-hero__desc {
-  font-size: 1rem;
-  line-height: 1.6;
+  color: rgba(255,255,255,0.88) !important;
+  font-size: 0.95rem;
+  line-height: 1.65;
   margin-bottom: 28px;
-  opacity: 0.9;
 }
 
 .split-hero__cta {
@@ -809,15 +871,40 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   align-items: center;
   gap: 12px;
   padding: 16px 32px;
-  font-weight: 600;
   font-size: 0.95rem;
   border-radius: 50px;
-  color: white;
   text-decoration: none;
-  background: #088395; /* Aqua premium */
   border: 1.5px solid rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(4px);
   transition: all 0.4s var(--ease-smooth);
+}
+
+.split-hero__panel--agua .split-hero__cta {
+  background: #0ABFCA;
+  border-color: rgba(10,191,202,0.4);
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.split-hero__panel--agua .split-hero__cta:hover {
+  background: #083D44;
+  box-shadow: 0 8px 32px rgba(10,191,202,0.3);
+  transform: translateY(-3px);
+}
+
+.split-hero__panel--piscina .split-hero__cta {
+  background: #0CAF7A;
+  border-color: rgba(12,175,122,0.4);
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.split-hero__panel--piscina .split-hero__cta:hover {
+  background: #0A4D68;
+  box-shadow: 0 8px 32px rgba(12,175,122,0.3);
+  transform: translateY(-3px);
 }
 
 .split-hero__cta:hover {
@@ -845,12 +932,15 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   top: 0;
   bottom: 0;
   right: -1px;
-  width: 2px;
-  background: linear-gradient(180deg,
-    rgba(255,255,255,0.08),
-    rgba(255,255,255,0.55),
-    rgba(255,255,255,0.08)
-  );
+  width: 1px !important;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255,255,255,0.2) 30%,
+    rgba(255,255,255,0.35) 50%,
+    rgba(255,255,255,0.2) 70%,
+    transparent 100%
+  ) !important;
   z-index: 6;
   pointer-events: none;
 }
@@ -935,8 +1025,9 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
 /* ── Social Proof Bar ── */
 .social-proof {
   padding: 20px 0;
-  border-top: 1px solid var(--border-soft);
-  border-bottom: 1px solid var(--border-soft);
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
 }
 .social-proof__inner {
   display: flex;

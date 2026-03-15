@@ -73,6 +73,7 @@
                 <li><a href="/nosotros" class="navbar__link active">Nosotros</a></li>
                 <li><a href="/piscina" class="navbar__link">Piscina & Spa</a></li>
                 <li><a href="/agua" class="navbar__link">Tratamiento de Agua</a></li>
+                <li><a href="#" class="navbar__link navbar__link--catalog">Catálogo <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-left:2px;"></i></a></li>
                 <li><a href="/blog" class="navbar__link">Blog</a></li>
                 <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
                 <li><a href="/contacto" class="navbar__link">Contacto</a></li>
@@ -83,6 +84,19 @@
                     <i class="fas fa-shopping-cart"></i><span class="navbar__cart-badge">{{ carrito_count }}</span>
                 </a>
                 <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+
+        <!-- Dropdown del Catálogo -->
+        <div class="navbar__catalog-bar" id="catalogBar">
+            <div class="navbar__catalog-bar-inner">
+                <span class="navbar__catalog-label">Elige el catálogo:</span>
+                <a href="/catalogo/piscina" class="navbar__catalog-option">
+                    <i class="fas fa-swimming-pool"></i> Piscina y Spa
+                </a>
+                <a href="/catalogo/agua" class="navbar__catalog-option">
+                    <i class="fas fa-tint"></i> Tratamiento de Agua
+                </a>
             </div>
         </div>
     </nav>

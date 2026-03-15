@@ -56,7 +56,7 @@
         <li><a href="/" class="navbar__link">Inicio</a></li>
         <li><a href="/piscina" class="navbar__link navbar__link--piscina active"><i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a></li>
         <li><a href="/agua" class="navbar__link navbar__link--agua"><i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
-        <li><a href="/catalogo/piscina" class="navbar__link">Catálogo</a></li>
+        <li><a href="#" class="navbar__link navbar__link--catalog">Catálogo <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-left:2px;"></i></a></li>
         <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
         <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
         <li><a href="/contacto" class="navbar__link">Contacto</a></li>
@@ -69,6 +69,19 @@
           <span class="navbar__cart-badge">0</span>
         </a>
         <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+
+    <!-- Dropdown del Catálogo -->
+    <div class="navbar__catalog-bar" id="catalogBar">
+      <div class="navbar__catalog-bar-inner">
+        <span class="navbar__catalog-label">Elige el catálogo:</span>
+        <a href="/catalogo/piscina" class="navbar__catalog-option">
+          <i class="fas fa-swimming-pool"></i> Piscina y Spa
+        </a>
+        <a href="/catalogo/agua" class="navbar__catalog-option">
+          <i class="fas fa-tint"></i> Tratamiento de Agua
+        </a>
       </div>
     </div>
   </nav>
@@ -218,8 +231,8 @@ Empieza Aquí</div>
     <div class="im-split__content reveal-hidden">
       <div class="im-card-parallax">
         <span class="lp-section__label" style="color:var(--im-accent);">Equipos Pro</span>
-        <h2 class="im-title">Repuestos y Accesorios Originales</h2>
-        <p class="im-text">Ofrecemos piezas originales para Pentair, Hayward, Dolphin y más. Mantén tu piscina en óptimas condiciones con componentes certificados y duraderos.</p>
+        <h2 class="im-title" style="color:white;">Repuestos y Accesorios Originales</h2>
+        <p class="im-text" style="color:white;">Ofrecemos piezas originales para Pentair, Hayward, Dolphin y más. Mantén tu piscina en óptimas condiciones con componentes certificados y duraderos.</p>
         <div style="display:flex; gap:16px; flex-wrap:wrap;">
           <a href="/catalogo/piscina#repuestos" class="im-btn">Ver Catálogo <i class="fas fa-arrow-right"></i></a>
           <a href="/cotizar" class="im-btn" style="background:transparent; border:1px solid var(--im-glass-border);">Solicitar Cotización</a>
@@ -242,7 +255,7 @@ Empieza Aquí</div>
       </div>
     </div>
     <div class="im-split__img-container">
-      <img src="../estaticos/img/piscina_home.jpg" alt="Piscina de lujo" class="im-split__img">
+      <img src="../estaticos/img/piscina.jpg" alt="Piscina de lujo" class="im-split__img">
     </div>
   </section>
 

@@ -988,41 +988,107 @@
 
 /* --- Quote Form --- */
 .quote-layout {
-    padding: 40px 0 60px;
-    max-width: 800px;
+    padding: 40px 0 80px;
+    max-width: 900px;
     margin: 0 auto;
 }
 
-.quote-form {
-    background: var(--white);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-}
+.cotizar-header, .quote-header, [class*="cotizar-hero"] { 
+  background: linear-gradient(135deg, #083D44, #0A4D68); 
+  color: white; 
+  padding: 48px clamp(16px, 4vw, 64px); 
+  border-radius: 0 0 32px 32px; 
+  margin-bottom: 40px; 
+} 
+
+.cotizar-form, .quote-form, [class*="cotizar-card"] { 
+  background: white; 
+  border-radius: 28px; 
+  box-shadow: 0 8px 48px rgba(0,0,0,0.08); 
+  padding: 56px; 
+  max-width: 860px; 
+  margin: 0 auto; 
+  border: none !important; 
+  overflow: hidden;
+} 
 
 .quote-form__header {
-    padding: 24px;
-    background: linear-gradient(135deg, var(--piscina-primary), var(--agua-primary));
-    color: var(--white);
+    padding: 0 0 32px;
+    background: transparent;
+    color: var(--text-dark);
     text-align: center;
 }
 
 .quote-form__header h2 {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700;
-    font-size: 1.4rem;
+    font-size: 1.8rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    color: #083D44;
 }
 
 .quote-form__header p {
-    font-size: 0.88rem;
-    opacity: 0.9;
-    margin-top: 6px;
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-top: 8px;
+    color: var(--text-muted);
 }
 
-.quote-form__body {
-    padding: 32px;
+/* Inputs más elegantes */ 
+.cotizar-form input, 
+.cotizar-form select, 
+.cotizar-form textarea,
+.quote-form .checkout-form__input,
+.quote-form .checkout-form__select { 
+  border: 1.5px solid rgba(0,0,0,0.1) !important; 
+  border-radius: 12px !important; 
+  padding: 14px 18px !important; 
+  font-size: 0.95rem !important; 
+  font-family: 'Manrope', sans-serif !important; 
+  transition: border-color 0.3s ease, box-shadow 0.3s ease !important; 
+  background: #F8FAFB !important; 
+  width: 100%;
+} 
+
+.cotizar-form input:focus, 
+.cotizar-form select:focus, 
+.cotizar-form textarea:focus,
+.quote-form .checkout-form__input:focus,
+.quote-form .checkout-form__select:focus { 
+  border-color: #0ABFCA !important; 
+  box-shadow: 0 0 0 4px rgba(10,191,202,0.1) !important; 
+  outline: none !important; 
+  background: white !important; 
+} 
+
+/* Botón enviar */ 
+.cotizar-form button[type="submit"], 
+.quote-submit,
+[class*="enviar-cotizacion"] { 
+  background: linear-gradient(135deg, #083D44, #0A5C66) !important; 
+  border-radius: 14px !important; 
+  padding: 18px !important; 
+  font-size: 0.9rem !important; 
+  font-weight: 700 !important; 
+  letter-spacing: 0.08em !important; 
+  text-transform: uppercase !important; 
+  transition: all 0.3s ease !important; 
+  box-shadow: 0 8px 24px rgba(8,61,68,0.3) !important; 
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+} 
+
+.cotizar-form button[type="submit"]:hover,
+.quote-submit:hover { 
+  transform: translateY(-2px) !important; 
+  box-shadow: 0 16px 40px rgba(8,61,68,0.35) !important; 
 }
 
 .quote-line-select {
