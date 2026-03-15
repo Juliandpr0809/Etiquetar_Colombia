@@ -5,37 +5,31 @@
 
 /* ── Theme Tokens per World ── */
 :root {
-  --lp-primary: #0A4D68;
-  --lp-accent: #088395;
-  --lp-dark: #1C2E3D;
-  --lp-light: #F0F8FA;
-  --lp-gold: #05BFDB;
-  --lp-cta: #088395;
-  --lp-cta-hover: #0A4D68;
-  --lp-badge-bg: #3A7CA5;
-  --lp-badge-new-bg: #0891A8;
-  --lp-stat-color: #088395;
-  --lp-footer-bg: #1C2E3D;
-  --lp-success: #2E7D32;
-  --lp-text: #1A1A1A;
-  --lp-text-muted: #4A5C6A;
-  --lp-base-bg: #F8F6F1;
   --lp-serif: 'Playfair Display', serif;
   --lp-sans: 'DM Sans', sans-serif;
+  --lp-padding: 100px;
+  --lp-bento-gap: 24px;
 }
 
+/* VISTA 1: TRATAMIENTO DE AGUA (MISMA ESTRUCTURA QUE PISCINA) */
 body.lp-theme--agua {
-  --lp-dark: #1C3D52; /* Secciones oscuras */
-  --lp-light: #F0F8FA; /* Fondos claros */
-  --lp-base-bg: #F8F6F1; /* Fondos claros */
-  --lp-cta: #088395; /* Botones */
-  --lp-cta-hover: #0A4D68; /* Hover botones */
-  --lp-badge-bg: #3A7CA5; /* Badge */
-  --lp-badge-new-bg: #0891A8; /* Badge nuevo */
-  --lp-stat-color: #B8935D; /* Estadísticas/testimonios */
-  --lp-footer-bg: #1C2E3D; /* Footer */
+  --lp-primary: #0A3D44; /* Teal profundo */
+  --lp-accent: #0891A8; /* Aqua refinado */
+  --lp-dark: #0A3D44;
+  --lp-light: #F0F8FA;
+  --lp-base-bg: #F8F6F1;
+  --lp-cta: #0891A8;
+  --lp-cta-hover: #0A3D44;
+  --lp-badge-bg: #0A3D44;
+  --lp-badge-new-bg: #0891A8;
+  --lp-stat-color: #0891A8;
+  --lp-footer-bg: #1C2E3D;
+  --lp-bento-radius: 50px; /* Estructura unificada (Smooth/Organic) */
+  --lp-card-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+  --lp-card-hover-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
 }
 
+/* VISTA 2: PISCINA & SPA (ATMÓSFERA LIFESTYLE/OASIS) */
 body.lp-theme--piscina {
   --lp-primary: #0A4D68;
   --lp-accent: #088395;
@@ -44,16 +38,21 @@ body.lp-theme--piscina {
   --lp-gold: #05BFDB;
   --lp-cta: #088395;
   --lp-cta-hover: #0A4D68;
-  --lp-badge-bg: #e74c3c; /* Original or different for piscina */
+  --lp-badge-bg: #e74c3c;
   --lp-badge-new-bg: #27ae60;
   --lp-stat-color: var(--lp-accent);
   --lp-footer-bg: #1C2E3D;
+  --lp-base-bg: #F8F6F1;
+  --lp-bento-radius: 50px;
+  --lp-card-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+  --lp-card-hover-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
 }
 
 body.lp-theme--piscina,
 body.lp-theme--agua {
   font-family: var(--lp-sans);
   background: var(--lp-base-bg);
+  color: var(--lp-primary);
 }
 
 /* ── Promo Bar ── */
@@ -282,159 +281,17 @@ body.lp-theme--piscina .lp-world-indicator:hover {
   display: block;
 }
 
-/* ── Bento Grid Section (Beneficios) ── */
-.lp-bento-section {
-  background-color: #F4F9FA;
-  padding: 100px clamp(20px, 5vw, 80px);
-  --bento-radius: 40px;
-  --bento-accent: #00D1C1; /* Turquesa vibrante */
-  --bento-gap: 24px;
+/* ── Shared Section Wrapper ── */
+.lp-section {
+  padding: 80px clamp(16px, 4vw, 64px);
 }
 
-.lp-bento-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(2, 320px);
-  gap: var(--bento-gap);
-  max-width: 1320px;
-  margin: 0 auto;
-}
-
-.lp-bento-card {
-  position: relative;
-  background: #ffffff;
-  border-radius: var(--bento-radius);
-  overflow: hidden;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-}
-
-.lp-bento-card:hover {
-  transform: translateY(-8px) scale(1.01);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.06);
-}
-
-/* Bento Card Sizes */
-.lp-bento-card--large {
-  grid-column: span 2;
-  grid-row: span 2;
-}
-
-.lp-bento-card--wide {
-  grid-column: span 2;
-}
-
-.lp-bento-card--tall {
-  grid-row: span 2;
-}
-
-/* Bento Card Content */
-.lp-bento-card__num {
-  font-family: var(--lp-serif);
-  font-size: 4.5rem;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--bento-accent);
-  margin-bottom: 20px;
-  opacity: 0.9;
-}
-
-.lp-bento-card__title {
-  font-family: var(--lp-serif);
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--lp-primary);
-  margin-bottom: 12px;
-  line-height: 1.2;
-}
-
-.lp-bento-card__text {
-  font-size: 1rem;
-  color: var(--lp-text-muted);
-  line-height: 1.6;
-}
-
-/* Bento Card with Image & Mask */
-.lp-bento-card--image {
-  padding: 0;
-  background: var(--lp-primary);
-}
-
-.lp-bento-card__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  /* Organic Squircle Mask */
-  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M44.7,-76.4C58.8,-69.2,71.8,-59.1,79.6,-46.2C87.4,-33.4,90.1,-17.7,89.5,-2.2C88.8,13.2,84.8,28.4,77.4,42.3C70,56.2,59.3,68.8,46.1,76.4C32.9,84,17.2,86.6,1.2,84.6C-14.8,82.6,-29.6,76,-43.1,68.4C-56.6,60.8,-68.8,52.2,-76.8,40.5C-84.8,28.8,-88.6,14.1,-88.1,-0.3C-87.6,-14.7,-82.8,-28.8,-74.8,-40.5C-66.8,-52.2,-55.6,-61.5,-42.9,-69.4C-30.2,-77.3,-16.1,-83.8,-0.7,-84.9C14.7,-86,29.4,-81.7,44.7,-76.4Z' transform='translate(100 100)' /%3E%3C/svg%3E");
-  mask-size: 140%;
-  mask-position: center;
-  mask-repeat: no-repeat;
-  transition: mask-size 0.6s ease;
-}
-
-.lp-bento-card:hover .lp-bento-card__img {
-  mask-size: 160%;
-}
-
-.lp-bento-card__overlay {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 40px;
-  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
-  color: white;
-}
-
-.lp-bento-card__overlay h3 {
-  color: white;
-  font-size: 1.5rem;
-  margin-bottom: 8px;
-}
-
-/* Smooth Corners (Squircle) using modern CSS where possible or standard radius */
-@supports (mask-image: paint(smooth-corners)) {
-  .lp-bento-card {
-    border-radius: 0;
-    mask-image: paint(smooth-corners);
-    --smooth-corners: 4;
-  }
-}
-
-/* Responsive Bento */
-@media (max-width: 1100px) {
-  .lp-bento-grid {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: auto;
-  }
-  .lp-bento-card--large {
-    grid-row: span 1;
-  }
-}
-
-@media (max-width: 600px) {
-  .lp-bento-grid {
-    grid-template-columns: 1fr;
-  }
-  .lp-bento-card--wide, .lp-bento-card--large {
-    grid-column: span 1;
-  }
-  .lp-bento-card {
-    min-height: 300px;
-  }
-}
 .lp-section--gray  { background: var(--lp-light); }
 .lp-section--white { background: #fff; }
 .lp-section--dark  { background: var(--lp-dark); }
 .lp-section--cream { background: var(--lp-base-bg); }
 
 /* --- Theme Overrides for Landing Agua --- */
-body.lp-theme--agua .lp-section--white {
-  background: var(--lp-base-bg);
-}
-
 body.lp-theme--agua .footer {
   background: var(--lp-footer-bg);
 }
@@ -539,29 +396,21 @@ body.lp-theme--agua .footer {
 }
 
 .lp-prod-card {
-  background: rgba(255,255,255,0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.6);
-  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 32px; /* Más redondeado para coincidir con el estilo oasis */
   overflow: visible;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  box-shadow: var(--lp-card-shadow);
   transition: all 0.35s ease;
   position: relative;
   padding-top: 170px;
   cursor: pointer;
 }
-.lp-prod-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
-}
+
 .lp-prod-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 52px rgba(0,0,0,0.12);
-  border-color: rgba(255,255,255,0.8);
+  box-shadow: var(--lp-card-hover-shadow);
+  border-color: var(--lp-accent);
 }
 
 .lp-prod-card__badge {
