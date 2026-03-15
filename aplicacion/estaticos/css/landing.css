@@ -127,15 +127,15 @@ body.lp-theme--piscina .lp-world-indicator:hover {
   align-items: center;
 }
 
-/* Curvatura inferior — transición suave al contenido */
+/* Curvatura inferior — transición suave al contenido (Estilo Waterdrop) */
 .lp-hero::after {
   content: '';
   position: absolute;
-  bottom: -2px;
-  left: -8%;
-  right: -8%;
-  height: clamp(60px, 7.5vw, 108px);
-  background: var(--lp-base-bg, #F7F4EF);
+  bottom: -1px;
+  left: -25%; /* Curva muy amplia y natural */
+  right: -25%;
+  height: clamp(120px, 18vw, 220px); /* Curva más pronunciada y elegante */
+  background: #ffffff; /* Fondo blanco puro para conectar con la siguiente sección */
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   z-index: 5;
   pointer-events: none;
@@ -148,26 +148,25 @@ body.lp-theme--piscina .lp-world-indicator:hover {
   top: 0;
   bottom: 0;
   width: 58%;
-  z-index: 1;
+  z-index: 1; /* Volver a z-index bajo para que la curva blanca (5) pase POR ENCIMA */
   display: flex;
-  align-items: center;
+  align-items: center; /* Centrar para evitar cortes bruscos */
   justify-content: flex-end;
 }
 .lp-hero__media img {
   height: 100%;
   width: 100%;
-  object-fit: contain;
-  object-position: right center;
+  object-fit: cover; /* Cambiar a cover para que llene el espacio sin bordes vacíos */
+  object-position: center center;
   display: block;
-  filter: drop-shadow(-20px 0 40px rgba(0,0,0,0.28));
 }
 
 /* Panel de texto — lado izquierdo */
 .lp-hero__content {
   position: relative;
-  z-index: 3;
+  z-index: 10; /* Asegurar que el texto esté por encima de todo */
   color: #fff;
-  padding: clamp(80px, 10vw, 120px) clamp(24px, 5vw, 80px) clamp(104px, 13vw, 148px);
+  padding: clamp(80px, 10vw, 120px) clamp(24px, 5vw, 80px) clamp(140px, 18vw, 180px); /* Aumentar padding inferior para alejar el botón de la curva */
   max-width: min(520px, 50%);
 }
 
@@ -235,10 +234,19 @@ body.lp-theme--piscina .lp-world-indicator:hover {
   border-radius: 999px;
   padding: 14px 32px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   letter-spacing: 0.02em;
-  transition: all 0.3s ease;
+  margin-top: 10px; /* Más espacio respecto al texto superior */
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 8px 28px rgba(0,0,0,0.22);
+}
+
+/* Reducir espacio entre Hero y sección siguiente */
+.lp-hero + .lp-section {
+  padding-top: 0; /* Eliminar padding superior para máxima subida */
+  margin-top: -100px; /* Aumentar margen negativo para subir más la sección */
+  position: relative;
+  z-index: 10;
 }
 .lp-hero__cta:hover {
   transform: translateY(-2px);

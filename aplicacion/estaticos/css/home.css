@@ -171,7 +171,19 @@
 .promo-banner__close:hover {
   opacity: 1;
 }
-html { scroll-behavior: smooth; font-size: 16px; -webkit-font-smoothing: antialiased; }
+/* ── Reset Global — Diseño Edge-to-Edge ── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Evitar scroll lateral por las curvas */
+}
 
 body {
   font-family: var(--brand-body);
@@ -179,7 +191,13 @@ body {
   color: var(--text-body);
   background: var(--off-white);
   line-height: 1.65;
-  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Forzar que todos los contenedores principales no tengan márgenes que los separen de los bordes */
+main, section, header, footer, nav {
+  width: 100%;
+  max-width: 100%;
 }
 
 a { text-decoration: none; color: inherit; }
