@@ -15,7 +15,7 @@
   <meta property="og:url" content="https://etiquetarcolombia.com/piscina">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="../estaticos/css/home.css">
   <link rel="stylesheet" href="../estaticos/css/landing.css">
@@ -54,7 +54,7 @@
       </a>
       <ul class="navbar__menu" id="navMenu">
         <li><a href="/" class="navbar__link">Inicio</a></li>
-        <li><a href="/piscina" class="navbar__link navbar__link--piscina" style="color:var(--piscina-primary);font-weight:600;"><i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a></li>
+        <li><a href="/piscina" class="navbar__link navbar__link--piscina active"><i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a></li>
         <li><a href="/agua" class="navbar__link navbar__link--agua"><i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
         <li><a href="/catalogo/piscina" class="navbar__link">Catálogo</a></li>
         <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
@@ -213,38 +213,38 @@ Empieza Aquí</div>
     </div>
   </section>
 
-  <!-- ══ REPUESTOS Y ACCESORIOS (dark + image) ══ -->
-  <div class="lp-info-split">
-    <div class="lp-info-split__text">
-      <span class="lp-section__label" style="color:rgba(255,255,255,0.7);">Piezas Originales</span>
-      <h2>Repuestos y Accesorios Compatibles</h2>
-      <p>Ofrecemos repuestos originales para todas las marcas que manejamos: Pentair, Hayward, Dolphin, Zodiac y más. Mantén tu equipo funcionando al máximo con piezas certificadas y garantía de instalación.</p>
-      <div class="lp-info-split__actions">
-        <a href="/catalogo/piscina#accesorios" class="lp-info-split__btn lp-info-split__btn--white">
-          <i class="fas fa-tools"></i> Ver Repuestos
-        </a>
-        <a href="/cotizar" class="lp-info-split__btn lp-info-split__btn--ghost">
-          <i class="fas fa-file-alt"></i> Cotizar
-        </a>
+  <!-- ══ IMMERSIVE SPLIT 1: TECNOLOGÍA (Dark) ══ -->
+  <section class="im-split">
+    <div class="im-split__content reveal-hidden">
+      <div class="im-card-parallax">
+        <span class="lp-section__label" style="color:var(--im-accent);">Equipos Pro</span>
+        <h2 class="im-title">Repuestos y Accesorios Originales</h2>
+        <p class="im-text">Ofrecemos piezas originales para Pentair, Hayward, Dolphin y más. Mantén tu piscina en óptimas condiciones con componentes certificados y duraderos.</p>
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <a href="/catalogo/piscina#repuestos" class="im-btn">Ver Catálogo <i class="fas fa-arrow-right"></i></a>
+          <a href="/cotizar" class="im-btn" style="background:transparent; border:1px solid var(--im-glass-border);">Solicitar Cotización</a>
+        </div>
       </div>
     </div>
-    <div class="lp-info-split__img">
-      <img src="../estaticos/img/showcase-piscina.jpg" alt="Repuestos y accesorios para piscina">
+    <div class="im-split__img-container">
+      <img src="../estaticos/img/showcase-piscina.jpg" alt="Equipos de piscina" class="im-split__img">
     </div>
-  </div>
+  </section>
 
-  <!-- ══ LIFESTYLE — DISFRUTA TU PISCINA ══ -->
-  <div class="lp-lifestyle">
-    <div class="lp-lifestyle__img">
-      <img src="../estaticos/img/piscina.jpg" alt="Disfruta tu piscina al máximo">
+  <!-- ══ IMMERSIVE SPLIT 2: ESTILO DE VIDA (Light) ══ -->
+  <section class="im-split im-split--reverse">
+    <div class="im-split__content reveal-hidden">
+      <div>
+        <span class="lp-section__label" style="color:var(--im-accent);">Estilo de Vida</span>
+        <h2 class="im-title">Disfruta Tu Piscina En Su Mejor Condición</h2>
+        <p class="im-text">Un equipo que funciona bien se nota. Agua cristalina, temperatura ideal e iluminación perfecta. Nuestros sistemas están diseñados para que pases más tiempo disfrutando.</p>
+        <a href="/cotizar" class="im-btn">Solicitar Asesoría <i class="fas fa-chevron-right"></i></a>
+      </div>
     </div>
-    <div class="lp-lifestyle__text">
-      <span class="lp-section__label">Estilo de Vida</span>
-      <h2>Disfruta Tu Piscina<br>En Su Mejor Condición</h2>
-      <p>Un equipo que funciona bien se nota. Agua cristalina, temperatura ideal, iluminación perfecta. Nuestros sistemas están diseñados para que pases más tiempo disfrutando y menos tiempo manteniendo.</p>
-      <a href="/cotizar" class="lp-lifestyle__cta">Solicitar Asesoría <i class="fas fa-arrow-right"></i></a>
+    <div class="im-split__img-container">
+      <img src="../estaticos/img/piscina_home.jpg" alt="Piscina de lujo" class="im-split__img">
     </div>
-  </div>
+  </section>
 
   <!-- ══ BOLD STATEMENT ══ -->
   <section class="lp-statement">
@@ -260,47 +260,65 @@ Empieza Aquí</div>
     </div>
   </section>
 
-  <!-- ══ STATS / BENEFICIOS ══ -->
-  <section class="lp-section lp-section--dark">
+  <!-- ══ BENTO GRID: BENEFICIOS EXCLUSIVOS ══ -->
+  <section class="lp-bento-section">
     <div class="lp-section__head">
-      <span class="lp-section__label">Beneficios Exclusivos</span>
-      <h2 class="lp-section__title">Por Qué Confían en Nosotros</h2>
+      <span class="lp-section__label">Oasis de Lujo</span>
+      <h2 class="lp-section__title">La Piscina Que Siempre Soñaste</h2>
     </div>
-    <div class="lp-stats__top">
-      <div class="lp-stats__item">
-        <div class="lp-stats__num">120+</div>
-        <div class="lp-stats__description">
-          <strong>Productos de Piscina</strong>
-          <span>Catálogo completo para piscinas de todos los tamaños y usos</span>
+
+    <div class="lp-bento-shell reveal-hidden">
+      <div class="lp-bento-grid">
+        
+        <!-- Card 1: Main (Large) -->
+        <div class="lp-bento-card lp-bento-card--large">
+          <img src="../estaticos/img/showcase-piscina.jpg" alt="Piscina Cristalina" class="lp-bento-card__img">
+          <div class="lp-bento-card__content">
+            <span class="lp-bento-card__label">Tecnología de Punta</span>
+            <h3 class="lp-bento-card__title">Agua Cristalina<br>Todo el Año</h3>
+            <p class="lp-bento-card__text">Sistemas de filtración de alta eficiencia que mantienen tu piscina impecable con el mínimo esfuerzo.</p>
+          </div>
         </div>
-      </div>
-      <div class="lp-stats__item">
-        <div class="lp-stats__num">5 Años</div>
-        <div class="lp-stats__description">
-          <strong>Garantía en Equipos</strong>
-          <span>Respaldo técnico y piezas de repuesto para toda la vida útil</span>
+
+        <!-- Card 2: Warranty (Wide) -->
+        <div class="lp-bento-card lp-bento-card--wide">
+          <div class="lp-bento-card__content">
+            <span class="lp-bento-card__label">Tranquilidad Total</span>
+            <h3 class="lp-bento-card__title" style="font-size: 3.5rem; color: var(--lp-accent);">5 Años</h3>
+            <p class="lp-bento-card__text">De garantía en equipos principales como bombas y filtros. Respaldo técnico de por vida.</p>
+          </div>
         </div>
-      </div>
-      <div class="lp-stats__item">
-        <div class="lp-stats__num">100%</div>
-        <div class="lp-stats__description">
-          <strong>Cobertura Nacional</strong>
-          <span>Envíos y soporte técnico a toda Colombia, sin excepción</span>
+
+        <!-- Card 3: Variety (Tall) -->
+        <div class="lp-bento-card lp-bento-card--tall">
+          <div class="lp-bento-card__content">
+            <span class="lp-bento-card__label">Catálogo</span>
+            <h3 class="lp-bento-card__title">120+ Soluciones<br>Disponibles</h3>
+            <p class="lp-bento-card__text">Desde robots inteligentes hasta iluminación LED sumergible. Todo lo que tu spa necesita.</p>
+          </div>
+          <div style="margin-top: 20px; font-size: 2.5rem; color: rgba(255,255,255,0.2);">
+            <i class="fas fa-swimming-pool"></i>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="lp-stats__tiles">
-      <div class="lp-stats__tile">
-        <img src="../estaticos/img/showcase-piscina.jpg" alt="Piscinas residenciales">
-        <div class="lp-stats__tile-label">Piscinas Residenciales</div>
-      </div>
-      <div class="lp-stats__tile">
-        <img src="../estaticos/img/hero_piscina.png" alt="Equipos certificados">
-        <div class="lp-stats__tile-label">Equipos Certificados</div>
-      </div>
-      <div class="lp-stats__tile">
-        <img src="../estaticos/img/logistica-confianza.jpg" alt="Entrega confiable">
-        <div class="lp-stats__tile-label">Logística Confiable</div>
+
+        <!-- Card 4: Logistics -->
+        <div class="lp-bento-card">
+          <div class="lp-bento-card__content">
+            <span class="lp-bento-card__label">Logística</span>
+            <h3 class="lp-bento-card__title">Cobertura<br>100% Nacional</h3>
+            <p class="lp-bento-card__text">Envíos rápidos y seguros a cualquier ciudad de Colombia.</p>
+          </div>
+        </div>
+
+        <!-- Card 5: Experience (Glass) -->
+        <div class="lp-bento-card lp-bento-card--glass">
+          <div class="lp-bento-card__content">
+            <span class="lp-bento-card__label">Experticia</span>
+            <h3 class="lp-bento-card__title" style="color: var(--lp-dark);">Asesoría<br>Personalizada</h3>
+            <p class="lp-bento-card__text" style="color: var(--lp-dark); opacity: 0.8;">Diseñamos el cuarto de máquinas ideal para tu proyecto residencial o comercial.</p>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -475,6 +493,7 @@ Empieza Aquí</div>
   </a>
 
   <script src="../estaticos/js/home.js"></script>
+  <script src="../estaticos/js/effects.js"></script>
   <script>
     // ── Product Tab Filter (piscina landing) ──
     const lpTabs  = document.querySelectorAll('.lp-products__tab');

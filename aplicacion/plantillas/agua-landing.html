@@ -15,7 +15,7 @@
   <meta property="og:url" content="https://etiquetarcolombia.com/agua">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="../estaticos/css/home.css">
   <link rel="stylesheet" href="../estaticos/css/landing.css">
@@ -55,7 +55,7 @@
       <ul class="navbar__menu" id="navMenu">
         <li><a href="/" class="navbar__link">Inicio</a></li>
         <li><a href="/piscina" class="navbar__link navbar__link--piscina"><i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a></li>
-        <li><a href="/agua" class="navbar__link navbar__link--agua" style="color:var(--agua-primary);font-weight:600;"><i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
+        <li><a href="/agua" class="navbar__link navbar__link--agua active"><i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
         <li><a href="/catalogo/agua" class="navbar__link">Catálogo</a></li>
         <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
         <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
@@ -213,38 +213,38 @@ Agua Sin Dudas</div>
     </div>
   </section>
 
-  <!-- ══ FILTROS DE REPUESTO (dark + image) ══ -->
-  <div class="lp-info-split">
-    <div class="lp-info-split__text">
-      <span class="lp-section__label" style="color:rgba(255,255,255,0.7);">Mantenimiento Fácil</span>
-      <h2>Filtros y Cartuchos de Repuesto</h2>
-      <p>Ofrece la entrega de filtros de repuesto directamente en tu puerta con recordatorio de cambio automático. Cartuchos certificados para todas las marcas y tecnologías que manejamos. Mantén la calidad del agua garantizada.</p>
-      <div class="lp-info-split__actions">
-        <a href="/catalogo/agua#repuestos" class="lp-info-split__btn lp-info-split__btn--white">
-          <i class="fas fa-filter"></i> Ver Repuestos
-        </a>
-        <a href="/cotizar" class="lp-info-split__btn lp-info-split__btn--ghost">
-          <i class="fas fa-file-alt"></i> Cotizar Sistema
-        </a>
+  <!-- ══ IMMERSIVE SPLIT 1: TECNOLOGÍA (Dark) ══ -->
+  <section class="im-split">
+    <div class="im-split__content reveal-hidden">
+      <div class="im-card-parallax">
+        <span class="lp-section__label" style="color:var(--im-accent);">Mantenimiento Pro</span>
+        <h2 class="im-title">Repuestos y Accesorios Compatibles</h2>
+        <p class="im-text">Ofrecemos repuestos originales para todas las marcas líderes. Mantén tu equipo funcionando al máximo con piezas certificadas y garantía de instalación técnica.</p>
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <a href="/catalogo/agua#repuestos" class="im-btn">Ver Repuestos <i class="fas fa-arrow-right"></i></a>
+          <a href="/cotizar" class="im-btn" style="background:transparent; border:1px solid var(--im-glass-border);">Solicitar Cotización</a>
+        </div>
       </div>
     </div>
-    <div class="lp-info-split__img">
-      <img src="../estaticos/img/showcase-agua.jpg" alt="Filtros y repuestos de agua">
+    <div class="im-split__img-container">
+      <img src="../estaticos/img/Repuestos y Accesorios Compatibles.jpg" alt="Cuarto de máquinas técnico" class="im-split__img">
     </div>
-  </div>
+  </section>
 
-  <!-- ══ LIFESTYLE — PAUSAS PARA DISFRUTAR ══ -->
-  <div class="lp-lifestyle">
-    <div class="lp-lifestyle__img">
-      <img src="../estaticos/img/logistica-confianza.jpg" alt="Agua pura en tu hogar">
+  <!-- ══ IMMERSIVE SPLIT 2: ESTILO DE VIDA (Light) ══ -->
+  <section class="im-split im-split--reverse">
+    <div class="im-split__content reveal-hidden">
+      <div>
+        <span class="lp-section__label" style="color:var(--im-accent);">Estilo de Vida</span>
+        <h2 class="im-title">Disfruta Tu Agua En Su Mejor Condición</h2>
+        <p class="im-text">Un sistema que funciona bien se nota. Agua cristalina, pureza garantizada y salud para tu familia. Nuestros equipos están diseñados para que disfrutes más y te preocupes menos.</p>
+        <a href="/cotizar" class="im-btn">Solicitar Asesoría <i class="fas fa-chevron-right"></i></a>
+      </div>
     </div>
-    <div class="lp-lifestyle__text">
-      <span class="lp-section__label">Calidad de Vida</span>
-      <h2>Agua Pura Para<br>Cada Momento Del Día</h2>
-      <p>Cocinar, hidratarse, bañarse. Cada gota de agua en tu casa pasa por tecnología de punta. Nuestros sistemas eliminan bacterias, cloro, metales pesados y todo lo que no debería estar ahí.</p>
-      <a href="/cotizar" class="lp-lifestyle__cta">Solicitar Asesoría <i class="fas fa-arrow-right"></i></a>
+    <div class="im-split__img-container">
+      <img src="../estaticos/img/señora.jpg" alt="Agua pura hogar" class="im-split__img">
     </div>
-  </div>
+  </section>
 
   <!-- ══ BOLD STATEMENT ══ -->
   <section class="lp-statement">
@@ -260,47 +260,65 @@ Agua Sin Dudas</div>
     </div>
   </section>
 
-  <!-- ══ STATS / BENEFICIOS ══ -->
-  <section class="lp-section lp-section--dark">
+  <!-- ══ BENTO GRID: BENEFICIOS EXCLUSIVOS ══ -->
+  <section class="lp-bento-section">
     <div class="lp-section__head">
       <span class="lp-section__label">Beneficios Exclusivos</span>
       <h2 class="lp-section__title">Por Qué Confían en Nosotros</h2>
     </div>
-    <div class="lp-stats__top">
-      <div class="lp-stats__item">
-        <div class="lp-stats__num">99.9%</div>
-        <div class="lp-stats__description">
-          <strong>Eliminación de Bacterias</strong>
-          <span>Nuestros sistemas UV eliminan el 99.9% de bacterias y virus presentes en el agua</span>
+
+    <div class="lp-bento-shell reveal-hidden">
+      <div class="lp-bento-grid">
+        
+        <!-- Card 1: Main (Large) -->
+        <div class="lp-bento-card lp-bento-card--large">
+          <img src="../estaticos/img/showcase-agua.jpg" alt="Pureza Garantizada" class="lp-bento-card__img">
+          <div class="lp-bento-card__content">
+            <span class="lp-bento-card__label">Calidad Certificada</span>
+            <h3 class="lp-bento-card__title">Agua Pura Sin<br>Compromisos</h3>
+            <p class="lp-bento-card__text">Nuestros sistemas eliminan sedimentos, metales pesados y microorganismos, garantizando salud en cada gota.</p>
+          </div>
         </div>
-      </div>
-      <div class="lp-stats__item">
-        <div class="lp-stats__num">85+</div>
-        <div class="lp-stats__description">
-          <strong>Productos Disponibles</strong>
-          <span>Amplio catálogo para solucionar cualquier necesidad de purificación del agua</span>
+
+        <!-- Card 2: Stats (Wide) -->
+        <div class="lp-bento-card lp-bento-card--wide">
+          <div class="lp-bento-card__content">
+            <span class="lp-bento-card__label">Efectividad Real</span>
+            <h3 class="lp-bento-card__title" style="font-size: 3.5rem; color: var(--lp-accent);">99.9%</h3>
+            <p class="lp-bento-card__text">De eliminación de bacterias y virus gracias a nuestra tecnología de luz ultravioleta VIQUA.</p>
+          </div>
         </div>
-      </div>
-      <div class="lp-stats__item">
-        <div class="lp-stats__num">5 Tech</div>
-        <div class="lp-stats__description">
-          <strong>Tecnologías Integradas</strong>
-          <span>UV, ósmosis inversa, carbono activado, cloración y sedimentación combinadas</span>
+
+        <!-- Card 3: Tech (Tall) -->
+        <div class="lp-bento-card lp-bento-card--tall">
+          <div class="lp-bento-card__content">
+            <span class="lp-bento-card__label">Tecnología</span>
+            <h3 class="lp-bento-card__title">5 Etapas de<br>Filtración</h3>
+            <p class="lp-bento-card__text">Sedimentación, carbón activado, ósmosis inversa y pulido final para un sabor inigualable.</p>
+          </div>
+          <div style="margin-top: 20px; font-size: 2.5rem; color: rgba(255,255,255,0.2);">
+            <i class="fas fa-microchip"></i>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="lp-stats__tiles">
-      <div class="lp-stats__tile">
-        <img src="../estaticos/img/showcase-agua.jpg" alt="Agua pura para el hogar">
-        <div class="lp-stats__tile-label">Agua Para El Hogar</div>
-      </div>
-      <div class="lp-stats__tile">
-        <img src="../estaticos/img/hero_agua.png" alt="Sistemas certificados">
-        <div class="lp-stats__tile-label">Sistemas Certificados</div>
-      </div>
-      <div class="lp-stats__tile">
-        <img src="../estaticos/img/logistica-confianza.jpg" alt="Entrega nacional">
-        <div class="lp-stats__tile-label">Entrega Nacional</div>
+
+        <!-- Card 4: Delivery -->
+        <div class="lp-bento-card">
+          <div class="lp-bento-card__content">
+            <span class="lp-bento-card__label">Logística</span>
+            <h3 class="lp-bento-card__title">Envío a Toda<br>Colombia</h3>
+            <p class="lp-bento-card__text">Llegamos a cada rincón del país con embalaje de alta seguridad.</p>
+          </div>
+        </div>
+
+        <!-- Card 5: Trust (Glass) -->
+        <div class="lp-bento-card lp-bento-card--glass">
+          <div class="lp-bento-card__content">
+            <span class="lp-bento-card__label">Soporte</span>
+            <h3 class="lp-bento-card__title" style="color: var(--lp-dark);">Asesoría<br>Técnica Pro</h3>
+            <p class="lp-bento-card__text" style="color: var(--lp-dark); opacity: 0.8;">Expertos certificados listos para diseñar tu sistema ideal de tratamiento.</p>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -475,6 +493,7 @@ Agua Sin Dudas</div>
   </a>
 
   <script src="../estaticos/js/home.js"></script>
+  <script src="../estaticos/js/effects.js"></script>
   <script>
     // ── Product Tab Filter (agua landing) ──
     const lpTabs  = document.querySelectorAll('.lp-products__tab');

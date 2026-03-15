@@ -31,11 +31,7 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
-
-  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Styles -->
@@ -155,12 +151,12 @@
       </a>
 
       <ul class="navbar__menu" id="navMenu">
-        <li><a href="/" class="navbar__link">Inicio</a></li>
-        <li><a href="/contacto.html" class="navbar__link">Nosotros</a></li>
-        <li><a href="/catalogo/piscina" class="navbar__link navbar__link--piscina">
+        <li><a href="/" class="navbar__link active">Inicio</a></li>
+        <li><a href="/nosotros" class="navbar__link">Nosotros</a></li>
+        <li><a href="/piscina" class="navbar__link navbar__link--piscina">
             <i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa
           </a></li>
-        <li><a href="/catalogo/agua" class="navbar__link navbar__link--agua">
+        <li><a href="/agua" class="navbar__link navbar__link--agua">
             <i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua
           </a></li>
         <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
@@ -218,13 +214,13 @@
   <!-- Qué hacemos y qué vendemos -->
   <section class="home-overview">
     <div class="container">
-      <div class="section-head">
+      <div class="section-head sr-fade-up">
         <span class="section-label">Soluciones Integrales</span>
         <h2>Que Hacemos y Que Vendemos</h2>
         <p>Combinamos asesoria, venta de equipos certificados e instalacion para que tu proyecto de piscina o tratamiento de agua funcione desde el primer dia.</p>
       </div>
 
-      <div class="pillars-grid">
+      <div class="pillars-grid sr-stagger">
         <article class="pillar home-overview__card">
           <div class="pillar__icon home-overview__icon home-overview__icon--agua">
             <i class="fas fa-tint"></i>
@@ -252,16 +248,38 @@
     </div>
   </section>
 
+  <!-- SECCIÓN STATS -->
+  <section class="home-stats">
+    <div class="container">
+      <div class="home-stats__grid sr-stagger">
+        <div class="home-stats__item">
+          <div class="home-stats__num">120<span>+</span></div>
+          <div class="home-stats__label">Productos disponibles</div>
+        </div>
+        <div class="home-stats__divider"></div>
+        <div class="home-stats__item">
+          <div class="home-stats__num">5<span> años</span></div>
+          <div class="home-stats__label">Garantía en equipos principales</div>
+        </div>
+        <div class="home-stats__divider"></div>
+        <div class="home-stats__item">
+          <div class="home-stats__num">100<span>%</span></div>
+          <div class="home-stats__label">Cobertura nacional Colombia</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Preguntas frecuentes -->
   <section class="home-faq">
     <div class="container">
-      <div class="section-head">
+      <div class="section-head sr-fade-up">
         <span class="section-label">Soporte al Cliente</span>
         <h2>Preguntas Frecuentes</h2>
         <p>Respuestas rapidas para ayudarte a cotizar mejor y comprar con confianza.</p>
       </div>
 
-      <div class="home-faq__list">
+      <div class="home-faq__list sr-stagger">
         <details class="home-faq__item" open>
           <summary>Como se cual equipo necesito para mi casa o negocio?</summary>
           <p>Con una asesoria breve revisamos consumo, calidad del agua, espacio disponible y objetivo del proyecto. Con eso te recomendamos opciones concretas.</p>
@@ -350,6 +368,7 @@
   </a>
 
   <script src="../estaticos/js/home.js"></script>
+  <script src="../estaticos/js/effects.js"></script>
 
   <script>
     // Timer para el Banner de Promo

@@ -20,7 +20,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&family=Cormorant+Garamond:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -71,14 +71,11 @@
             <ul class="navbar__menu" id="navMenu">
                 <li><a href="/" class="navbar__link">Inicio</a></li>
                 <li><a href="/nosotros" class="navbar__link active">Nosotros</a></li>
-                <li><a href="/catalogo/piscina" class="navbar__link navbar__link--piscina">
-                    <i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a>
-                </li>
-                <li><a href="/catalogo/agua" class="navbar__link navbar__link--agua">
-                    <i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a>
-                </li>
-                <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
+                <li><a href="/piscina" class="navbar__link">Piscina & Spa</a></li>
+                <li><a href="/agua" class="navbar__link">Tratamiento de Agua</a></li>
+                <li><a href="/blog" class="navbar__link">Blog</a></li>
                 <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
+                <li><a href="/contacto" class="navbar__link">Contacto</a></li>
             </ul>
             <div class="navbar__actions">
                 <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta"><i class="fas fa-user"></i></a>
@@ -293,6 +290,7 @@
 
     <!-- Scripts -->
     <script src="../../estaticos/js/home.js"></script>
+    <script src="../../estaticos/js/effects.js"></script>
     <script type="application/ld+json">
         {
             "@context": "https://schema.org",

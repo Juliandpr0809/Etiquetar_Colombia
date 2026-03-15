@@ -57,6 +57,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   syncCartBadge();
 
+  // ── Navbar Active Link Logic ──
+  const currentPath = window.location.pathname;
+  document.querySelectorAll('.navbar__link').forEach(link => {
+    const linkPath = link.getAttribute('href');
+    if (linkPath === currentPath || (currentPath.startsWith(linkPath) && linkPath !== '/')) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+    // Especial para el home
+    if (currentPath === '/' && linkPath === '/') {
+      link.classList.add('active');
+    }
+  });
+
   // ── Navbar World Routing + Catalog Switcher ──
   const nav = document.querySelector('.navbar');
   if (nav) {
@@ -156,69 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
       closeMenu();
     });
   }
-
-  // ── Navbar scroll effect ──
-  const navbar = document.querySelector('.navbar');
-  if (navbar) {
-    const handleNavScroll = () => {
-      if (window.scrollY > 20) {
-        navbar.classList.add('scrolled');
-      } else {
-        navbar.classList.remove('scrolled');
-      }
-    };
-    window.addEventListener('scroll', handleNavScroll, { passive: true });
-    handleNavScroll();
-  }
-
-  // ── Scroll Reveal (Intersection Observer) ──
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('revealed');
-        revealObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-  document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => {
-    revealObserver.observe(el);
-  });
-
-  // ── Animated Counters ──
-  const animateCounter = (el) => {
-    const target = parseFloat(el.dataset.target);
-    const suffix = el.dataset.suffix || '';
-    const prefix = el.dataset.prefix || '';
-    const duration = 1500;
-    const start = performance.now();
-
-    const step = (now) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.floor(eased * target);
-      el.textContent = prefix + current.toLocaleString('es-CO') + suffix;
-      if (progress < 1) requestAnimationFrame(step);
-      else el.textContent = prefix + target.toLocaleString('es-CO') + suffix;
-    };
-
-    requestAnimationFrame(step);
-  };
-
-  const counterObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        animateCounter(entry.target);
-        counterObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.3 });
-
-  document.querySelectorAll('[data-counter]').forEach(el => {
-    counterObserver.observe(el);
-  });
 
   // ── Product Tabs (landing pages) ──
   const tabs = document.querySelectorAll('.products__tab, .lp-products__tab');
@@ -351,6 +303,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderControls();
   translatePage(localStorage.getItem(storageLangKey) || 'es');
+
+  /* Comentado por conflicto con effects.js
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('reveal-visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal-hidden, .reveal, .reveal-stagger').forEach(el => {
+    revealObserver.observe(el);
+  });
+  */
 });
 
 // ── CSS Animation Keyframes (injected) ──
