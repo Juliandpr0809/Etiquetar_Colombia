@@ -6,7 +6,7 @@
 }
 
 .nosotros-page {
-  background: #f7f4ef;
+  background: #F8F6F1; /* Beige cálido */
   color: var(--text-dark);
 }
 
@@ -33,9 +33,7 @@
 .nos-hero__overlay {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(8, 19, 31, 0.52) 0%, rgba(8, 19, 31, 0.8) 100%),
-    linear-gradient(90deg, rgba(0, 33, 66, 0.35) 0%, rgba(8, 19, 31, 0.3) 100%);
+  background: rgba(10, 77, 104, 0.75); /* Overlay hero azul profundo corporativo */
   z-index: 2;
 }
 
@@ -76,7 +74,7 @@
 /* FEATURES */
 .nos-features {
   padding: 88px 20px 62px;
-  background: #f0ece4;
+  background: #F8F6F1; /* Beige cálido */
   border-top: 1px solid #ddd3c2;
   border-bottom: 1px solid #ddd3c2;
 }
@@ -89,14 +87,14 @@
 }
 
 .nos-section-title--light {
-  color: #f2f7fb;
+  color: #F8F6F1;
 }
 
 .nos-section-desc {
   text-align: center;
   max-width: 680px;
   margin: 0 auto 38px;
-  color: #6f6a64;
+  color: #4A5C6A; /* Gris pizarra */
   font-size: 1.02rem;
 }
 
@@ -119,7 +117,7 @@
   right: -15px;
   width: 1px;
   height: calc(100% - 42px);
-  background: linear-gradient(180deg, rgba(0, 95, 142, 0.08) 0%, rgba(0, 95, 142, 0.46) 45%, rgba(0, 95, 142, 0.08) 100%);
+  background: linear-gradient(180deg, rgba(58, 124, 165, 0.08) 0%, rgba(58, 124, 165, 0.46) 45%, rgba(58, 124, 165, 0.08) 100%);
 }
 
 .nos-feature__num {
@@ -127,8 +125,8 @@
   font-family: var(--nos-serif);
   font-size: clamp(2.8rem, 6vw, 4.8rem);
   line-height: 0.9;
-  color: #0f5a5f;
-  opacity: 0.85;
+  color: #B8935D; /* Dorado sutil premium */
+  opacity: 0.9;
   margin-bottom: 14px;
 }
 
@@ -136,11 +134,12 @@
   font-family: var(--nos-serif);
   font-size: 1.5rem;
   margin: 0 0 10px;
+  color: #1C3D52; /* Azul marino sofisticado */
 }
 
 .nos-feature__desc {
   margin: 0;
-  color: #6b6560;
+  color: #4A5C6A; /* Gris pizarra */
   line-height: 1.45;
 }
 
@@ -149,7 +148,7 @@
   display: grid;
   grid-template-columns: 1.05fr 1fr;
   min-height: 62vh;
-  background: #fff;
+  background: #FFFFFF;
 }
 
 .nos-split__text {
@@ -164,11 +163,12 @@
   font-family: var(--nos-serif);
   font-size: clamp(2rem, 4.7vw, 3.8rem);
   margin: 0 0 12px;
+  color: #1C3D52;
 }
 
 .nos-split__text p {
   margin: 0;
-  color: #6f6a64;
+  color: #4A5C6A;
   line-height: 1.55;
   max-width: 58ch;
 }
@@ -180,7 +180,7 @@
   margin-top: 14px;
   font-family: var(--nos-serif);
   font-size: clamp(1.05rem, 2vw, 1.35rem);
-  color: #0f5a5f;
+  color: #3A7CA5; /* Azul corporativo sólido */
 }
 
 .nos-kpis-inline span {
@@ -192,7 +192,7 @@
   content: '·';
   position: absolute;
   right: 0;
-  color: #2f6f72;
+  color: #3A7CA5;
 }
 
 .nos-split__image {
@@ -204,7 +204,7 @@
 /* LINEAS */
 .nos-lines {
   padding: 88px 20px;
-  background: #102333;
+  background: #1C2E3D; /* Navy profundo consistente con footer */
 }
 
 .nos-lines__grid {
@@ -215,7 +215,7 @@
 }
 
 .nos-line-card {
-  background: #183248;
+  background: #1C3D52; /* Azul marino sofisticado */
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
   overflow: hidden;
@@ -237,11 +237,11 @@
 }
 
 .nos-line-card--piscina .nos-line-card__img::after {
-  background: linear-gradient(145deg, rgba(0, 95, 142, 0.78) 0%, rgba(0, 95, 142, 0.45) 100%);
+  background: linear-gradient(145deg, rgba(10, 85, 104, 0.78) 0%, rgba(10, 85, 104, 0.45) 100%);
 }
 
 .nos-line-card--agua .nos-line-card__img::after {
-  background: linear-gradient(145deg, rgba(26, 92, 69, 0.78) 0%, rgba(26, 92, 69, 0.45) 100%);
+  background: linear-gradient(145deg, rgba(8, 145, 168, 0.78) 0%, rgba(8, 145, 168, 0.45) 100%);
 }
 
 .nos-line-card__body {
@@ -252,13 +252,13 @@
   font-family: var(--nos-serif);
   font-size: 2rem;
   margin: 0 0 12px;
-  color: #f5fbff;
+  color: #FFFFFF;
 }
 
 .nos-line-card__body ul {
   margin: 0;
   padding-left: 18px;
-  color: rgba(232, 243, 249, 0.9);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.45;
 }
 
@@ -271,17 +271,18 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #00a0b8;
+  background: #0891A8; /* Aqua premium refinado */
   color: #ffffff;
   padding: 11px 18px;
   border-radius: 999px;
   font-weight: 600;
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
 }
 
 .nos-line-card__btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(0, 160, 184, 0.36);
+  background: #0A5568; /* Azul marino profundo */
+  box-shadow: 0 10px 22px rgba(8, 145, 168, 0.3);
 }
 
 /* TIMELINE */
@@ -311,7 +312,7 @@
   left: 9%;
   right: 9%;
   height: 2px;
-  background: linear-gradient(90deg, rgba(0, 95, 142, 0.25), rgba(46, 204, 154, 0.7), rgba(0, 95, 142, 0.25));
+  background: linear-gradient(90deg, rgba(10, 77, 104, 0.25), rgba(8, 131, 149, 0.7), rgba(10, 77, 104, 0.25));
   z-index: 0;
   animation: nosPulseLine 2.8s ease-in-out infinite;
 }
@@ -340,19 +341,19 @@
 }
 
 .nos-time-item__icon--piscina {
-  color: #005f8e;
-  box-shadow: 0 8px 20px rgba(0, 95, 142, 0.18);
+  color: #0A4D68; /* Azul profundo corporativo */
+  box-shadow: 0 8px 20px rgba(10, 77, 104, 0.18);
 }
 
 .nos-time-item__icon--agua {
-  color: #1a5c45;
-  box-shadow: 0 8px 20px rgba(26, 92, 69, 0.2);
+  color: #088395; /* Aqua premium */
+  box-shadow: 0 8px 20px rgba(8, 131, 149, 0.2);
 }
 
 .nos-time-item__year {
   font-family: var(--nos-serif);
   font-size: clamp(2.2rem, 5vw, 3.6rem);
-  color: #00a0b8;
+  color: #3A7CA5; /* Azul corporativo sólido */
   line-height: 0.9;
   margin: 0 0 8px;
 }
@@ -361,16 +362,17 @@
   font-family: var(--nos-serif);
   font-size: 1.4rem;
   margin: 0 0 8px;
+  color: #1C3D52;
 }
 
 .nos-time-item__desc {
   margin: 0;
-  color: #6f6a64;
+  color: #4A5C6A; /* Gris pizarra */
 }
 
 /* CTA FINAL */
 .nos-cta-strip {
-  background: linear-gradient(120deg, #0f3d2e 0%, #1a5c45 55%, #2ecc9a 100%);
+  background: linear-gradient(135deg, #1C2E3D 0%, #0A4D68 54%, #088395 100%);
   padding: 56px 20px;
   color: #ffffff;
 }
@@ -385,6 +387,7 @@
   font-family: var(--nos-serif);
   font-size: clamp(1.7rem, 3vw, 2.4rem);
   margin-bottom: 20px;
+  color: #ffffff;
 }
 
 .nos-cta-strip__actions {
@@ -397,28 +400,30 @@
 .nos-cta-strip__btn {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  border-radius: 999px;
-  padding: 13px 20px;
-  font-weight: 700;
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
-}
-
-.nos-cta-strip__btn--primary {
-  background: #ffffff;
-  color: #0f3d2e;
-  border: 1px solid #d6e6de;
-}
-
-.nos-cta-strip__btn--secondary {
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.44);
+  gap: 10px;
+  background: #0891A8; /* Aqua premium refinado */
   color: #ffffff;
+  padding: 14px 32px;
+  border-radius: 999px;
+  font-weight: 600;
+  transition: all 0.35s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .nos-cta-strip__btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+  background: #0A5568; /* Azul marino profundo */
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+.nos-cta-strip__btn--ghost {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.nos-cta-strip__btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* RESPONSIVE */

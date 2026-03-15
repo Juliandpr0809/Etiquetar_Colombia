@@ -85,7 +85,7 @@
 
 .catalog-header__count span {
     font-weight: 600;
-    color: var(--text-dark);
+    color: #3A7CA5; /* Azul corporativo sólido */
 }
 
 /* Search Bar */
@@ -402,7 +402,7 @@
 
 .catalog-toolbar__info span {
     font-weight: 600;
-    color: var(--text-dark);
+    color: #3A7CA5;
 }
 
 .catalog-toolbar__actions {
@@ -574,7 +574,7 @@
 .catalog-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-md);
-    border-color: transparent;
+    border: 1px solid #E5EEF1;
 }
 
 /* Quick actions on hover */
@@ -644,11 +644,11 @@
 }
 
 .catalog-card__badge--new {
-    background: #27ae60;
+    background: #0891A8; /* Aqua refinado */
 }
 
 .catalog-card__badge--hot {
-    background: #f39c12;
+    background: #3A7CA5; /* Azul corporativo prestigioso */
 }
 
 /* Image */
@@ -804,7 +804,7 @@
 }
 
 .catalog-card__cart-btn--piscina {
-    background: var(--piscina-primary);
+    background: #088395;
 }
 
 .catalog-card__cart-btn--piscina:hover {

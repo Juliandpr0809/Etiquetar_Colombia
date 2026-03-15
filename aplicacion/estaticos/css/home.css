@@ -11,41 +11,41 @@
 
   /* Neutrals */
   --white: #FFFFFF;
-  --off-white: #F7F4EF;
-  --bg-warm: #F7F4EF;
+  --off-white: #F8F6F1; /* Beige cálido */
+  --bg-warm: #F8F6F1;
   --text-dark: #1A1A1A;
   --text-body: #1A1A1A;
-  --text-muted: #6B6560;
+  --text-muted: #4A5C6A; /* Gris pizarra */
   --border-soft: #D7DFDD;
-  --footer-charcoal: #1C2B2B;
+  --footer-charcoal: #1C2E3D; /* Navy profundo */
 
   /* Semantic tokens */
-  --cta-primary: #00A676;
-  --cta-hover: #008F66;
+  --cta-primary: #088395; /* Aqua premium */
+  --cta-hover: #0A4D68; /* Azul profundo corporativo */
   --promo: #D96C3D;
   --success: #2E7D32;
-  --bg-light: #F3EBDD;
+  --bg-light: #F0F8FA; /* Fondo para iconos aqua */
   --border-color: #D7DFDD;
-  --piscina-primary: #0F5A5F;
-  --piscina-dark: #0A3A3E;
-  --agua-primary: #1E8C92;
-  --agua-text: #0F5A5F;
+  --piscina-primary: #0A4D68;
+  --piscina-dark: #1C2E3D;
+  --agua-primary: #088395;
+  --agua-text: #0A4D68;
 
   /* Purificación de Agua */
-  --water-night: #0A3A3E;
-  --water-deep: #0F5A5F;
-  --water-crystal: #1E8C92;
-  --water-bg: #F3EBDD;
-  --water-gold: #D96C3D;
-  --water-gradient: linear-gradient(135deg, #0A3A3E 0%, #0F5A5F 52%, #1E8C92 100%);
+  --water-night: #1C2E3D;
+  --water-deep: #0A4D68;
+  --water-crystal: #088395;
+  --water-bg: #F8F6F1;
+  --water-gold: #05BFDB;
+  --water-gradient: linear-gradient(135deg, #1C2E3D 0%, #0A4D68 52%, #088395 100%);
 
   /* Piscinas & Spa */
-  --pool-deep: #0A3A3E;
-  --pool-mid: #0F5A5F;
-  --pool-vibrant: #00A676;
-  --pool-sand: #F3EBDD;
-  --pool-coral: #D96C3D;
-  --pool-gradient: linear-gradient(135deg, #0A3A3E 0%, #0F5A5F 52%, #1E8C92 100%);
+  --pool-deep: #1C2E3D;
+  --pool-mid: #0A4D68;
+  --pool-vibrant: #088395;
+  --pool-sand: #F8F6F1;
+  --pool-coral: #05BFDB;
+  --pool-gradient: linear-gradient(135deg, #1C2E3D 0%, #0A4D68 52%, #088395 100%);
 
   /* Shadows */
   --shadow-subtle: 0 2px 12px rgba(0,0,0,0.06);
@@ -586,7 +586,7 @@ h4 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(10, 77, 104, 0.75); /* Overlay hero azul profundo */
   opacity: 0;
   transition: opacity 0.6s var(--ease-smooth);
   pointer-events: none;
@@ -612,10 +612,10 @@ h4 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
 
 /* Gradients for the overlays */
 .split-hero__panel--piscina .split-hero__overlay {
-  background: linear-gradient(160deg, rgba(0,61,61,0.92) 0%, rgba(0,107,107,0.78) 40%, rgba(0,194,178,0.1) 100%);
+  background: linear-gradient(160deg, rgba(10, 77, 104, 0.85) 0%, rgba(8, 131, 149, 0.7) 40%, rgba(5, 191, 219, 0.1) 100%);
 }
 .split-hero__panel--agua .split-hero__overlay {
-  background: linear-gradient(160deg, rgba(11,30,58,0.92) 0%, rgba(11,46,74,0.78) 40%, rgba(79,195,200,0.1) 100%);
+  background: linear-gradient(160deg, rgba(28, 46, 61, 0.85) 0%, rgba(10, 77, 104, 0.7) 40%, rgba(8, 131, 149, 0.1) 100%);
 }
 
 .split-hero__content {
@@ -674,15 +674,15 @@ h4 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
   border-radius: 50px;
   color: white;
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.1);
+  background: #088395; /* Aqua premium */
   border: 1.5px solid rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(4px);
   transition: all 0.4s var(--ease-smooth);
 }
 
 .split-hero__cta:hover {
-  background: white;
-  color: #1a1a1a;
+  background: #0A4D68; /* Azul profundo corporativo */
+  color: white;
   transform: translateY(-4px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
@@ -842,6 +842,8 @@ h4 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
   display: flex; align-items: center; justify-content: center;
   font-size: 1.5rem;
   margin: 0 auto 20px;
+  color: #05BFDB; /* Azul verdoso elegante */
+  background: #F0F8FA; /* Fondo aqua claro */
 }
 .pillar__title {
   font-family: var(--brand-display);
@@ -1042,7 +1044,7 @@ h4 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
 /* ── Home extra sections ── */
 .home-overview {
   padding: 72px 0;
-  background: linear-gradient(180deg, var(--off-white) 0%, #fff 100%);
+  background: linear-gradient(180deg, var(--off-white) 0%, #FFFFFF 100%);
 }
 
 .home-overview__card {
