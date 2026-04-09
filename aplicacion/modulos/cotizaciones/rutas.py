@@ -1,16 +1,13 @@
-from flask import Blueprint, render_template, request
-
+from flask import Blueprint, render_template, request, redirect, url_for
 from aplicacion.extensiones import db
 from aplicacion.modelos import Cotizacion
 
 cotizaciones_bp = Blueprint("cotizaciones", __name__)
 
-
 @cotizaciones_bp.get("/cotizar")
 @cotizaciones_bp.get("/pages/cotizar.html")
 def cotizar_form():
     return render_template("pages/cotizar.html")
-
 
 @cotizaciones_bp.post("/cotizar")
 def cotizar_submit():
@@ -23,38 +20,80 @@ def cotizar_submit():
     email = (payload.get("email") or payload.get("q-email") or "").strip().lower()
     telefono = (payload.get("telefono") or payload.get("q-tel") or "").strip()
     ciudad = (payload.get("ciudad") or payload.get("q-city") or "").strip()
-    
-    # Consolidar mensaje de varios campos del form si vienen por ID del HTML
-    mensaje_principal = (payload.get("mensaje") or payload.get("q-products") or "").strip()
-    tipo_solicitud = (payload.get("tipo") or payload.get("q-type") or "").strip()
     empresa = (payload.get("empresa") or payload.get("q-empresa") or "").strip()
-    notas = (payload.get("notas") or payload.get("q-notes") or "").strip()
+    linea = (payload.get("linea") or "").strip()
+    tipo_solicitud = (payload.get("tipo") or payload.get("q-type") or "").strip()
+    productos = (payload.get("productos") or payload.get("q-products") or "").strip()
+    mensaje = (
+        payload.get("mensaje")
+        or payload.get("q-message")
+        or payload.get("q-mensaje")
+        or ""
+    ).strip()
+    info_adicional = (payload.get("info_adicional") or payload.get("q-notes") or "").strip()
 
-    full_mensaje = f"Línea: {payload.get('linea', 'No especificada')}\n"
-    if tipo_solicitud: full_mensaje += f"Tipo: {tipo_solicitud}\n"
-    if empresa: full_mensaje += f"Empresa: {empresa}\n"
-    full_mensaje += f"\nREQUERIMIENTO:\n{mensaje_principal}"
-    if notas: full_mensaje += f"\n\nNOTAS ADICIONALES:\n{notas}"
-
-    if not nombre or not email or not mensaje_principal:
+    if not nombre or not email:
         return {
             "ok": False,
-            "message": "Nombre, correo y requerimiento son obligatorios.",
+            "message": "Nombre y correo son obligatorios.",
         }, 400
 
     cotizacion = Cotizacion(
         nombre=nombre,
         email=email,
         telefono=telefono or None,
+        empresa=empresa or None,
         ciudad=ciudad or None,
-        mensaje=full_mensaje,
+        linea=linea or None,
+        tipo_solicitud=tipo_solicitud or None,
+        productos=productos or None,
+        mensaje=mensaje or info_adicional or "Sin mensaje",
+        info_adicional=info_adicional or None,
         estado="pendiente",
     )
+    
     db.session.add(cotizacion)
+    db.session.flush() # Para obtener el ID antes del commit
+    cotizacion.generar_numero_y_token()
     db.session.commit()
 
-    return {
-        "ok": True,
-        "message": "Solicitud recibida. Pronto te enviaremos una cotización personalizada.",
-        "data": {"id": cotizacion.id},
-    }, 201
+    if request.is_json:
+        return {
+            "ok": True,
+            "message": "Solicitud recibida. Pronto te enviaremos una cotización personalizada.",
+            "data": {
+                "id": cotizacion.id,
+                "numero": cotizacion.numero,
+                "token": cotizacion.token_consulta,
+                "redirect": url_for('cotizaciones.confirmacion_cotizacion', token=cotizacion.token_consulta)
+            },
+        }, 201
+    
+    return redirect(url_for('cotizaciones.confirmacion_cotizacion', token=cotizacion.token_consulta))
+
+@cotizaciones_bp.route('/cotizar/confirmacion/<token>') 
+def confirmacion_cotizacion(token): 
+    cotizacion = Cotizacion.query.filter_by(token_consulta=token).first_or_404() 
+    return render_template('cotizar/confirmacion.html', cotizacion=cotizacion) 
+
+@cotizaciones_bp.route('/cotizar/consultar', methods=['GET', 'POST']) 
+def consultar_cotizacion(): 
+    cotizacion = None 
+    error = None 
+    if request.method == 'POST': 
+        numero = request.form.get('numero', '').strip().upper() 
+        email = request.form.get('email', '').strip().lower() 
+        cotizacion = Cotizacion.query.filter_by( 
+            numero=numero 
+        ).filter( 
+            db.func.lower(Cotizacion.email) == email 
+        ).first() 
+        if not cotizacion: 
+            error = 'No encontramos una cotización con ese número y correo.' 
+    return render_template('cotizar/consultar.html', 
+                          cotizacion=cotizacion, error=error) 
+
+@cotizaciones_bp.route('/cotizar/ver/<token>') 
+def ver_cotizacion(token): 
+    cotizacion = Cotizacion.query.filter_by(token_consulta=token).first_or_404() 
+    return render_template('cotizar/ver_cotizacion.html', cotizacion=cotizacion)

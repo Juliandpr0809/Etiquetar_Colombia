@@ -10,20 +10,41 @@ from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen
 
-from flask import Blueprint, current_app, flash, g, jsonify, redirect, render_template, request, session, url_for
-from sqlalchemy import func, text
+from flask import Blueprint, current_app, flash, g, jsonify, redirect, render_template, request, session, url_for, render_template_string
+import os
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
+
+try:
+    from flask_mail import Message
+    from aplicacion.extensiones import mail
+    MAIL_AVAILABLE = True
+except ImportError:
+    MAIL_AVAILABLE = False
+from sqlalchemy import func, text, case
 from werkzeug.utils import secure_filename
 
 from aplicacion.extensiones import db
 from aplicacion.modelos import (
     AccesoPagina,
     Banner,
+    CampoTecnico,
+    Categoria,
+    CategoriaCampoTecnico,
     ConfiguracionEnvio,
     Cotizacion,
     Notificacion,
     NotificacionUsuario,
     Pedido,
     Producto,
+    ProductoCampoTecnicoValor,
+    ProductoCaracteristica,
+    ProductoContenidoKit,
+    ProductoImagenAdicional,
+    ProductoRecomendado,
     Promocion,
     Usuario,
 )
@@ -234,6 +255,19 @@ def _decimal(value, default="0"):
         return Decimal(default)
 
 
+def _int_nonneg(value, default=0) -> int:
+    try:
+        texto = str(value if value is not None else "").strip()
+        if not texto:
+            return max(int(default), 0)
+        texto = re.sub(r"[^0-9-]", "", texto)
+        if texto in {"", "-"}:
+            return max(int(default), 0)
+        return max(int(texto), 0)
+    except Exception:
+        return max(int(default), 0)
+
+
 def _imagen_valida(archivo) -> bool:
     if not archivo or not getattr(archivo, "filename", ""):
         return False
@@ -261,6 +295,337 @@ def _guardar_ficha_local(archivo, slug: str) -> str:
     destino = carpeta / nombre_archivo
     archivo.save(destino)
     return f"/estaticos/manuales/{nombre_archivo}"
+
+
+def _slugify(texto: str) -> str:
+    texto = (texto or "").strip().lower()
+    texto = re.sub(r"[^a-z0-9\s-]", "", texto)
+    texto = re.sub(r"\s+", "-", texto)
+    texto = re.sub(r"-+", "-", texto)
+    return texto.strip("-")
+
+
+def _bool_form(valor, default=False) -> bool:
+    if valor is None:
+        return default
+    return str(valor).strip().lower() in {"1", "true", "on", "si", "yes"}
+
+
+def _json_list_from_form(clave: str) -> list:
+    raw = (request.form.get(clave) or "").strip()
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return []
+    return parsed if isinstance(parsed, list) else []
+
+
+SECCIONES_ESPECIFICACIONES = {
+    "funciones": "Funciones",
+    "caracteristicas fisicas": "Caracteristicas fisicas",
+    "informacion tecnica": "Informacion tecnica",
+}
+
+
+def _normalizar_seccion_especificacion(valor: str | None) -> str:
+    texto = (valor or "").strip().lower()
+    texto = re.sub(r"\s+", " ", texto)
+    if texto in SECCIONES_ESPECIFICACIONES:
+        return SECCIONES_ESPECIFICACIONES[texto]
+    if texto in {"caracteristicas físicas", "caracteristicas físicas"}:
+        return "Caracteristicas fisicas"
+    return "Informacion tecnica"
+
+
+def _serializar_campo_tecnico(campo: CategoriaCampoTecnico) -> dict:
+    return {
+        "id": campo.id,
+        "nombre": campo.nombre,
+        "slug": campo.slug,
+        "tipo_dato": campo.tipo_dato,
+        "unidad_medida": campo.unidad_medida,
+        "obligatorio": bool(campo.obligatorio),
+        "opciones": campo.opciones_json or [],
+        "orden": campo.orden,
+        "activo": bool(campo.activo),
+    }
+
+
+def _serializar_categoria(categoria: Categoria) -> dict:
+    campos = sorted(categoria.campos_tecnicos, key=lambda c: (c.orden, c.id))
+    return {
+        "id": categoria.id,
+        "nombre": categoria.nombre,
+        "slug": categoria.slug,
+        "linea": categoria.linea,
+        "descripcion": categoria.descripcion or "",
+        "activo": bool(categoria.activo),
+        "campos_tecnicos": [_serializar_campo_tecnico(c) for c in campos if c.activo],
+    }
+
+
+def _upsert_campos_tecnicos_categoria(categoria: Categoria, campos_payload: list):
+    existentes_por_slug = {c.slug: c for c in categoria.campos_tecnicos}
+    slugs_recibidos = set()
+
+    for idx, item in enumerate(campos_payload):
+        nombre = (item.get("nombre") or "").strip()
+        if not nombre:
+            continue
+
+        slug = _slugify(item.get("slug") or nombre)
+        if not slug or slug in slugs_recibidos:
+            continue
+
+        tipo_dato = (item.get("tipo_dato") or "texto").strip().lower()
+        if tipo_dato not in {"texto", "numero", "booleano", "opcion"}:
+            tipo_dato = "texto"
+        opciones = item.get("opciones") if isinstance(item.get("opciones"), list) else []
+
+        campo = existentes_por_slug.get(slug)
+        if campo is None:
+            campo = CategoriaCampoTecnico(categoria=categoria, slug=slug)
+            db.session.add(campo)
+
+        campo.nombre = nombre
+        campo.slug = slug
+        campo.tipo_dato = tipo_dato
+        campo.unidad_medida = (item.get("unidad_medida") or "").strip() or None
+        campo.obligatorio = bool(item.get("obligatorio"))
+        campo.opciones_json = [str(o).strip() for o in opciones if str(o).strip()] if tipo_dato == "opcion" else None
+        campo.orden = int(item.get("orden") or idx)
+        campo.activo = True
+
+        slugs_recibidos.add(slug)
+
+    for campo in list(categoria.campos_tecnicos):
+        if campo.slug not in slugs_recibidos:
+            db.session.delete(campo)
+
+
+def _actualizar_relaciones_producto(producto: Producto, categoria: Categoria | None):
+    caracteristicas = [str(x).strip() for x in _json_list_from_form("caracteristicas_json") if str(x).strip()]
+    contenido_kit = [str(x).strip() for x in _json_list_from_form("contenido_kit_json") if str(x).strip()]
+    recomendados_ids = []
+    for x in _json_list_from_form("recomendados_json"):
+        try:
+            recomendados_ids.append(int(x))
+        except (TypeError, ValueError):
+            continue
+
+    campos_payload = _json_list_from_form("campos_tecnicos_json")
+    mapa_campos_payload = {}
+    for item in campos_payload:
+        try:
+            campo_id = int(item.get("campo_id"))
+        except (TypeError, ValueError):
+            continue
+        mapa_campos_payload[campo_id] = item
+
+    if categoria:
+        requeridos_faltantes = []
+        for campo in categoria.campos_tecnicos:
+            if not campo.activo:
+                continue
+            payload = mapa_campos_payload.get(campo.id)
+            valor = (payload or {}).get("valor")
+            if campo.obligatorio and (valor is None or str(valor).strip() == ""):
+                requeridos_faltantes.append(campo.nombre)
+        if requeridos_faltantes:
+            raise ValueError(
+                "Faltan campos tecnicos obligatorios: " + ", ".join(requeridos_faltantes)
+            )
+
+    producto.caracteristicas.clear()
+    for idx, texto in enumerate(caracteristicas):
+        producto.caracteristicas.append(ProductoCaracteristica(texto=texto, orden=idx))
+
+    producto.contenido_kit.clear()
+    for idx, texto in enumerate(contenido_kit):
+        producto.contenido_kit.append(ProductoContenidoKit(texto=texto, orden=idx))
+
+    producto.campos_tecnicos_valores.clear()
+    # Evita choque del UNIQUE (producto_id, campo_tecnico_id) en MySQL
+    # cuando se reemplazan valores en la misma petición.
+    db.session.flush()
+    if categoria:
+        for campo in categoria.campos_tecnicos:
+            if not campo.activo:
+                continue
+            item = mapa_campos_payload.get(campo.id)
+            if not item:
+                continue
+            valor_raw = item.get("valor")
+            if valor_raw is None or str(valor_raw).strip() == "":
+                continue
+            valor = str(valor_raw).strip()
+            registro = ProductoCampoTecnicoValor(campo_tecnico_id=campo.id, valor_mostrar=valor)
+            if campo.tipo_dato == "numero":
+                registro.valor_numero = _decimal(valor, "0")
+            elif campo.tipo_dato == "booleano":
+                registro.valor_booleano = _bool_form(valor)
+            elif campo.tipo_dato == "opcion":
+                registro.valor_opcion = valor
+            else:
+                registro.valor_texto = valor
+            producto.campos_tecnicos_valores.append(registro)
+
+    ProductoRecomendado.query.filter_by(producto_id=producto.id).delete()
+    for recomendado_id in sorted(set(recomendados_ids)):
+        if recomendado_id == producto.id:
+            continue
+        existe = db.session.query(Producto.id).filter_by(id=recomendado_id).first()
+        if not existe:
+            continue
+        db.session.add(ProductoRecomendado(producto_id=producto.id, recomendado_id=recomendado_id))
+
+    ids_eliminar_imagenes = []
+    for x in _json_list_from_form("eliminar_imagenes_adicionales_json"):
+        try:
+            ids_eliminar_imagenes.append(int(x))
+        except (TypeError, ValueError):
+            continue
+    if ids_eliminar_imagenes:
+        ProductoImagenAdicional.query.filter(
+            ProductoImagenAdicional.producto_id == producto.id,
+            ProductoImagenAdicional.id.in_(ids_eliminar_imagenes),
+        ).delete(synchronize_session=False)
+
+    imagenes_adicionales = request.files.getlist("imagenes_adicionales")
+    nuevas_imagenes = [img for img in imagenes_adicionales if _imagen_valida(img)]
+    if nuevas_imagenes and not cloudinary_habilitado():
+        raise ValueError("Cloudinary no esta configurado para subir imagenes adicionales.")
+
+    orden_base = len(producto.imagenes_adicionales)
+    for idx, imagen in enumerate(nuevas_imagenes):
+        upload = subir_imagen_producto(
+            imagen,
+            slug=f"{producto.slug}-extra-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{idx}",
+        )
+        url = upload.get("secure_url")
+        if not url:
+            continue
+        producto.imagenes_adicionales.append(
+            ProductoImagenAdicional(
+                imagen_public_id=upload.get("public_id"),
+                imagen_url=url,
+                orden=orden_base + idx,
+                alt_text=f"{producto.nombre} - imagen {orden_base + idx + 1}",
+            )
+        )
+
+    # Procesar especificaciones técnicas dinámicas
+    especificaciones_raw = _json_list_from_form("especificaciones_tecnicas_json")
+    especificaciones_validas = []
+    for spec in especificaciones_raw:
+        if not isinstance(spec, dict):
+            continue
+        nombre = (str(spec.get("nombre") or "")).strip()
+        tipo = (str(spec.get("tipo") or "")).strip().lower()
+        if not nombre or tipo not in ("cuantitativa", "cualitativa"):
+            continue
+
+        seccion = _normalizar_seccion_especificacion(spec.get("seccion"))
+        categoria_sugerida = (str(spec.get("categoria_sugerida") or "")).strip() or seccion
+        campo_tecnico_id = spec.get("campo_tecnico_id")
+        campo = None
+        if campo_tecnico_id not in (None, ""):
+            try:
+                campo = CampoTecnico.query.get(int(campo_tecnico_id))
+            except (TypeError, ValueError):
+                campo = None
+
+        if campo is None:
+            campo = CampoTecnico.query.filter(
+                func.lower(CampoTecnico.nombre) == nombre.lower(),
+                CampoTecnico.tipo == tipo,
+            ).first()
+
+        if campo is None:
+            campo = CampoTecnico(
+                nombre=nombre,
+                tipo=tipo,
+                unidad_defecto=(str(spec.get("unidad") or "")).strip() or None,
+                categoria_sugerida=categoria_sugerida,
+                veces_usado=0,
+            )
+            db.session.add(campo)
+            db.session.flush()
+
+        campo.veces_usado = int(campo.veces_usado or 0) + 1
+        if not campo.categoria_sugerida:
+            campo.categoria_sugerida = categoria_sugerida
+        
+        if tipo == "cuantitativa":
+            valor_numero_raw = spec.get("valor_numero")
+            unidad = (str(spec.get("unidad") or "")).strip() or (campo.unidad_defecto or "")
+            if valor_numero_raw is None or not unidad:
+                continue
+            try:
+                valor_numero = float(valor_numero_raw)
+            except (TypeError, ValueError):
+                continue
+            if not campo.unidad_defecto:
+                campo.unidad_defecto = unidad
+            especificaciones_validas.append({
+                "campo_tecnico_id": campo.id,
+                "nombre": nombre,
+                "tipo": tipo,
+                "seccion": seccion,
+                "valor_numero": valor_numero,
+                "unidad": unidad,
+            })
+        else:  # cualitativa
+            valor_texto = (str(spec.get("valor_texto") or "")).strip()
+            if not valor_texto:
+                continue
+            especificaciones_validas.append({
+                "campo_tecnico_id": campo.id,
+                "nombre": nombre,
+                "tipo": tipo,
+                "seccion": seccion,
+                "valor_texto": valor_texto,
+            })
+    
+    producto.especificaciones_tecnicas = especificaciones_validas if especificaciones_validas else None
+
+
+@admin_bp.get("/api/campos-tecnicos/sugerencias")
+def sugerencias_campos_tecnicos_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    q = (request.args.get("q") or "").strip().lower()
+    tipo = (request.args.get("tipo") or "").strip().lower()
+    limite = min(max(int(request.args.get("limit") or 12), 1), 50)
+
+    query = CampoTecnico.query
+    if q:
+        query = query.filter(func.lower(CampoTecnico.nombre).like(f"%{q}%"))
+    if tipo in {"cuantitativa", "cualitativa"}:
+        query = query.filter(CampoTecnico.tipo == tipo)
+
+    items = query.order_by(CampoTecnico.veces_usado.desc(), CampoTecnico.nombre.asc()).limit(limite).all()
+    return jsonify(
+        {
+            "ok": True,
+            "data": [
+                {
+                    "id": c.id,
+                    "nombre": c.nombre,
+                    "tipo": c.tipo,
+                    "unidad_defecto": c.unidad_defecto,
+                    "categoria_sugerida": c.categoria_sugerida,
+                    "veces_usado": c.veces_usado,
+                }
+                for c in items
+            ],
+        }
+    )
+
 
 
 @admin_bp.get("/api/reparar-db")
@@ -343,6 +708,7 @@ def resumen_api():
         .filter(Pedido.created_at >= inicio_mes)
         .scalar()
     )
+
     ventas_mes_anterior = (
         db.session.query(func.coalesce(func.sum(Pedido.total), 0))
         .filter(Pedido.created_at >= inicio_mes_anterior, Pedido.created_at < inicio_mes)
@@ -365,16 +731,31 @@ def resumen_api():
         .filter(~AccesoPagina.ruta.startswith('/placeholder'))
         .scalar()
     )
-    visitantes_unicos_7d = (
-        db.session.query(func.count(func.distinct(AccesoPagina.ip)))
+    # Contar visitantes únicos: usuarios autenticados + IPs anónimas únicas
+    visitantes_autenticados_7d = (
+        db.session.query(func.count(func.distinct(AccesoPagina.usuario_id)))
+        .filter(AccesoPagina.usuario_id.isnot(None))
         .filter(AccesoPagina.created_at >= ahora - timedelta(days=7))
         .filter(~AccesoPagina.ruta.contains('/api/'))
         .filter(~AccesoPagina.ruta.startswith('/estaticos'))
         .filter(~AccesoPagina.ruta.startswith('/placeholder'))
         .scalar()
     )
+    visitantes_anonimos_7d = (
+        db.session.query(func.count(func.distinct(AccesoPagina.ip)))
+        .filter(AccesoPagina.usuario_id.is_(None))
+        .filter(AccesoPagina.created_at >= ahora - timedelta(days=7))
+        .filter(~AccesoPagina.ruta.contains('/api/'))
+        .filter(~AccesoPagina.ruta.startswith('/estaticos'))
+        .filter(~AccesoPagina.ruta.startswith('/placeholder'))
+        .scalar()
+    )
+    visitantes_unicos_7d = (visitantes_autenticados_7d or 0) + (visitantes_anonimos_7d or 0)
     visitas_hoy = (
-        db.session.query(func.count(AccesoPagina.id))
+        db.session.query(func.count(func.distinct(case(
+            (AccesoPagina.usuario_id.isnot(None), AccesoPagina.usuario_id),
+            else_=AccesoPagina.ip
+        ))))
         .filter(AccesoPagina.created_at >= ahora.replace(hour=0, minute=0, second=0, microsecond=0))
         .filter(~AccesoPagina.ruta.contains('/api/'))
         .filter(~AccesoPagina.ruta.startswith('/estaticos'))
@@ -404,6 +785,94 @@ def resumen_api():
     )
 
 
+@admin_bp.get("/api/categorias")
+def listar_categorias_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    linea = (request.args.get("linea") or "").strip().lower()
+    query = Categoria.query.order_by(Categoria.nombre.asc())
+    if linea in {"piscina", "agua"}:
+        query = query.filter(Categoria.linea == linea)
+
+    categorias = query.all()
+    return jsonify(
+        {
+            "ok": True,
+            "data": [_serializar_categoria(c) for c in categorias],
+        }
+    )
+
+
+@admin_bp.post("/api/categorias")
+def crear_categoria_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    nombre = (request.form.get("nombre") or "").strip()
+    slug = _slugify(request.form.get("slug") or nombre)
+    linea = (request.form.get("linea") or "piscina").strip().lower()
+    descripcion = (request.form.get("descripcion") or "").strip() or None
+    activo = _bool_form(request.form.get("activo"), default=True)
+    campos_payload = _json_list_from_form("campos_tecnicos_json")
+
+    if not nombre:
+        return jsonify({"ok": False, "message": "El nombre de la categoria es obligatorio."}), 400
+    if not slug:
+        return jsonify({"ok": False, "message": "El slug de la categoria es obligatorio."}), 400
+    if linea not in {"piscina", "agua"}:
+        return jsonify({"ok": False, "message": "Linea invalida para la categoria."}), 400
+    if Categoria.query.filter((Categoria.nombre == nombre) | (Categoria.slug == slug)).first():
+        return jsonify({"ok": False, "message": "Ya existe una categoria con ese nombre o slug."}), 409
+
+    categoria = Categoria(
+        nombre=nombre,
+        slug=slug,
+        linea=linea,
+        descripcion=descripcion,
+        activo=activo,
+    )
+    _upsert_campos_tecnicos_categoria(categoria, campos_payload)
+    db.session.add(categoria)
+    db.session.commit()
+
+    return jsonify({"ok": True, "message": "Categoria creada.", "data": _serializar_categoria(categoria)}), 201
+
+
+@admin_bp.patch("/api/categorias/<int:categoria_id>")
+def editar_categoria_api(categoria_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    categoria = Categoria.query.get_or_404(categoria_id)
+    nombre = (request.form.get("nombre") or categoria.nombre).strip()
+    slug = _slugify(request.form.get("slug") or categoria.slug)
+    linea = (request.form.get("linea") or categoria.linea).strip().lower()
+    descripcion = (request.form.get("descripcion") or "").strip() or None
+    activo = _bool_form(request.form.get("activo"), default=categoria.activo)
+    campos_payload = _json_list_from_form("campos_tecnicos_json")
+
+    existe = Categoria.query.filter(
+        Categoria.id != categoria.id,
+        (Categoria.nombre == nombre) | (Categoria.slug == slug),
+    ).first()
+    if existe:
+        return jsonify({"ok": False, "message": "Ya existe una categoria con ese nombre o slug."}), 409
+
+    categoria.nombre = nombre
+    categoria.slug = slug
+    categoria.linea = linea if linea in {"piscina", "agua"} else categoria.linea
+    categoria.descripcion = descripcion
+    categoria.activo = activo
+    _upsert_campos_tecnicos_categoria(categoria, campos_payload)
+    db.session.commit()
+
+    return jsonify({"ok": True, "message": "Categoria actualizada.", "data": _serializar_categoria(categoria)})
+
+
 @admin_bp.post("/api/productos")
 def crear_producto_api():
     admin = _admin_requerido(api=True)
@@ -413,14 +882,35 @@ def crear_producto_api():
     nombre = (request.form.get("nombre") or "").strip()
     slug = (request.form.get("slug") or "").strip().lower()
     linea = (request.form.get("linea") or "piscina").strip().lower()
+    categoria_id_raw = (request.form.get("categoria_id") or "").strip()
     descripcion = (request.form.get("descripcion") or "").strip()
+    marca = (request.form.get("marca") or "").strip()
+    referencia = (request.form.get("referencia") or "").strip()
+    garantia_meses_raw = (request.form.get("garantia_meses") or "").strip()
     precio = _decimal(request.form.get("precio"), "0")
     precio_anterior_raw = (request.form.get("precio_anterior") or "").strip()
     precio_anterior = _decimal(precio_anterior_raw, "0") if precio_anterior_raw else None
-    stock = int(request.form.get("stock") or 0)
+    stock = _int_nonneg(request.form.get("stock"), 0)
     imagen_url = (request.form.get("imagen_url") or "").strip() or None
     imagen = request.files.get("imagen")
     ficha_pdf = request.files.get("ficha_pdf")
+
+    categoria = None
+    if categoria_id_raw:
+        try:
+            categoria = Categoria.query.get(int(categoria_id_raw))
+        except (TypeError, ValueError):
+            categoria = None
+        if not categoria:
+            return jsonify({"ok": False, "message": "La categoria seleccionada no existe."}), 400
+        linea = categoria.linea
+
+    garantia_meses = None
+    if garantia_meses_raw:
+        try:
+            garantia_meses = max(int(garantia_meses_raw), 0)
+        except (TypeError, ValueError):
+            return jsonify({"ok": False, "message": "La garantia debe estar en meses (numero entero)."}), 400
 
     if not nombre or not slug:
         return jsonify({"ok": False, "message": "Nombre y slug son obligatorios."}), 400
@@ -453,7 +943,11 @@ def crear_producto_api():
         nombre=nombre,
         slug=slug,
         linea=linea if linea in {"piscina", "agua"} else "piscina",
+        categoria_id=categoria.id if categoria else None,
         descripcion=descripcion or None,
+        marca=marca or None,
+        referencia=referencia or None,
+        garantia_meses=garantia_meses,
         precio=precio,
         precio_anterior=precio_anterior,
         stock=max(stock, 0),
@@ -463,6 +957,17 @@ def crear_producto_api():
         ficha_url=ficha_url,
     )
     db.session.add(producto)
+    db.session.flush()
+
+    try:
+        _actualizar_relaciones_producto(producto, categoria)
+    except ValueError as exc:
+        db.session.rollback()
+        return jsonify({"ok": False, "message": str(exc)}), 400
+    except Exception:
+        db.session.rollback()
+        return jsonify({"ok": False, "message": "No se pudieron guardar los datos avanzados del producto."}), 500
+
     db.session.commit()
 
     return jsonify({"ok": True, "message": "Producto creado.", "data": {"id": producto.id}}), 201
@@ -484,12 +989,36 @@ def listar_productos_api():
                     "nombre": p.nombre,
                     "slug": p.slug,
                     "linea": p.linea,
+                    "categoria_id": p.categoria_id,
+                    "categoria_nombre": p.categoria.nombre if p.categoria else None,
                     "descripcion": p.descripcion or "",
+                    "marca": p.marca or "",
+                    "referencia": p.referencia or "",
+                    "garantia_meses": p.garantia_meses,
                     "precio": float(p.precio),
                     "precio_anterior": float(p.precio_anterior) if p.precio_anterior is not None else None,
                     "stock": p.stock,
                     "imagen_url": p.imagen_url,
                     "ficha_url": p.ficha_url,
+                    "caracteristicas": [c.texto for c in sorted(p.caracteristicas, key=lambda x: (x.orden, x.id))],
+                    "contenido_kit": [c.texto for c in sorted(p.contenido_kit, key=lambda x: (x.orden, x.id))],
+                    "especificaciones_tecnicas": p.especificaciones_tecnicas or [],
+                    "recomendados_ids": [int(r.id) for r in p.recomendados],
+                    "campos_tecnicos": [
+                        {
+                            "campo_id": v.campo_tecnico_id,
+                            "valor": v.valor_mostrar,
+                        }
+                        for v in p.campos_tecnicos_valores
+                    ],
+                    "imagenes_adicionales": [
+                        {
+                            "id": img.id,
+                            "imagen_url": img.imagen_url,
+                            "alt_text": img.alt_text,
+                        }
+                        for img in sorted(p.imagenes_adicionales, key=lambda x: (x.orden, x.id))
+                    ],
                     "activo": p.activo,
                 }
                 for p in productos
@@ -508,14 +1037,35 @@ def editar_producto_api(producto_id):
     nombre = (request.form.get("nombre") or request.form.get("nombre", producto.nombre) or producto.nombre).strip()
     slug = (request.form.get("slug") or request.form.get("slug", producto.slug) or producto.slug).strip().lower()
     linea = (request.form.get("linea") or producto.linea).strip().lower()
+    categoria_id_raw = (request.form.get("categoria_id") or "").strip()
     descripcion = (request.form.get("descripcion") or "").strip()
+    marca = (request.form.get("marca") or "").strip()
+    referencia = (request.form.get("referencia") or "").strip()
+    garantia_meses_raw = (request.form.get("garantia_meses") or "").strip()
     precio = _decimal(request.form.get("precio", producto.precio), str(producto.precio))
     precio_anterior_raw = (request.form.get("precio_anterior") or "").strip()
     precio_anterior = _decimal(precio_anterior_raw, "0") if precio_anterior_raw else None
-    stock = int(request.form.get("stock", producto.stock) or producto.stock)
+    stock = _int_nonneg(request.form.get("stock", producto.stock), producto.stock)
     imagen = request.files.get("imagen")
     ficha_pdf = request.files.get("ficha_pdf")
     eliminar_ficha = (request.form.get("eliminar_ficha") or "").strip().lower() in {"1", "true", "on", "si"}
+
+    categoria = None
+    if categoria_id_raw:
+        try:
+            categoria = Categoria.query.get(int(categoria_id_raw))
+        except (TypeError, ValueError):
+            categoria = None
+        if not categoria:
+            return jsonify({"ok": False, "message": "La categoria seleccionada no existe."}), 400
+        linea = categoria.linea
+
+    garantia_meses = None
+    if garantia_meses_raw:
+        try:
+            garantia_meses = max(int(garantia_meses_raw), 0)
+        except (TypeError, ValueError):
+            return jsonify({"ok": False, "message": "La garantia debe estar en meses (numero entero)."}), 400
 
     existe = Producto.query.filter(Producto.slug == slug, Producto.id != producto.id).first()
     if existe:
@@ -546,10 +1096,24 @@ def editar_producto_api(producto_id):
     producto.nombre = nombre
     producto.slug = slug
     producto.linea = linea if linea in {"piscina", "agua"} else producto.linea
+    producto.categoria_id = categoria.id if categoria else None
     producto.descripcion = descripcion or None
+    producto.marca = marca or None
+    producto.referencia = referencia or None
+    producto.garantia_meses = garantia_meses
     producto.precio = precio
     producto.precio_anterior = precio_anterior
     producto.stock = max(stock, 0)
+
+    try:
+        _actualizar_relaciones_producto(producto, categoria)
+    except ValueError as exc:
+        db.session.rollback()
+        return jsonify({"ok": False, "message": str(exc)}), 400
+    except Exception:
+        db.session.rollback()
+        return jsonify({"ok": False, "message": "No se pudieron actualizar los datos avanzados del producto."}), 500
+
     db.session.commit()
 
     return jsonify({"ok": True, "message": "Producto actualizado correctamente."})
@@ -580,7 +1144,7 @@ def actualizar_stock_api(producto_id):
         return jsonify({"ok": False, "message": "Stock es obligatorio."}), 400
 
     producto = Producto.query.get_or_404(producto_id)
-    producto.stock = max(int(stock), 0)
+    producto.stock = _int_nonneg(stock, producto.stock)
     db.session.commit()
     return jsonify({"ok": True, "message": "Inventario actualizado."})
 
@@ -653,6 +1217,156 @@ def responder_cotizacion_api(cotizacion_id):
     db.session.commit()
 
     return jsonify({"ok": True, "message": "Cotizacion respondida."})
+
+
+@admin_bp.post("/api/cotizaciones/<int:cotizacion_id>/cotizar")
+def cotizar_profesional_api(cotizacion_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    cotizacion = Cotizacion.query.get_or_404(cotizacion_id)
+
+    # Actualizar datos principales de la cotizacion
+    cotizacion.precio_ofertado = str(payload.get("total", "0"))
+    cotizacion.estado = "respondida"
+    cotizacion.responded_at = datetime.utcnow()
+    
+    # Generar HTML para el PDF (mismo que la vista previa JS)
+    year = datetime.now().year
+    cot_num = f"COT-{year}-{str(cotizacion.id).zfill(4)}"
+    fecha_emision = datetime.now().strftime("%d/%m/%Y")
+    
+    html_content = render_template_string("""
+    <div style="font-family: Arial, sans-serif; max-width: 800px; padding: 40px; color: #1e3344; line-height: 1.5;">
+        <div style="display:flex; justify-content:space-between; border-bottom: 3px solid #0F5A5F; padding-bottom: 16px; margin-bottom: 24px;">
+            <div style="float: left; width: 60%;">
+                <div style="font-size:20px; font-weight:700; color:#0F5A5F;">Etiquetar Colombia S.A.S.</div>
+                <div style="font-size:12px; color:#647d8e;">NIT: 900.XXX.XXX-X · Barranquilla, Colombia</div>
+                <div style="font-size:12px; color:#647d8e;">comercial@etiquetar.com</div>
+            </div>
+            <div style="float: right; width: 35%; text-align:right;">
+                <div style="font-size:11px; color:#647d8e; text-transform:uppercase;">Cotización</div>
+                <div style="font-size:18px; font-weight:700;">#{{ num }}</div>
+                <div style="font-size:12px; color:#647d8e;">{{ fecha }}</div>
+                <div style="font-size:12px; color:#647d8e;">Válida por {{ validez }} días</div>
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <div style="float: left; width: 48%;">
+                <h4 style="margin: 0 0 8px; font-size: 11px; text-transform: uppercase; color: #0F5A5F;">Cliente</h4>
+                <div style="font-weight: 700; font-size: 14px;">{{ c.nombre }}</div>
+                {% if c.empresa %}<div style="font-size: 13px; color: #4a5568;">{{ c.empresa }}</div>{% endif %}
+                <div style="font-size: 13px; color: #4a5568;">{{ c.email }}</div>
+                <div style="font-size: 13px; color: #4a5568;">{{ c.telefono }}</div>
+                <div style="font-size: 13px; color: #4a5568;">{{ c.ciudad }}</div>
+            </div>
+            <div style="float: right; width: 48%; text-align: right;">
+                <h4 style="margin: 0 0 8px; font-size: 11px; text-transform: uppercase; color: #0F5A5F;">Detalles</h4>
+                <div style="font-size: 13px; color: #4a5568;"><strong>Línea:</strong> {{ p.moneda }}</div>
+                <div style="font-size: 13px; color: #4a5568;"><strong>Forma de pago:</strong> {{ p.forma_pago }}</div>
+                <div style="font-size: 13px; color: #4a5568;"><strong>Asesor:</strong> Administrador</div>
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;">
+            <thead>
+                <tr style="background: #E6F1FB; color: #0C447C;">
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #0F5A5F;">#</th>
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #0F5A5F;">Descripción</th>
+                    <th style="padding: 10px; text-align: center; border-bottom: 2px solid #0F5A5F;">Cant.</th>
+                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #0F5A5F;">Unitario</th>
+                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #0F5A5F;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for l in p.lineas %}
+                <tr style="background: {{ loop.cycle('#fff', '#F8FBFE') }};">
+                    <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">{{ loop.index }}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">{{ l.descripcion }}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: center;">{{ l.cantidad }}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: right;">${{ "{:,.0f}".format(l.precio_unitario) }}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: right; font-weight: 600;">${{ "{:,.0f}".format(l.subtotal) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="text-align: right; margin-bottom: 30px;">
+            <div style="display: inline-block; width: 220px; font-size: 14px;">
+                <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #647d8e;">
+                    <span>Subtotal:</span>
+                    <span>${{ "{:,.0f}".format(p.subtotal) }}</span>
+                </div>
+                {% if p.iva_valor > 0 %}
+                <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #647d8e;">
+                    <span>IVA ({{ (p.iva_porcentaje * 100)|int }}%):</span>
+                    <span>${{ "{:,.0f}".format(p.iva_valor) }}</span>
+                </div>
+                {% endif %}
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-top: 2px solid #1e3344; margin-top: 6px; font-weight: 800; font-size: 18px; color: #0F5A5F;">
+                    <span>TOTAL:</span>
+                    <span>${{ "{:,.0f}".format(p.total) }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if p.notas %}
+        <div style="margin-bottom: 30px; padding: 15px; background: #F8FBFE; border-left: 4px solid #0F5A5F; border-radius: 4px;">
+            <h4 style="margin: 0 0 8px; font-size: 11px; text-transform: uppercase; color: #0F5A5F;">Notas y Condiciones</h4>
+            <div style="font-size: 12px; color: #4a5568;">{{ p.notas }}</div>
+        </div>
+        {% endif %}
+
+        <div style="border-top: 1px solid #edf2f7; padding-top: 20px; text-align: center; font-size: 11px; color: #94a3b8;">
+            <p>Esta cotización es válida por {{ validez }} días. Para aceptar, responda este correo o contáctenos al +57XXXXXXXXXX.</p>
+            <p style="font-weight: 600; color: #647d8e;">Etiquetar Colombia S.A.S. — Soluciones Integrales en Agua y Piscinas</p>
+        </div>
+    </div>
+    """, c=cotizacion, p=payload, num=cot_num, fecha=fecha_emision, validez=payload.get('validez_dias', 30))
+
+    # Guardar PDF
+    pdf_filename = f"cotizacion_{cotizacion.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    folder = Path(current_app.static_folder) / "cotizaciones"
+    folder.mkdir(parents=True, exist_ok=True)
+    pdf_path = folder / pdf_filename
+    pdf_url = f"/estaticos/cotizaciones/{pdf_filename}"
+
+    if WEASYPRINT_AVAILABLE:
+        HTML(string=html_content).write_pdf(str(pdf_path))
+    else:
+        # Fallback si no hay weasyprint: solo guardamos los datos y el front usará window.print()
+        pdf_url = None
+
+    cotizacion.pdf_url = pdf_url
+    db.session.commit()
+
+    # Enviar Correo
+    if payload.get("enviar_correo") and MAIL_AVAILABLE:
+        try:
+            msg = Message(
+                subject=f"Cotización #{cot_num} — Etiquetar Colombia",
+                recipients=[cotizacion.email],
+                cc=[os.environ.get("ADMIN_EMAIL")],
+                html=f"<p>Hola {cotizacion.nombre},</p><p>Adjunto encontrará la cotización formal solicitada por un valor de <strong>${payload.get('total'):,.0f}</strong>.</p><p>Quedamos atentos a sus comentarios.</p><p>Cordialmente,<br>Equipo de Etiquetar Colombia</p>"
+            )
+            if pdf_url:
+                with open(pdf_path, 'rb') as f:
+                    msg.attach(pdf_filename, "application/pdf", f.read())
+            mail.send(msg)
+        except Exception as e:
+            print(f"Error enviando correo: {e}")
+
+    return jsonify({
+        "ok": True, 
+        "message": "Cotización generada y enviada correctamente.",
+        "pdf_url": pdf_url,
+        "data": {"id": cotizacion.id, "numero": cot_num}
+    })
 
 
 @admin_bp.patch("/api/cotizaciones/<int:cotizacion_id>/estado")
@@ -1060,6 +1774,8 @@ def accesos_api():
     origenes_counter = Counter()
     usuarios_counter = Counter()
     anon_vistos = set()
+    user_rutas_vistos = set()  # Para detectar usuarios únicos por ruta
+    user_origenes_vistos = set()  # Para detectar usuarios únicos por origen
 
     for fila in filas:
         ruta = (fila.ruta or "/").strip() or "/"
@@ -1070,13 +1786,23 @@ def accesos_api():
         fecha = fila.created_at.date() if fila.created_at else None
 
         if fila.usuario_id:
-            rutas_counter[ruta] += 1
-            origenes_counter[origen] += 1
+            # Para usuarios autenticados, contar USUARIOS ÚNICOS por ruta
+            clave_user_ruta = (fila.usuario_id, ruta)
+            if clave_user_ruta not in user_rutas_vistos:
+                user_rutas_vistos.add(clave_user_ruta)
+                rutas_counter[ruta] += 1
+
+            # Para origen, también contar usuarios únicos
+            clave_user_origen = (fila.usuario_id, origen)
+            if clave_user_origen not in user_origenes_vistos:
+                user_origenes_vistos.add(clave_user_origen)
+                origenes_counter[origen] += 1
 
             nombre = f"{(fila.nombre or '').strip()} {(fila.apellido or '').strip()}".strip()
             nombre = nombre or (fila.email or f"Usuario {fila.usuario_id}")
             usuarios_counter[f"{nombre} - {origen}"] += 1
         else:
+            # Para anónimos, ya estaban siendo deduplicados por fecha, ruta y origen
             clave_anon = (fecha, ruta, origen)
             if clave_anon in anon_vistos:
                 continue

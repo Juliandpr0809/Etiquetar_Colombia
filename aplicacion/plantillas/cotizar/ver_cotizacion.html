@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Cotización | Etiquetar Colombia</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-page: #F4F7F8;
+            --aqua: #0ABFCA;
+            --piscina-green: #0CAF7A;
+            --blue-primary: #083D44;
+            --blue-hero: #0A2730;
+            --blue-hero-end: #0A5C66;
+            --navy-footer: #0D2B38;
+            --text-muted: #5A7A80;
+            --bg-input: #F8FAFB;
+            --bg-light: #EBF4F6;
+            --white: #ffffff;
+            --shadow-premium: 0 8px 48px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--blue-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: var(--transition);
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .navbar.scrolled {
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+
+        .navbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            position: relative;
+        }
+
+        .navbar__logo {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar__logo img {
+            height: 50px;
+            width: auto;
+            display: block;
+        }
+
+        .navbar__menu {
+            display: flex;
+            list-style: none;
+            gap: 24px;
+            flex: 2;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .navbar__link {
+            text-decoration: none;
+            color: var(--blue-primary);
+            font-weight: 600;
+            font-size: 0.92rem;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .navbar__link:hover {
+            color: var(--aqua);
+        }
+
+        .navbar__actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .navbar__action-btn {
+            text-decoration: none;
+            color: var(--blue-primary);
+            font-size: 1.1rem;
+            position: relative;
+        }
+
+        .track-page { min-height: 80vh; background: var(--bg-page); padding: 60px clamp(16px,4vw,64px); } 
+        
+        .track-header { 
+            text-align: center; margin-bottom: 48px; 
+        } 
+        
+        .track-header__label { 
+            font-size: 0.68rem; letter-spacing: 0.2em; 
+            color: var(--aqua); font-weight: 700; 
+        } 
+        
+        .track-header h1 { 
+            font-family: 'Cormorant Garamond', serif; 
+            font-size: clamp(2rem,4vw,3rem); color: var(--blue-primary); 
+        } 
+        
+        .track-header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .track-content { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; } 
+        
+        .track-timeline { 
+            background: white; border-radius: 24px; 
+            padding: 40px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); 
+        } 
+        
+        .track-step { 
+            display: flex; align-items: center; gap: 20px; 
+            opacity: 0.3; transition: opacity 0.4s ease; 
+        } 
+        
+        .track-step.active { opacity: 1; } 
+        
+        .track-step__dot { 
+            width: 48px; height: 48px; border-radius: 50%; 
+            background: var(--bg-light); color: var(--text-muted); 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1rem; flex-shrink: 0; 
+            transition: all 0.4s ease; 
+        } 
+        
+        .track-step.active .track-step__dot { 
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-hero-end)); 
+            color: var(--aqua); 
+            box-shadow: 0 4px 16px rgba(8,61,68,0.25); 
+        } 
+        
+        .track-step__info strong { display: block; font-size: 0.95rem; color: var(--blue-primary); } 
+        
+        .track-step__info span { font-size: 0.8rem; color: var(--text-muted); } 
+        
+        .track-step__line { 
+            width: 2px; height: 32px; background: var(--bg-light); 
+            margin-left: 23px; 
+        } 
+        
+        .track-response { 
+            background: white; border-radius: 24px; 
+            padding: 40px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); 
+            border-left: 4px solid var(--piscina-green); 
+            animation: cardSlide 0.5s ease both; 
+        } 
+        
+        @keyframes cardSlide { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        } 
+
+        .track-response__header { 
+            display: flex; align-items: center; gap: 16px; margin-bottom: 24px; 
+        } 
+        
+        .track-response__avatar { 
+            width: 48px; height: 48px; border-radius: 50%; 
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-hero-end)); 
+            color: var(--aqua); font-size: 1.2rem; 
+            display: flex; align-items: center; justify-content: center; 
+        } 
+        
+        .track-response__header strong { display: block; color: var(--blue-primary); font-size: 0.95rem; } 
+        
+        .track-response__header span { font-size: 0.78rem; color: var(--text-muted); } 
+        
+        .track-response__price { 
+            background: #F0FDF4; border-radius: 12px; 
+            padding: 16px 20px; margin-bottom: 20px; 
+            display: flex; justify-content: space-between; align-items: center; 
+        } 
+        
+        .track-response__price span { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; } 
+        
+        .track-response__price strong { 
+            font-family: 'Cormorant Garamond', serif; 
+            font-size: 2rem; color: var(--piscina-green); font-weight: 700; 
+        } 
+        
+        .track-response__message { 
+            font-size: 0.95rem; line-height: 1.75; 
+            color: #3a4a50; margin-bottom: 28px; 
+            padding: 20px; background: var(--bg-input); 
+            border-radius: 12px; 
+        } 
+        
+        .track-response__actions { display: flex; gap: 12px; flex-wrap: wrap; } 
+        
+        .confirm-btn { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            padding: 14px 24px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            text-decoration: none; 
+            transition: var(--transition); 
+            cursor: pointer; 
+            border: none; 
+        } 
+
+        .confirm-btn--whatsapp { background: #25D366; color: white; } 
+        .confirm-btn--whatsapp:hover { background: #1fba58; transform: translateY(-2px); } 
+
+        .confirm-btn--ghost { 
+            background: var(--bg-page); 
+            color: var(--blue-primary); 
+            border: 1.5px solid rgba(0,0,0,0.08); 
+        } 
+        .confirm-btn--ghost:hover { background: var(--bg-light); } 
+
+        .track-pending { 
+            background: white; border-radius: 24px; 
+            padding: 48px 40px; text-align: center; 
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06); 
+            display: flex; flex-direction: column; 
+            align-items: center; gap: 16px; 
+        } 
+        
+        .track-pending i { font-size: 2.5rem; color: #D97706; } 
+        
+        .track-pending h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; color: var(--blue-primary); } 
+        
+        .track-pending p { color: var(--text-muted); max-width: 400px; line-height: 1.7; } 
+        
+        .track-summary { 
+            background: white; border-radius: 20px; 
+            padding: 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.04); 
+            cursor: pointer; 
+        } 
+        
+        .track-summary summary { 
+            font-weight: 600; color: var(--blue-primary); 
+            font-size: 0.9rem; list-style: none; 
+        } 
+        
+        .track-summary__content { margin-top: 20px; } 
+
+        .confirm-card__row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 10px 0; 
+            border-bottom: 1px solid rgba(0,0,0,0.04); 
+            font-size: 0.9rem; 
+        } 
+        
+        .confirm-card__row span { color: var(--text-muted); } 
+
+        .footer {
+            background: var(--navy-footer);
+            color: rgba(255,255,255,0.8);
+            padding: 80px 0 40px;
+        }
+
+        .footer__grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 60px;
+        }
+
+        .footer__logo img {
+            height: 46px;
+            margin-bottom: 24px;
+        }
+
+        .footer__desc {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            margin-bottom: 24px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .footer__title {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .footer__links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer__link {
+            text-decoration: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .footer__link:hover {
+            color: var(--aqua);
+        }
+
+        .footer__bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 32px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="/" class="navbar__logo">
+                <img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S.">
+            </a>
+            <ul class="navbar__menu">
+                <li><a href="/" class="navbar__link">Inicio</a></li>
+                <li><a href="/piscina" class="navbar__link">Piscina & Spa</a></li>
+                <li><a href="/agua" class="navbar__link">Tratamiento de Agua</a></li>
+                <li><a href="/blog" class="navbar__link">Blog</a></li>
+                <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
+                <li><a href="/contacto" class="navbar__link">Contacto</a></li>
+            </ul>
+            <div class="navbar__actions">
+                <a href="/perfil" class="navbar__action-btn"><i class="fas fa-user"></i></a>
+                <a href="/carrito" class="navbar__action-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="track-page"> 
+        <div class="track-header"> 
+          <span class="track-header__label">SEGUIMIENTO</span> 
+          <h1>Cotización {{ cotizacion.numero }}</h1> 
+          <p>Enviada el {{ cotizacion.fecha_creacion.strftime('%d de %B, %Y') }}</p> 
+        </div> 
+      
+        <div class="track-content"> 
+      
+          <!-- Timeline de estados --> 
+          <div class="track-timeline"> 
+            <div class="track-step {{ 'active' if cotizacion.estado in ['pendiente','en_revision','respondida'] }}"> 
+              <div class="track-step__dot"><i class="fas fa-paper-plane"></i></div> 
+              <div class="track-step__info"> 
+                <strong>Cotización recibida</strong> 
+                <span>{{ cotizacion.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</span> 
+              </div> 
+            </div> 
+            <div class="track-step__line"></div> 
+            <div class="track-step {{ 'active' if cotizacion.estado in ['en_revision','respondida'] }}"> 
+              <div class="track-step__dot"><i class="fas fa-search"></i></div> 
+              <div class="track-step__info"> 
+                <strong>En revisión</strong> 
+                <span>Nuestro equipo está evaluando tu solicitud</span> 
+              </div> 
+            </div> 
+            <div class="track-step__line"></div> 
+            <div class="track-step {{ 'active' if cotizacion.estado == 'respondida' }}"> 
+              <div class="track-step__dot"><i class="fas fa-check-circle"></i></div> 
+              <div class="track-step__info"> 
+                <strong>Cotización respondida</strong>
+                <span>{% if cotizacion.responded_at %}{{ cotizacion.responded_at.strftime('%d/%m/%Y %H:%M') }}{% else %}Pendiente{% endif %}</span>
+              </div> 
+            </div> 
+          </div> 
+      
+          <!-- Respuesta del admin (solo si está respondida) --> 
+          {% if cotizacion.estado == 'respondida' %} 
+          <div class="track-response"> 
+            <div class="track-response__header"> 
+              <div class="track-response__avatar"> 
+                <i class="fas fa-headset"></i> 
+              </div> 
+              <div>
+                <strong>Respuesta del equipo Etiquetar</strong>
+                <span>{{ cotizacion.responded_at.strftime('%d/%m/%Y a las %H:%M') }}</span>
+              </div>
+            </div> 
+            {% if cotizacion.precio_ofertado %} 
+            <div class="track-response__price"> 
+              <span>Precio ofertado</span> 
+              <strong>${{ cotizacion.precio_ofertado }}</strong> 
+            </div> 
+            {% endif %} 
+            <div class="track-response__message">
+              {{ cotizacion.respuesta }}
+            </div>
+            <div class="track-response__actions"> 
+              <a href="https://wa.me/573001234567?text=Hola,%20quiero%20hablar%20sobre%20mi%20cotización%20{{ cotizacion.numero }}" 
+                 target="_blank" class="confirm-btn confirm-btn--whatsapp"> 
+                <i class="fab fa-whatsapp"></i> Continuar por WhatsApp 
+              </a> 
+              <a href="/cotizar" class="confirm-btn confirm-btn--ghost"> 
+                <i class="fas fa-plus"></i> Nueva cotización 
+              </a> 
+            </div> 
+          </div> 
+          {% else %} 
+          <div class="track-pending"> 
+            <i class="fas fa-clock"></i> 
+            <h3>Tu cotización está siendo procesada</h3> 
+            <p>Te notificaremos a <strong>{{ cotizacion.email }}</strong> cuando tengamos una respuesta. Tiempo estimado: menos de 24 horas hábiles.</p> 
+            <a href="https://wa.me/573001234567?text=Hola,%20quiero%20hacer%20seguimiento%20a%20mi%20cotización%20{{ cotizacion.numero }}" 
+               target="_blank" class="confirm-btn confirm-btn--whatsapp" style="max-width:320px;margin:0 auto;"> 
+              <i class="fab fa-whatsapp"></i> Consultar por WhatsApp 
+            </a> 
+          </div> 
+          {% endif %} 
+      
+          <!-- Resumen de lo que solicitaste --> 
+          <details class="track-summary"> 
+            <summary>Ver detalle de mi solicitud</summary> 
+            <div class="track-summary__content"> 
+              <div class="confirm-card__row"><span>Línea</span><strong>{{ cotizacion.linea|title }}</strong></div> 
+              <div class="confirm-card__row"><span>Ciudad</span><strong>{{ cotizacion.ciudad }}</strong></div> 
+              <div class="confirm-card__row"><span>Tipo</span><strong>{{ cotizacion.tipo_solicitud }}</strong></div> 
+              <div class="confirm-card__row"><span>Productos</span><strong>{{ cotizacion.productos }}</strong></div> 
+            </div> 
+          </details> 
+        </div> 
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__grid">
+                <div class="footer__col">
+                    <div class="footer__logo">
+                        <img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S.">
+                    </div>
+                    <p class="footer__desc">Expertos en equipos para piscinas y sistemas de tratamiento de agua. Cobertura nacional con las mejores marcas y garantía técnica.</p>
+                </div>
+                <div class="footer__col">
+                    <h4 class="footer__title">Piscina & Spa</h4>
+                    <ul class="footer__links">
+                        <li><a href="/catalogo/piscina" class="footer__link">Bombas de Agua</a></li>
+                        <li><a href="/catalogo/piscina" class="footer__link">Filtros de Arena</a></li>
+                    </ul>
+                </div>
+                <div class="footer__col">
+                    <h4 class="footer__title">Tratamiento de Agua</h4>
+                    <ul class="footer__links">
+                        <li><a href="/catalogo/agua" class="footer__link">Purificadores</a></li>
+                        <li><a href="/catalogo/agua" class="footer__link">Ósmosis Inversa</a></li>
+                    </ul>
+                </div>
+                <div class="footer__col">
+                    <h4 class="footer__title">Contacto</h4>
+                    <ul class="footer__links">
+                        <li><a href="tel:+573001234567" class="footer__link">+57 300 123 4567</a></li>
+                        <li><a href="/cotizar" class="footer__link">Solicitar Cotización</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                &copy; 2026 Etiquetar Colombia. Todos los derechos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+
+</html>

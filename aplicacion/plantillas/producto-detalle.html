@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ producto.nombre }} | Etiquetar Colombia</title>
+    <meta name="description" content="{{ producto.descripcion or producto.nombre }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/catalogo.css') }}">
+</head>
+
+<body data-line="{{ producto.linea }}" data-is-admin="{{ 'true' if usuario_actual and usuario_actual.es_admin else 'false' }}">
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="navbar__logo">
+                <img src="{{ url_for('static', filename='img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png') }}" alt="Etiquetar de Colombia S.A.S." style="height:50px; width:auto;">
+            </a>
+            <ul class="navbar__menu" id="navMenu">
+                <li><a href="{{ url_for('home') }}" class="navbar__link">Inicio</a></li>
+                <li><a href="/catalogo/piscina" class="navbar__link navbar__link--piscina">Piscina &amp; Spa</a></li>
+                <li><a href="/catalogo/agua" class="navbar__link navbar__link--agua">Tratamiento de Agua</a></li>
+                <li><a href="/contacto" class="navbar__link">Contacto</a></li>
+            </ul>
+            <div class="navbar__actions">
+                <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta">
+                    <i class="fas fa-user"></i>
+                </a>
+                <a href="/carrito" class="navbar__action-btn" aria-label="Carrito">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="navbar__cart-badge">{{ carrito_count }}</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="product-detail-page">
+        <div class="container">
+            <nav class="catalog-header__breadcrumb" style="margin: 20px 0 16px; color:#507089;">
+                <a href="{{ url_for('home') }}">Inicio</a>
+                <i class="fas fa-chevron-right"></i>
+                <a href="/catalogo/{{ producto.linea }}">Catálogo</a>
+                <i class="fas fa-chevron-right"></i>
+                <span class="active">{{ producto.nombre }}</span>
+            </nav>
+
+            <div class="product-detail-layout">
+                <section class="product-detail-gallery">
+                    <div class="product-detail-main-image">
+                        <img id="productMainImage" src="{{ (galeria[0].url if galeria else producto.imagen_url) or '/placeholder/900x700/F0F7FF/0077B6?text=' + producto.nombre|replace(' ', '+') }}" alt="{{ producto.nombre }}">
+                    </div>
+                    <div class="product-detail-thumbs">
+                        {% for img in galeria %}
+                        <button type="button" class="product-thumb-btn {% if loop.first %}active{% endif %}" data-image="{{ img.url }}" aria-label="Ver imagen {{ loop.index }}">
+                            <img src="{{ img.url }}" alt="{{ img.alt or producto.nombre }}">
+                        </button>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="product-detail-info">
+                    <span class="catalog-card__category catalog-card__category--{{ producto.linea }}">{{ producto.categoria.nombre if producto.categoria else (producto.linea|capitalize) }}</span>
+                    <h1>{{ producto.nombre }}</h1>
+                    <p class="product-detail-ref">Referencia: {{ producto.referencia or producto.slug }}</p>
+
+                    <div class="product-detail-price-block">
+                        <strong class="catalog-card__price catalog-card__price--{{ producto.linea }}">${{ "{:,}".format(producto.precio_final|float|int) }}</strong>
+                        {% if producto.precio_anterior and producto.precio_anterior > producto.precio_final %}
+                        <span class="catalog-card__price-old">${{ "{:,}".format(producto.precio_anterior|float|int) }}</span>
+                        {% endif %}
+                    </div>
+
+                    {% if descripcion_publica %}
+                    <p class="product-detail-description">{{ descripcion_publica }}</p>
+                    {% endif %}
+
+                    <div class="product-detail-actions">
+                        <button class="catalog-card__cart-btn catalog-card__cart-btn--{{ producto.linea }}" data-product-id="{{ producto.id }}"><i class="fas fa-cart-plus"></i> Cotizar</button>
+                        <a class="catalog-card__quote-btn" href="https://wa.me/573001234567?text={{ ('Hola, estoy interesado en ' ~ producto.nombre ~ ' (' ~ (producto.referencia or producto.slug) ~ ')') | urlencode }}" target="_blank" rel="noopener">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                        {% if producto.ficha_url %}
+                        <a class="catalog-card__quote-btn" href="{{ producto.ficha_url }}" target="_blank" rel="noopener" title="Descargar ficha técnica">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="product-detail-meta">
+                        {% if producto.marca %}<span><strong>Marca:</strong> {{ producto.marca }}</span>{% endif %}
+                        {% if producto.garantia_meses %}<span><strong>Garantía:</strong> {{ producto.garantia_meses }} meses</span>{% endif %}
+                        <span><strong>Disponibilidad:</strong> {{ 'En stock' if producto.stock > 0 else 'Sobre pedido' }}</span>
+                    </div>
+                </section>
+            </div>
+
+            {% if secciones_especificaciones %}
+            <section class="product-detail-section">
+                <h3>Especificaciones técnicas</h3>
+                <div class="product-specs-accordion">
+                    {% for seccion in secciones_especificaciones %}
+                    <article class="spec-section" data-spec-section>
+                        <button type="button" class="spec-section__header" data-spec-toggle aria-expanded="{{ 'true' if loop.first else 'false' }}">
+                            <span>{{ seccion['titulo'] }}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="spec-section__body" {% if not loop.first %}hidden{% endif %}>
+                            {% for item in seccion['items'] %}
+                            <div class="spec-row spec-row--public {% if loop.index0 % 2 == 0 %}is-even{% else %}is-odd{% endif %}">
+                                <span class="spec-row__label"><i class="fas fa-circle-info"></i> {{ item.nombre }}</span>
+                                <strong>{{ item.valor }}</strong>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if caracteristicas %}
+            <section class="product-detail-section">
+                <h3>Características</h3>
+                <ul class="product-list-bullets">
+                    {% for item in caracteristicas %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
+            {% if contenido_kit %}
+            <section class="product-detail-section">
+                <h3>Contenido del kit</h3>
+                <ul class="product-list-bullets">
+                    {% for item in contenido_kit %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
+            {% if recomendados %}
+            <section class="product-detail-section">
+                <h3>Productos recomendados</h3>
+                <div class="catalog-grid">
+                    {% for rec in recomendados %}
+                    <div class="catalog-card">
+                        <div class="catalog-card__img">
+                            <img src="{{ rec.imagen_url or '/placeholder/400x300/F0F7FF/0077B6?text=' + rec.nombre|replace(' ', '+') }}" alt="{{ rec.nombre }}">
+                        </div>
+                        <div class="catalog-card__body">
+                            <div class="catalog-card__category catalog-card__category--{{ rec.linea }}">{{ rec.categoria.nombre if rec.categoria else rec.linea|capitalize }}</div>
+                            <h3 class="catalog-card__name"><a href="/producto/{{ rec.slug }}">{{ rec.nombre }}</a></h3>
+                            <div class="catalog-card__pricing">
+                                <span class="catalog-card__price catalog-card__price--{{ rec.linea }}">${{ "{:,}".format(rec.precio_final|float|int) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+    </section>
+
+    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+    <script>
+        document.querySelectorAll('.product-thumb-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const main = document.getElementById('productMainImage');
+                if (!main) return;
+                main.src = btn.dataset.image;
+                document.querySelectorAll('.product-thumb-btn').forEach((x) => x.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        const quoteBtn = document.querySelector('.product-detail-actions .catalog-card__cart-btn');
+        if (quoteBtn && window.etiquetarCart) {
+            quoteBtn.addEventListener('click', async () => {
+                try {
+                    await window.etiquetarCart.addItem(quoteBtn.dataset.productId);
+                    window.location.href = '/cotizar';
+                } catch (_err) {
+                    window.location.href = '/cotizar';
+                }
+            });
+        }
+
+        document.querySelectorAll('[data-spec-toggle]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const section = btn.closest('[data-spec-section]');
+                if (!section) return;
+                const body = section.querySelector('.spec-section__body');
+                if (!body) return;
+                const open = btn.getAttribute('aria-expanded') === 'true';
+                btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+                body.hidden = open;
+            });
+        });
+    </script>
+</body>
+
+</html>

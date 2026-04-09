@@ -17,6 +17,345 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../../estaticos/css/home.css">
     <link rel="stylesheet" href="../../estaticos/css/pages.css">
+    <style>
+        /* ── Progress Bar ── */
+        .quote-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 40px;
+            max-width: 500px;
+            padding: 0 20px;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+        }
+
+        .step-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: #757575;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+        }
+
+        .progress-step.active .step-number {
+            background: var(--piscina-primary);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(10, 77, 104, 0.15);
+        }
+
+        .progress-step.completed .step-number {
+            background: #27ae60;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .progress-step.active .step-label {
+            color: var(--piscina-primary);
+        }
+
+        .progress-line {
+            flex: 1;
+            height: 2px;
+            background: #e0e0e0;
+            margin: 0 -20px 24px;
+            position: relative;
+            z-index: 1;
+            max-width: 80px;
+        }
+
+        .progress-line.completed {
+            background: #27ae60;
+        }
+
+        /* ── Steps Visibility ── */
+        .form-step {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Request Type Grid ── */
+        .request-type-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .request-type-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 10px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: center;
+            background: white;
+        }
+
+        .request-type-card i {
+            font-size: 1.4rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            transition: color 0.25s ease;
+        }
+
+        .request-type-card span {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .request-type-card:hover {
+            border-color: var(--piscina-primary);
+            background: rgba(10, 77, 104, 0.02);
+        }
+
+        .request-type-card.selected {
+            border-color: var(--piscina-primary);
+            background: rgba(10, 77, 104, 0.05);
+        }
+
+        .request-type-card.selected i {
+            color: var(--piscina-primary);
+        }
+
+        /* ── Form Navigation ── */
+        .form-nav {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn-prev {
+            flex: 0 0 auto;
+            padding: 12px 24px;
+            background: white;
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-prev:hover {
+            border-color: var(--text-dark);
+            background: #f8f9fa;
+        }
+
+        .btn-next, .quote-submit {
+            flex: 1;
+            padding: 12px 24px;
+            background: var(--piscina-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-family: 'Barlow Condensed', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-next:hover, .quote-submit:hover {
+            background: var(--piscina-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(10, 77, 104, 0.2);
+        }
+
+        /* ── Real-time Validation ── */
+        .field-wrap {
+            position: relative;
+        }
+
+        .validation-icon {
+            position: absolute;
+            right: 14px;
+            top: 40px;
+            color: #27ae60;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .validation-icon.visible {
+            opacity: 1;
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            font-size: 0.75rem;
+            margin-top: 4px;
+            display: none;
+            font-weight: 500;
+        }
+
+        input.is-error, select.is-error, textarea.is-error {
+            border-color: #e74c3c !important;
+        }
+
+        /* ── Confirmation Summary ── */
+        .quote-summary-card {
+            background: #f8fbff;
+            border: 1px solid #e1e9f0;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 0.9rem;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .summary-value {
+            color: var(--text-dark);
+            font-weight: 700;
+            text-align: right;
+        }
+
+        /* ── Success Screen ── */
+        #successScreen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 24px;
+        }
+
+        .success-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .success-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            font-size: 1.1rem;
+        }
+
+        .whatsapp-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 32px;
+            background: #25d366;
+            color: white;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+            margin-bottom: 24px;
+        }
+
+        .whatsapp-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+            background: #20ba5a;
+        }
+
+        .reload-link {
+            display: block;
+            color: var(--piscina-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+
+        .reload-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .request-type-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .step-label {
+                display: none;
+            }
+            .progress-line {
+                margin: 0 -10px 0;
+            }
+            .progress-step {
+                margin-bottom: 0;
+            }
+            .progress-step .step-number {
+                margin-bottom: 0;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -60,98 +399,214 @@
     <!-- QUOTE FORM -->
     <div class="quote-layout">
         <div class="quote-form cotizar-form">
-            <div class="quote-form__header">
-                <h2><i class="fas fa-calculator" style="margin-right:8px;"></i> Cotización Personalizada</h2>
-                <p>Completa el formulario y recibirás tu cotización en máximo 24 horas hábiles</p>
+            <div id="formContainer">
+                <div class="quote-form__header">
+                    <h2><i class="fas fa-calculator" style="margin-right:8px;"></i> Cotización Personalizada</h2>
+                    <p>Completa el formulario y recibirás tu cotización en máximo 24 horas hábiles</p>
+                </div>
+
+                <!-- Barra de progreso -->
+                <div class="quote-progress">
+                    <div class="progress-step active" id="pstep-1">
+                        <div class="step-number">1</div>
+                        <span class="step-label">Tus datos</span>
+                    </div>
+                    <div class="progress-line" id="pline-1"></div>
+                    <div class="progress-step" id="pstep-2">
+                        <div class="step-number">2</div>
+                        <span class="step-label">Tu solicitud</span>
+                    </div>
+                    <div class="progress-line" id="pline-2"></div>
+                    <div class="progress-step" id="pstep-3">
+                        <div class="step-number">3</div>
+                        <span class="step-label">Confirmar</span>
+                    </div>
+                </div>
+
+                <div class="quote-form__body">
+                    <form id="quoteForm">
+                        <!-- PASO 1: ¿Quién eres? -->
+                        <div class="form-step active" id="step-1">
+                            <div class="checkout-form__row">
+                                <div class="checkout-form__field field-wrap">
+                                    <label class="checkout-form__label" for="q-nombre">Nombre completo *</label>
+                                    <input type="text" id="q-nombre" name="nombre" class="checkout-form__input" placeholder="Juan Pérez" required>
+                                    <div class="error-msg">Este campo es obligatorio</div>
+                                </div>
+                                <div class="checkout-form__field field-wrap">
+                                    <label class="checkout-form__label" for="q-empresa">Empresa (opcional)</label>
+                                    <input type="text" id="q-empresa" name="empresa" class="checkout-form__input" placeholder="Mi Empresa S.A.S.">
+                                </div>
+                            </div>
+
+                            <div class="checkout-form__row">
+                                <div class="checkout-form__field field-wrap">
+                                    <label class="checkout-form__label" for="q-email">Correo electrónico *</label>
+                                    <input type="email" id="q-email" name="email" class="checkout-form__input" placeholder="tu@correo.com" required>
+                                    <i class="fas fa-check-circle validation-icon" id="icon-email"></i>
+                                    <div class="error-msg">Ingresa un correo válido</div>
+                                </div>
+                                <div class="checkout-form__field field-wrap">
+                                    <label class="checkout-form__label" for="q-tel">Teléfono / WhatsApp *</label>
+                                    <input type="tel" id="q-tel" name="telefono" class="checkout-form__input" placeholder="300 123 4567" required>
+                                    <i class="fas fa-check-circle validation-icon" id="icon-tel"></i>
+                                    <div class="error-msg">Mínimo 10 dígitos</div>
+                                </div>
+                            </div>
+
+                            <div class="checkout-form__field field-wrap">
+                                <label class="checkout-form__label" for="q-city">Ciudad *</label>
+                                <select id="q-city" name="ciudad" class="checkout-form__select" required>
+                                    <option value="">Seleccionar ciudad...</option>
+                                    <option value="Barranquilla">Barranquilla</option>
+                                    <option value="Cartagena">Cartagena</option>
+                                    <option value="Santa Marta">Santa Marta</option>
+                                    <option value="Soledad">Soledad</option>
+                                    <option value="Malambo">Malambo</option>
+                                    <option value="Sabanalarga">Sabanalarga</option>
+                                    <option value="Valledupar">Valledupar</option>
+                                    <option disabled>──────────</option>
+                                    <option value="Bogotá">Bogotá</option>
+                                    <option value="Medellín">Medellín</option>
+                                    <option value="Cali">Cali</option>
+                                    <option value="Bucaramanga">Bucaramanga</option>
+                                    <option value="Otra ciudad">Otra ciudad</option>
+                                </select>
+                                <div class="error-msg">Selecciona una ciudad</div>
+                            </div>
+
+                            <div class="form-nav">
+                                <button type="button" class="btn-next" onclick="nextStep(1)">Siguiente Paso <i class="fas fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- PASO 2: ¿Qué necesitas? -->
+                        <div class="form-step" id="step-2">
+                            <!-- Line selection -->
+                            <label class="checkout-form__label" style="margin-bottom:10px;">¿Qué línea te interesa? *</label>
+                            <div class="quote-line-select" style="margin-bottom:24px;">
+                                <div class="quote-line-option selected--piscina" onclick="selectLine(this, 'piscina')">
+                                    <i class="fas fa-swimming-pool" style="color:var(--piscina-primary);"></i>
+                                    <span>Piscina & Spa</span>
+                                </div>
+                                <div class="quote-line-option" onclick="selectLine(this, 'agua')">
+                                    <i class="fas fa-tint" style="color:var(--agua-primary);"></i>
+                                    <span>Tratamiento de Agua</span>
+                                </div>
+                            </div>
+
+                            <!-- Type of request (Grid) -->
+                            <label class="checkout-form__label" style="margin-bottom:10px;">Tipo de solicitud *</label>
+                            <input type="hidden" id="q-type" name="tipo" value="" required>
+                            <div class="request-type-grid">
+                                <div class="request-type-card" onclick="selectRequestType(this, 'Compra de productos')">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span>Compra de productos</span>
+                                </div>
+                                <div class="request-type-card" onclick="selectRequestType(this, 'Mantenimiento')">
+                                    <i class="fas fa-wrench"></i>
+                                    <span>Mantenimiento</span>
+                                </div>
+                                <div class="request-type-card" onclick="selectRequestType(this, 'Instalación')">
+                                    <i class="fas fa-tools"></i>
+                                    <span>Instalación</span>
+                                </div>
+                                <div class="request-type-card" onclick="selectRequestType(this, 'Consulta técnica')">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <span>Consulta técnica</span>
+                                </div>
+                            </div>
+                            <div id="type-error" class="error-msg" style="margin-bottom:16px;">Selecciona un tipo de solicitud</div>
+
+                            <!-- Products of interest -->
+                            <div class="checkout-form__field field-wrap">
+                                <label class="checkout-form__label" for="q-products">Productos de interés *</label>
+                                <textarea id="q-products" name="mensaje" class="checkout-form__input" rows="4"
+                                    placeholder="Describe los productos, cantidades y especificaciones que necesitas..."
+                                    required style="resize:vertical;"></textarea>
+                                <div class="error-msg">Describe lo que necesitas</div>
+                            </div>
+
+                            <!-- Additional notes -->
+                            <div class="checkout-form__field">
+                                <label class="checkout-form__label" for="q-notes">Información adicional (opcional)</label>
+                                <textarea id="q-notes" name="notas" class="checkout-form__input" rows="3"
+                                    placeholder="Presupuesto estimado, plazos de entrega, etc."
+                                    style="resize:vertical;"></textarea>
+                            </div>
+
+                            <div class="form-nav">
+                                <button type="button" class="btn-prev" onclick="prevStep(2)"><i class="fas fa-arrow-left"></i> Anterior</button>
+                                <button type="button" class="btn-next" onclick="nextStep(2)">Siguiente Paso <i class="fas fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- PASO 3: Confirmar -->
+                        <div class="form-step" id="step-3">
+                            <label class="checkout-form__label" style="margin-bottom:16px;">Resumen de tu solicitud</label>
+                            
+                            <div class="quote-summary-card">
+                                <div class="summary-row">
+                                    <span class="summary-label">Nombre:</span>
+                                    <span class="summary-value" id="sum-nombre">-</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Correo:</span>
+                                    <span class="summary-value" id="sum-email">-</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Teléfono:</span>
+                                    <span class="summary-value" id="sum-tel">-</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Ciudad:</span>
+                                    <span class="summary-value" id="sum-city">-</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Línea:</span>
+                                    <span class="summary-value" id="sum-linea">-</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Solicitud:</span>
+                                    <span class="summary-value" id="sum-type">-</span>
+                                </div>
+                            </div>
+
+                            <div class="form-nav">
+                                <button type="button" class="btn-prev" onclick="prevStep(3)"><i class="fas fa-arrow-left"></i> Anterior</button>
+                                <button type="submit" class="quote-submit">
+                                    <i class="fas fa-paper-plane"></i> Enviar Cotización
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="quote-form__body">
-                <form id="quoteForm">
 
-                    <!-- Line selection -->
-                    <label class="checkout-form__label" style="margin-bottom:10px;">¿Qué línea te interesa?</label>
-                    <div class="quote-line-select">
-                        <div class="quote-line-option selected--piscina" onclick="selectLine(this, 'piscina')">
-                            <i class="fas fa-swimming-pool" style="color:var(--piscina-primary);"></i>
-                            <span>Piscina & Spa</span>
-                        </div>
-                        <div class="quote-line-option" onclick="selectLine(this, 'agua')">
-                            <i class="fas fa-tint" style="color:var(--agua-primary);"></i>
-                            <span>Tratamiento de Agua</span>
-                        </div>
-                    </div>
+            <!-- Pantalla de éxito -->
+            <div id="successScreen">
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h2 class="success-title">¡Cotización recibida!</h2>
+                <p class="success-subtitle">Hola <strong id="successUser">Usuario</strong>, te contactaremos en menos de 24 horas hábiles.</p>
+                
+                <a href="#" id="whatsappBtn" target="_blank" class="whatsapp-cta">
+                    <i class="fab fa-whatsapp"></i> Hablar por WhatsApp
+                </a>
+                
+                <a href="javascript:location.reload()" class="reload-link">
+                    <i class="fas fa-redo-alt"></i> Enviar otra cotización
+                </a>
+            </div>
 
-                    <!-- Contact info -->
-                    <div class="checkout-form__row">
-                        <div class="checkout-form__field">
-                            <label class="checkout-form__label" for="q-nombre">Nombre completo *</label>
-                            <input type="text" id="q-nombre" class="checkout-form__input" placeholder="Juan Pérez"
-                                required>
-                        </div>
-                        <div class="checkout-form__field">
-                            <label class="checkout-form__label" for="q-empresa">Empresa (opcional)</label>
-                            <input type="text" id="q-empresa" class="checkout-form__input"
-                                placeholder="Mi Empresa S.A.S.">
-                        </div>
-                    </div>
-
-                    <div class="checkout-form__row">
-                        <div class="checkout-form__field">
-                            <label class="checkout-form__label" for="q-email">Correo electrónico *</label>
-                            <input type="email" id="q-email" class="checkout-form__input" placeholder="tu@correo.com"
-                                required>
-                        </div>
-                        <div class="checkout-form__field">
-                            <label class="checkout-form__label" for="q-tel">Teléfono / WhatsApp *</label>
-                            <input type="tel" id="q-tel" class="checkout-form__input" placeholder="+57 300 123 4567"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="checkout-form__field">
-                        <label class="checkout-form__label" for="q-city">Ciudad *</label>
-                        <input type="text" id="q-city" class="checkout-form__input"
-                            placeholder="Bogotá, Medellín, Cali...">
-                    </div>
-
-                    <!-- Type of request -->
-                    <div class="checkout-form__field">
-                        <label class="checkout-form__label" for="q-type">Tipo de solicitud *</label>
-                        <select id="q-type" class="checkout-form__select">
-                            <option value="">Seleccionar...</option>
-                            <option>Equipos para piscina nueva</option>
-                            <option>Mantenimiento de piscina existente</option>
-                            <option>Sistema de purificación para hogar</option>
-                            <option>Sistema de tratamiento para edificio</option>
-                            <option>Proyecto industrial</option>
-                            <option>Compra al por mayor</option>
-                            <option>Otro</option>
-                        </select>
-                    </div>
-
-                    <!-- Products of interest -->
-                    <div class="checkout-form__field">
-                        <label class="checkout-form__label" for="q-products">Productos de interés *</label>
-                        <textarea id="q-products" class="checkout-form__input" rows="4"
-                            placeholder="Describe los productos, cantidades y especificaciones que necesitas..."
-                            required style="resize:vertical;"></textarea>
-                    </div>
-
-                    <!-- Additional notes -->
-                    <div class="checkout-form__field">
-                        <label class="checkout-form__label" for="q-notes">Información adicional (opcional)</label>
-                        <textarea id="q-notes" class="checkout-form__input" rows="3"
-                            placeholder="Presupuesto estimado, plazos de entrega, etc."
-                            style="resize:vertical;"></textarea>
-                    </div>
-
-                    <button type="submit" class="quote-submit">
-                        <i class="fas fa-paper-plane"></i> Enviar Cotización
-                    </button>
-
-                    <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:12px;">
-                        <i class="fas fa-clock"></i> Respondemos en máximo 24 horas hábiles
-                    </p>
-                </form>
+            <div id="consultarLink" style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid rgba(0,0,0,0.06)"> 
+                <p style="color:#5A7A80;font-size:0.88rem;margin-bottom:12px"> 
+                    ¿Ya tienes una cotización? Consulta su estado aquí 
+                </p> 
+                <a href="/cotizar/consultar" style="color:#0ABFCA;font-weight:700;font-size:0.9rem;display:inline-flex;align-items:center;gap:6px;text-decoration:none;"> 
+                    <i class="fas fa-search"></i> Consultar estado de mi cotización → 
+                </a> 
             </div>
         </div>
     </div>
@@ -169,11 +624,171 @@
     <script src="../../estaticos/js/home.js"></script>
     <script>
         let currentLine = 'piscina';
+        let currentStep = 1;
+        const WHATSAPP_NUMBER = '573001234567'; // Cambiar por el número real
+
         function selectLine(el, line) {
             currentLine = line;
             document.querySelectorAll('.quote-line-option').forEach(o => o.classList.remove('selected--piscina', 'selected--agua'));
             el.classList.add(`selected--${line}`);
         }
+
+        function selectRequestType(el, type) {
+            document.getElementById('q-type').value = type;
+            document.querySelectorAll('.request-type-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('type-error').style.display = 'none';
+        }
+
+        function updateProgress(step) {
+            // Reset all
+            document.querySelectorAll('.progress-step').forEach((s, idx) => {
+                const sNum = idx + 1;
+                s.classList.remove('active', 'completed');
+                const icon = s.querySelector('.step-number');
+                icon.innerHTML = sNum;
+                
+                if (sNum < step) {
+                    s.classList.add('completed');
+                    icon.innerHTML = '<i class="fas fa-check"></i>';
+                } else if (sNum === step) {
+                    s.classList.add('active');
+                }
+            });
+
+            document.querySelectorAll('.progress-line').forEach((l, idx) => {
+                const lNum = idx + 1;
+                l.classList.remove('completed');
+                if (lNum < step) l.classList.add('completed');
+            });
+        }
+
+        function validateStep(step) {
+            let isValid = true;
+            const stepEl = document.getElementById(`step-${step}`);
+            const requiredFields = stepEl.querySelectorAll('[required]');
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim() || (field.tagName === 'SELECT' && !field.value)) {
+                    showError(field);
+                    if (isValid) field.focus();
+                    isValid = false;
+                } else {
+                    hideError(field);
+                }
+            });
+
+            // Specific validations for step 1
+            if (step === 1) {
+                const email = document.getElementById('q-email');
+                const tel = document.getElementById('q-tel');
+                
+                if (email.value && !validateEmail(email.value)) {
+                    showError(email, 'Ingresa un correo válido');
+                    isValid = false;
+                }
+                if (tel.value && tel.value.replace(/\D/g,'').length < 10) {
+                    showError(tel, 'Mínimo 10 dígitos');
+                    isValid = false;
+                }
+            }
+
+            // Specific validation for step 2 (hidden input q-type)
+            if (step === 2) {
+                const qType = document.getElementById('q-type');
+                if (!qType.value) {
+                    document.getElementById('type-error').style.display = 'block';
+                    isValid = false;
+                }
+            }
+
+            return isValid;
+        }
+
+        function showError(field, customMsg) {
+            field.classList.add('is-error');
+            const wrap = field.closest('.field-wrap');
+            if (wrap) {
+                const msg = wrap.querySelector('.error-msg');
+                if (msg) {
+                    if (customMsg) msg.textContent = customMsg;
+                    msg.style.display = 'block';
+                }
+            }
+        }
+
+        function hideError(field) {
+            field.classList.remove('is-error');
+            const wrap = field.closest('.field-wrap');
+            if (wrap) {
+                const msg = wrap.querySelector('.error-msg');
+                if (msg) msg.style.display = 'none';
+            }
+        }
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function nextStep(step) {
+            if (validateStep(step)) {
+                if (step === 2) {
+                    fillSummary();
+                }
+                document.getElementById(`step-${step}`).classList.remove('active');
+                currentStep = step + 1;
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+                updateProgress(currentStep);
+                window.scrollTo({ top: document.querySelector('.quote-form').offsetTop - 100, behavior: 'smooth' });
+            }
+        }
+
+        function prevStep(step) {
+            document.getElementById(`step-${step}`).classList.remove('active');
+            currentStep = step - 1;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            updateProgress(currentStep);
+        }
+
+        function fillSummary() {
+            document.getElementById('sum-nombre').textContent = document.getElementById('q-nombre').value;
+            document.getElementById('sum-email').textContent = document.getElementById('q-email').value;
+            document.getElementById('sum-tel').textContent = document.getElementById('q-tel').value;
+            document.getElementById('sum-city').textContent = document.getElementById('q-city').value;
+            document.getElementById('sum-linea').textContent = currentLine === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua';
+            document.getElementById('sum-type').textContent = document.getElementById('q-type').value;
+        }
+
+        // Real-time validation
+        document.getElementById('q-email').addEventListener('input', function() {
+            const icon = document.getElementById('icon-email');
+            if (validateEmail(this.value)) {
+                icon.classList.add('visible');
+                hideError(this);
+            } else {
+                icon.classList.remove('visible');
+            }
+        });
+
+        document.getElementById('q-tel').addEventListener('input', function() {
+            const icon = document.getElementById('icon-tel');
+            if (this.value.replace(/\D/g,'').length >= 10) {
+                icon.classList.add('visible');
+                hideError(this);
+            } else {
+                icon.classList.remove('visible');
+            }
+        });
+
+        // Blur validation
+        document.querySelectorAll('#quoteForm input, #quoteForm select, #quoteForm textarea').forEach(el => {
+            el.addEventListener('blur', function() {
+                if (this.hasAttribute('required') && !this.value.trim()) {
+                    showError(this);
+                }
+            });
+        });
+
         document.getElementById('quoteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('.quote-submit');
@@ -203,10 +818,17 @@
                 const data = await response.json();
                 
                 if (data.ok) {
-                    btn.innerHTML = '<i class="fas fa-check"></i> ¡Cotización enviada!';
-                    btn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
-                    e.target.reset();
-                    alert(data.message);
+                    // Pantalla de éxito
+                    document.getElementById('formContainer').style.display = 'none';
+                    document.getElementById('consultarLink').style.display = 'none';
+                    document.getElementById('successScreen').style.display = 'block';
+                    document.getElementById('successUser').textContent = payload.nombre;
+                    
+                    const lineText = currentLine === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua';
+                    const waMsg = encodeURIComponent(`Hola, acabo de enviar una cotización por ${lineText}. Mi nombre es ${payload.nombre}.`);
+                    document.getElementById('whatsappBtn').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMsg}`;
+                    
+                    window.scrollTo({ top: document.querySelector('.quote-form').offsetTop - 100, behavior: 'smooth' });
                 } else {
                     alert(data.message || 'Error al enviar la solicitud.');
                     btn.disabled = false;

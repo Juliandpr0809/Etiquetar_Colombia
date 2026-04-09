@@ -3,6 +3,8 @@
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
+    const qs = (s) => document.querySelector(s);
+    const qsa = (s) => Array.from(document.querySelectorAll(s));
 
     const showToast = (message) => {
         let toast = document.querySelector('.app-toast');
@@ -19,13 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const grid = document.querySelector('.catalog-grid');
     const line = document.body.dataset.line || 'piscina';
+    const isAdmin = document.body.dataset.isAdmin === 'true';
+
+    const state = {
+        allProducts: [],
+        visibleProducts: [],
+        categories: [],
+        selectedCategory: 'all',
+        maxPrice: Number.MAX_SAFE_INTEGER,
+        stockIn: true,
+        stockOut: true,
+        searchText: '',
+        sort: 'relevance',
+    };
 
     const formatPrice = (value) => {
         const amount = Number(value || 0);
         return '$' + amount.toLocaleString('es-CO');
     };
-
-    const isAdmin = document.body.dataset.isAdmin === 'true';
 
     const renderProductCard = (product) => {
         const price = Number(product.precio_final || product.precio || 0);
@@ -40,9 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const showBadge = descuentoPercent > 0;
         const image = product.imagen_url || `/placeholder/400x300/${line === 'piscina' ? 'F0F7FF/0077B6' : 'E8F4F8/1B8FA1'}?text=${encodeURIComponent(product.nombre)}`;
         const lineClass = line === 'piscina' ? 'piscina' : 'agua';
-        const lineLabel = line === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua';
         const stockLabel = Number(product.stock || 0) > 0 ? 'En stock' : 'Sobre pedido';
         const stockClass = Number(product.stock || 0) > 0 ? 'in' : 'out';
+        const categoryLabel = product.categoria_nombre || (line === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua');
 
         return `
             <div class="catalog-card" data-price="${price}" data-name="${product.nombre}" data-product-id="${product.id}">
@@ -55,9 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="${image}" alt="${product.nombre}">
                 </div>
                 <div class="catalog-card__body">
-                    <div class="catalog-card__category catalog-card__category--${lineClass}">${lineLabel}</div>
-                    <h3 class="catalog-card__name"><a href="#">${product.nombre}</a></h3>
-                    <div class="catalog-card__sku">REF: ${product.slug}</div>
+                    <div class="catalog-card__category catalog-card__category--${lineClass}">${categoryLabel}</div>
+                    <h3 class="catalog-card__name"><a href="/producto/${product.slug}">${product.nombre}</a></h3>
+                    <div class="catalog-card__sku">REF: ${product.referencia || product.slug}</div>
                     <div class="catalog-card__stock catalog-card__stock--${stockClass}"><i class="fas fa-circle"></i> ${stockLabel}</div>
                     <div class="catalog-card__pricing">
                         <span class="catalog-card__price catalog-card__price--${lineClass}">${formatPrice(price)}</span>
@@ -68,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="catalog-card__cart-btn catalog-card__cart-btn--${lineClass}" data-product-id="${product.id}"><i class="fas fa-cart-plus"></i> Comprar</button>
                         ${product.ficha_url
                             ? `<a class="catalog-card__quote-btn" title="Ficha técnica" href="${product.ficha_url}" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i></a>`
-                            : `<button class="catalog-card__quote-btn" title="Cotizar"><i class="fas fa-file-alt"></i></button>`
+                            : `<a class="catalog-card__quote-btn" title="Ver producto" href="/producto/${product.slug}"><i class="fas fa-file-alt"></i></a>`
                         }
                     </div>
                     ${isAdmin ? `
@@ -81,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
     };
+
     const createSkeletonMarkup = () => {
         return Array.from({ length: 6 }).map(() => `
             <article class="catalog-skeleton-card">
@@ -111,13 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return empty;
     };
 
-    const updateEmptyState = () => {
-        if (!grid) return;
-        const empty = ensureEmptyState();
-        const visibleCards = Array.from(grid.querySelectorAll('.catalog-card')).filter(card => card.style.display !== 'none');
-        if (empty) empty.classList.toggle('is-visible', visibleCards.length === 0);
-    };
-
     const updateCounts = (count) => {
         const countNodes = document.querySelectorAll('.catalog-header__count span');
         if (countNodes[0]) countNodes[0].textContent = count;
@@ -128,34 +135,112 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const loadProductsFromApi = async () => {
-        if (!grid) return;
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animation = 'fadeInUp 0.4s ease forwards';
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.05 });
 
-        try {
-            const response = await fetch('/catalogo/api/productos');
-            const products = await response.json();
-            const filtered = products.filter((product) => product.linea === line);
-            grid.innerHTML = filtered.map(renderProductCard).join('');
-            updateCounts(filtered.length);
-            bindCardActions();
-            document.querySelectorAll('.catalog-card').forEach(card => {
-                card.style.opacity = '0';
-                observer.observe(card);
-            });
-            updateEmptyState();
-        } catch (error) {
-            grid.innerHTML = '<div class="catalog-empty is-visible"><div class="catalog-empty__icon"><i class="fas fa-triangle-exclamation"></i></div><h3 class="catalog-empty__title">No se pudieron cargar los productos</h3><p class="catalog-empty__text">Intenta recargar la pagina.</p></div>';
-        }
+    const renderCards = (products) => {
+        if (!grid) return;
+        grid.innerHTML = products.map(renderProductCard).join('');
+        updateCounts(products.length);
+        bindCardActions();
+        Array.from(grid.querySelectorAll('.catalog-card')).forEach(card => {
+            card.style.opacity = '0';
+            observer.observe(card);
+        });
+        const empty = ensureEmptyState();
+        if (empty) empty.classList.toggle('is-visible', products.length === 0);
     };
 
-    if (grid) {
-        grid.classList.add('is-loading');
-        grid.innerHTML = createSkeletonMarkup();
-        setTimeout(async () => {
-            await loadProductsFromApi();
-            grid.classList.remove('is-loading');
-        }, 550);
-    }
+    const sortProducts = (products) => {
+        const ordered = [...products];
+        switch (state.sort) {
+            case 'price-asc':
+                ordered.sort((a, b) => Number(a.precio_final || a.precio || 0) - Number(b.precio_final || b.precio || 0));
+                break;
+            case 'price-desc':
+                ordered.sort((a, b) => Number(b.precio_final || b.precio || 0) - Number(a.precio_final || a.precio || 0));
+                break;
+            case 'name-asc':
+                ordered.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+                break;
+            case 'name-desc':
+                ordered.sort((a, b) => (b.nombre || '').localeCompare(a.nombre || ''));
+                break;
+            default:
+                break;
+        }
+        return ordered;
+    };
+
+    const applyFilters = () => {
+        let filtered = state.allProducts.filter((p) => p.linea === line);
+        if (state.selectedCategory !== 'all') {
+            filtered = filtered.filter((p) => String(p.categoria_slug || '') === String(state.selectedCategory));
+        }
+        filtered = filtered.filter((p) => Number(p.precio_final || p.precio || 0) <= state.maxPrice);
+        filtered = filtered.filter((p) => {
+            const inStock = Number(p.stock || 0) > 0;
+            return (inStock && state.stockIn) || (!inStock && state.stockOut);
+        });
+        if (state.searchText) {
+            const term = state.searchText.toLowerCase();
+            filtered = filtered.filter((p) =>
+                (p.nombre || '').toLowerCase().includes(term)
+                || (p.slug || '').toLowerCase().includes(term)
+                || (p.referencia || '').toLowerCase().includes(term)
+                || (p.marca || '').toLowerCase().includes(term)
+            );
+        }
+        state.visibleProducts = sortProducts(filtered);
+        renderCards(state.visibleProducts);
+    };
+
+    const renderCategoryFilter = () => {
+        const root = qs('#catalogCategoryList');
+        if (!root) return;
+        const lineCategories = state.categories.filter((c) => c.linea === line);
+        const lineProducts = state.allProducts.filter((p) => p.linea === line);
+        const totalLine = lineProducts.length;
+        const lineClass = line === 'piscina' ? 'active--piscina' : 'active--agua';
+
+        const bySlug = {};
+        lineProducts.forEach((p) => {
+            const slug = p.categoria_slug || 'sin-categoria';
+            bySlug[slug] = (bySlug[slug] || 0) + 1;
+        });
+
+        const rendered = [
+            `<a class="sidebar-cat ${state.selectedCategory === 'all' ? lineClass : ''}" href="#" data-category="all">
+                Todas las categorías <span class="sidebar-cat__count">${totalLine}</span>
+            </a>`
+        ];
+
+        lineCategories.forEach((category) => {
+            const total = bySlug[category.slug] || 0;
+            if (!total) return;
+            rendered.push(`
+                <a class="sidebar-cat ${state.selectedCategory === category.slug ? lineClass : ''}" href="#" data-category="${category.slug}">
+                    ${category.nombre} <span class="sidebar-cat__count">${total}</span>
+                </a>
+            `);
+        });
+
+        root.innerHTML = rendered.join('');
+        root.querySelectorAll('.sidebar-cat').forEach((cat) => {
+            cat.addEventListener('click', (e) => {
+                e.preventDefault();
+                state.selectedCategory = cat.dataset.category || 'all';
+                renderCategoryFilter();
+                applyFilters();
+            });
+        });
+    };
 
     const bindCardActions = () => {
         document.querySelectorAll('.catalog-card__cart-btn').forEach(btn => {
@@ -206,150 +291,151 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // ── Sidebar Category Click ──
-    document.querySelectorAll('.sidebar-cat').forEach(cat => {
-        cat.addEventListener('click', (e) => {
-            e.preventDefault();
-            const line = document.body.dataset.line || 'piscina';
-            document.querySelectorAll('.sidebar-cat').forEach(c =>
-                c.classList.remove('active--piscina', 'active--agua')
-            );
-            cat.classList.add(`active--${line}`);
-            updateEmptyState();
+    const bindUiFilters = () => {
+        const slider = document.querySelector('.price-filter__slider');
+        const maxInput = document.querySelector('.price-filter__input--max');
+        if (slider && maxInput) {
+            state.maxPrice = Number(slider.value || Number.MAX_SAFE_INTEGER);
+            slider.addEventListener('input', () => {
+                const val = parseInt(slider.value, 10) || Number.MAX_SAFE_INTEGER;
+                state.maxPrice = val;
+                maxInput.value = '$' + val.toLocaleString('es-CO');
+                applyFilters();
+            });
+        }
+
+        const availability = qsa('.filter-check input[type="checkbox"]');
+        if (availability.length >= 2) {
+            const [stockIn, stockOut] = availability;
+            stockIn.addEventListener('change', () => {
+                state.stockIn = !!stockIn.checked;
+                applyFilters();
+            });
+            stockOut.addEventListener('change', () => {
+                state.stockOut = !!stockOut.checked;
+                applyFilters();
+            });
+        }
+
+        const searchInput = document.querySelector('.catalog-search input');
+        if (searchInput) {
+            const runSearch = () => {
+                state.searchText = (searchInput.value || '').trim();
+                applyFilters();
+            };
+            searchInput.addEventListener('input', runSearch);
+            searchInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    runSearch();
+                }
+            });
+        }
+
+        const sortSelect = document.querySelector('.catalog-toolbar__sort select');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', () => {
+                state.sort = sortSelect.value;
+                applyFilters();
+            });
+        }
+    };
+
+    const bindStaticUi = () => {
+        document.querySelectorAll('.sidebar-card__header').forEach(header => {
+            header.addEventListener('click', () => {
+                header.classList.toggle('collapsed');
+                const body = header.nextElementSibling;
+                body.style.display = header.classList.contains('collapsed') ? 'none' : 'block';
+            });
         });
-    });
 
-    // ── Sidebar Card Collapse ──
-    document.querySelectorAll('.sidebar-card__header').forEach(header => {
-        header.addEventListener('click', () => {
-            header.classList.toggle('collapsed');
-            const body = header.nextElementSibling;
-            body.style.display = header.classList.contains('collapsed') ? 'none' : 'block';
-        });
-    });
-
-    // ── Mobile Sidebar Toggle ──
-    const sidebarToggle = document.querySelector('.catalog-sidebar-toggle');
-    const sidebar = document.querySelector('.catalog-sidebar');
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.setAttribute('aria-expanded', 'false');
-
-        const closeSidebar = () => {
-            sidebar.classList.remove('active');
-            document.body.style.overflow = '';
-            const icon = sidebarToggle.querySelector('i');
-            icon.classList.replace('fa-times', 'fa-sliders');
-            sidebarToggle.querySelector('span').textContent = 'Filtros y Categorías';
+        const sidebarToggle = document.querySelector('.catalog-sidebar-toggle');
+        const sidebar = document.querySelector('.catalog-sidebar');
+        if (sidebarToggle && sidebar) {
             sidebarToggle.setAttribute('aria-expanded', 'false');
-        };
 
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
-            const icon = sidebarToggle.querySelector('i');
-            if (sidebar.classList.contains('active')) {
-                icon.classList.replace('fa-sliders', 'fa-times');
-                sidebarToggle.querySelector('span').textContent = 'Cerrar Filtros';
-                sidebarToggle.setAttribute('aria-expanded', 'true');
-                document.body.style.overflow = 'hidden';
-            } else {
-                closeSidebar();
-            }
-        });
+            const closeSidebar = () => {
+                sidebar.classList.remove('active');
+                document.body.style.overflow = '';
+                const icon = sidebarToggle.querySelector('i');
+                icon.classList.replace('fa-times', 'fa-sliders');
+                sidebarToggle.querySelector('span').textContent = 'Filtros y Categorías';
+                sidebarToggle.setAttribute('aria-expanded', 'false');
+            };
 
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && sidebar.classList.contains('active')) {
-                closeSidebar();
-            }
-        });
-    }
-
-    // ── View Toggle (Grid / List) ──
-    const viewBtns = document.querySelectorAll('.catalog-toolbar__view-btn');
-    viewBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            viewBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            if (!grid) return;
-            if (btn.dataset.view === 'list') {
-                grid.classList.add('catalog-grid--list');
-            } else {
-                grid.classList.remove('catalog-grid--list');
-            }
-        });
-    });
-
-    // ── Sort Select ──
-    const sortSelect = document.querySelector('.catalog-toolbar__sort select');
-    if (sortSelect) {
-        sortSelect.addEventListener('change', () => {
-            const cards = Array.from(grid.querySelectorAll('.catalog-card'));
-            const val = sortSelect.value;
-
-            cards.sort((a, b) => {
-                const priceA = parseInt(a.dataset.price) || 0;
-                const priceB = parseInt(b.dataset.price) || 0;
-                const nameA = a.dataset.name || '';
-                const nameB = b.dataset.name || '';
-
-                switch (val) {
-                    case 'price-asc': return priceA - priceB;
-                    case 'price-desc': return priceB - priceA;
-                    case 'name-asc': return nameA.localeCompare(nameB);
-                    case 'name-desc': return nameB.localeCompare(nameA);
-                    default: return 0;
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                const icon = sidebarToggle.querySelector('i');
+                if (sidebar.classList.contains('active')) {
+                    icon.classList.replace('fa-sliders', 'fa-times');
+                    sidebarToggle.querySelector('span').textContent = 'Cerrar Filtros';
+                    sidebarToggle.setAttribute('aria-expanded', 'true');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    closeSidebar();
                 }
             });
 
-            cards.forEach(card => {
-                card.style.animation = 'none';
-                card.offsetHeight;
-                card.style.animation = 'fadeInUp 0.3s ease forwards';
-                grid.appendChild(card);
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && sidebar.classList.contains('active')) {
+                    closeSidebar();
+                }
+            });
+        }
+
+        const viewBtns = document.querySelectorAll('.catalog-toolbar__view-btn');
+        viewBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                viewBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (!grid) return;
+                if (btn.dataset.view === 'list') {
+                    grid.classList.add('catalog-grid--list');
+                } else {
+                    grid.classList.remove('catalog-grid--list');
+                }
             });
         });
+
+        document.querySelectorAll('.catalog-pagination__btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.disabled) return;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    };
+
+    const loadProductsAndCategories = async () => {
+        if (!grid) return;
+        try {
+            const [productsRes, categoriesRes] = await Promise.all([
+                fetch('/catalogo/api/productos'),
+                fetch('/catalogo/api/categorias'),
+            ]);
+            const products = await productsRes.json();
+            const categories = await categoriesRes.json();
+            state.allProducts = Array.isArray(products) ? products : [];
+            state.categories = Array.isArray(categories) ? categories : [];
+            renderCategoryFilter();
+            applyFilters();
+        } catch (_error) {
+            grid.innerHTML = '<div class="catalog-empty is-visible"><div class="catalog-empty__icon"><i class="fas fa-triangle-exclamation"></i></div><h3 class="catalog-empty__title">No se pudieron cargar los productos</h3><p class="catalog-empty__text">Intenta recargar la pagina.</p></div>';
+        }
+    };
+
+    if (grid) {
+        grid.classList.add('is-loading');
+        grid.innerHTML = createSkeletonMarkup();
+        setTimeout(async () => {
+            await loadProductsAndCategories();
+            grid.classList.remove('is-loading');
+        }, 450);
     }
 
-    // ── Price Range Slider ──
-    const slider = document.querySelector('.price-filter__slider');
-    const maxInput = document.querySelector('.price-filter__input--max');
-    if (slider && maxInput) {
-        slider.addEventListener('input', () => {
-            const val = parseInt(slider.value);
-            maxInput.value = '$' + val.toLocaleString('es-CO');
-        });
-    }
-
-    // ── Add to Cart ──
-    bindCardActions();
-
-    // ── Quick view / Wishlist buttons ──
-    bindCardActions();
-
-    // ── Pagination ──
-    document.querySelectorAll('.catalog-pagination__btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (btn.disabled) return;
-            const line = document.body.dataset.line || 'piscina';
-            document.querySelectorAll('.catalog-pagination__btn').forEach(b =>
-                b.classList.remove('active--piscina', 'active--agua')
-            );
-            if (!btn.dataset.nav) btn.classList.add(`active--${line}`);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            updateEmptyState();
-        });
-    });
-
-    // ── Scroll animations ──
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.animation = 'fadeInUp 0.4s ease forwards';
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.05 });
-
-    updateEmptyState();
+    bindUiFilters();
+    bindStaticUi();
+    ensureEmptyState();
 });
 
 const toastStyles = document.createElement('style');

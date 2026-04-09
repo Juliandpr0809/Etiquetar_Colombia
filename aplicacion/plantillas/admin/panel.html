@@ -37,6 +37,7 @@
                 </div>
                 <div class="admin-actions-inline">
                     <button class="admin-tab-btn active" data-tab="dashboard"><i class="fas fa-house"></i> Inicio</button>
+                    <button class="admin-tab-btn" data-tab="categorias"><i class="fas fa-layer-group"></i> Categorías</button>
                     <button class="admin-tab-btn" data-tab="productos"><i class="fas fa-box-open"></i> Productos</button>
                     <button class="admin-tab-btn" data-tab="cotizaciones"><i class="fas fa-file-invoice-dollar"></i> Cotizaciones</button>
                     <button class="admin-tab-btn" data-tab="promociones"><i class="fas fa-tag"></i> Ofertas</button>
@@ -112,6 +113,54 @@
                 </div>
             </section>
 
+            <section class="admin-tab" id="tab-categorias">
+                <article class="admin-card">
+                    <h3><i class="fas fa-layer-group"></i> Categorías de productos</h3>
+                    <form id="formCategoria" class="admin-form-grid">
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label for="cat-nombre">Nombre de categoría</label>
+                                <input id="cat-nombre" name="nombre" required placeholder="Ej: Bombas centrífugas">
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="cat-slug">Slug</label>
+                                <input id="cat-slug" name="slug" required placeholder="bombas-centrifugas">
+                            </div>
+                        </div>
+                        <div class="admin-form-2col">
+                            <div class="admin-form-group">
+                                <label for="cat-linea">Línea</label>
+                                <select id="cat-linea" name="linea" required>
+                                    <option value="piscina">Piscina &amp; Spa</option>
+                                    <option value="agua">Tratamiento de Agua</option>
+                                </select>
+                            </div>
+                            <div class="admin-form-group">
+                                <label class="admin-check" style="margin-top:24px;"><input type="checkbox" id="cat-activo" name="activo" checked> Categoría activa</label>
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="cat-descripcion">Descripción (opcional)</label>
+                            <textarea id="cat-descripcion" name="descripcion" rows="2" placeholder="Descripción breve para administración y catálogo."></textarea>
+                        </div>
+
+                        <div class="category-fields-box">
+                            <div class="category-fields-box__header">
+                                <strong>Campos técnicos de esta categoría</strong>
+                                <button type="button" class="admin-mini-btn" id="btnAddCampoTecnico"><i class="fas fa-plus"></i> Agregar campo</button>
+                            </div>
+                            <div id="categoriaCamposList" class="category-fields-list"></div>
+                        </div>
+
+                        <button class="admin-btn" type="submit"><i class="fas fa-save"></i> Guardar categoría</button>
+                    </form>
+                </article>
+                <article class="admin-card" style="margin-top:12px;">
+                    <h3><i class="fas fa-list"></i> Categorías guardadas</h3>
+                    <div id="categoriasList" class="admin-list"></div>
+                </article>
+            </section>
+
             <section class="admin-tab" id="tab-productos">
                 <article class="admin-card admin-card--product-form">
                     <div class="product-form-header">
@@ -160,6 +209,31 @@
                                         <span class="product-form-hint">Se genera automáticamente</span>
                                     </div>
                                 </div>
+                                <div class="product-form-2col">
+                                    <div class="admin-form-group">
+                                        <label for="prod-categoria">Categoría</label>
+                                        <div class="product-inline-group">
+                                            <select id="prod-categoria" name="categoria_id" class="product-form-input" required>
+                                                <option value="">Selecciona una categoría</option>
+                                            </select>
+                                            <button type="button" id="btnNuevaCategoriaRapida" class="admin-mini-btn"><i class="fas fa-plus"></i> Nueva</button>
+                                        </div>
+                                    </div>
+                                    <div class="admin-form-group">
+                                        <label for="prod-marca">Marca</label>
+                                        <input id="prod-marca" name="marca" class="product-form-input" placeholder="Ej: Pentair, Hayward, Purikor">
+                                    </div>
+                                </div>
+                                <div class="product-form-2col">
+                                    <div class="admin-form-group">
+                                        <label for="prod-referencia">Referencia</label>
+                                        <input id="prod-referencia" name="referencia" class="product-form-input" placeholder="Ej: WF2HP-220V">
+                                    </div>
+                                    <div class="admin-form-group">
+                                        <label for="prod-garantia">Garantía (meses)</label>
+                                        <input id="prod-garantia" type="number" min="0" name="garantia_meses" class="product-form-input" placeholder="12">
+                                    </div>
+                                </div>
                             </div>
                                 <div class="product-form-section">
                                 <div class="product-form-2col">
@@ -203,7 +277,46 @@
                                     <label for="prod-ficha">Ficha técnica (PDF)</label>
                                     <input id="prod-ficha" type="file" name="ficha_pdf" class="product-form-input" accept="application/pdf,.pdf">
                                 </div>
+                                <div class="admin-form-group">
+                                    <label for="prod-imagenes-adicionales">Imágenes adicionales</label>
+                                    <input id="prod-imagenes-adicionales" type="file" name="imagenes_adicionales" class="product-form-input" accept="image/png,image/jpeg,image/webp" multiple>
+                                    <span class="product-form-hint">Puedes seleccionar múltiples imágenes para la galería.</span>
+                                    <div id="prodImagenesAdicionalesActuales" class="product-extra-chips"></div>
+                                </div>
                                 <label class="admin-check product-form-check"><input type="checkbox" name="eliminar_ficha"> Quitar ficha actual</label>
+                            </div>
+                            <div class="product-form-section">
+                                <h4 class="product-form-section__title">Especificaciones técnicas</h4>
+                                <div class="admin-form-group">
+                                    <label>Campos técnicos de la categoría</label>
+                                    <div id="prodCamposTecnicosContainer" class="dynamic-fields-wrap">
+                                        <p class="admin-form-hint">Selecciona una categoría para cargar campos técnicos.</p>
+                                    </div>
+                                </div>
+                                <div id="prodEspecificacionesTecnicasContainer" class="spec-list-wrap"></div>
+                                <button type="button" id="btnAddEspecificacion" class="admin-mini-btn" style="margin-top: 8px;"><i class="fas fa-plus"></i> Agregar especificación</button>
+                            </div>
+                            <div class="product-form-section">
+                                <h4 class="product-form-section__title">Características destacadas</h4>
+                                <div class="product-inline-group">
+                                    <input id="prodCaracteristicaInput" class="product-form-input" placeholder="Ej: Ahorro energético de hasta 30%">
+                                    <button type="button" id="btnAddCaracteristica" class="admin-mini-btn"><i class="fas fa-plus"></i> Agregar</button>
+                                </div>
+                                <div id="prodCaracteristicasList" class="product-extra-chips"></div>
+                            </div>
+                            <div class="product-form-section">
+                                <h4 class="product-form-section__title">Contenido del kit / combo</h4>
+                                <div class="product-inline-group">
+                                    <input id="prodKitInput" class="product-form-input" placeholder="Ej: 1 bomba, 1 filtro de arena, 2 válvulas">
+                                    <button type="button" id="btnAddKit" class="admin-mini-btn"><i class="fas fa-plus"></i> Agregar</button>
+                                </div>
+                                <div id="prodKitList" class="product-extra-chips"></div>
+                            </div>
+                            <div class="product-form-section">
+                                <h4 class="product-form-section__title">Productos recomendados</h4>
+                                <input id="prodRecomendadoSearch" class="product-form-input" placeholder="Busca por nombre o slug...">
+                                <div id="prodRecomendadoResultados" class="product-reco-results"></div>
+                                <div id="prodRecomendadoSeleccionados" class="product-extra-chips"></div>
                             </div>
                             <div class="product-form-section">
                                 <label for="prod-descripcion">Descripción</label>
@@ -221,6 +334,7 @@
                             </div>
                             <div class="product-form-nav">
                                 <button type="button" class="product-form-btn product-form-btn--prev"><i class="fas fa-arrow-left"></i> Anterior</button>
+                                <button type="button" id="btnCancelEditProducto" class="product-form-btn product-form-btn--prev" hidden><i class="fas fa-rotate-left"></i> Cancelar edición</button>
                                 <button type="submit" class="admin-btn product-form-btn product-form-btn--submit"><i class="fas fa-save"></i> Guardar producto</button>
                             </div>
                         </div>

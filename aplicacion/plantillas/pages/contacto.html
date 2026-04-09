@@ -4,65 +4,779 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nosotros | Etiquetar Colombia - Soluciones en Piscinas y Tratamiento de Agua</title>
+    <title>Contacto | Etiquetar Colombia - Equipos de Piscina y Tratamiento de Agua</title>
     <meta name="description"
-        content="Conoce a Etiquetar Colombia: equipo, enfoque técnico y compromiso comercial en soluciones para Piscina & Spa y Tratamiento de Agua en Colombia.">
-    <meta name="keywords"
-        content="nosotros, empresa piscinas colombia, tratamiento de agua colombia, soluciones hidráulicas, asesoría técnica piscina, proveedores piscina">
-    <meta name="robots" content="index, follow">
+        content="Contáctanos para asesoría técnica en equipos de piscina, purificadores de agua y mantenimiento. Respuesta en menos de 24 horas.">
     <link rel="canonical" href="https://etiquetarcolombia.com/contacto">
-    <meta property="og:title" content="Nosotros | Etiquetar Colombia">
-    <meta property="og:description"
-        content="Somos un equipo especializado en soluciones para Piscina & Spa y Tratamiento de Agua con acompañamiento técnico y comercial.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://etiquetarcolombia.com/contacto">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&family=Cormorant+Garamond:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Styles -->
-    <link rel="stylesheet" href="../../estaticos/css/home.css">
-    <link rel="stylesheet" href="../../estaticos/css/nosotros.css">
+    <style>
+        :root {
+            --bg-page: #F4F7F8;
+            --aqua: #0ABFCA;
+            --piscina-green: #0CAF7A;
+            --blue-primary: #083D44;
+            --blue-hero: #0A2730;
+            --blue-hero-end: #0A5C66;
+            --navy-footer: #0D2B38;
+            --text-muted: #5A7A80;
+            --bg-input: #F8FAFB;
+            --bg-light: #EBF4F6;
+            --white: #ffffff;
+            --shadow-premium: 0 8px 48px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--blue-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: var(--transition);
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .navbar.scrolled {
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+
+        .navbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            position: relative;
+        }
+
+        .navbar__logo {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar__logo img {
+            height: 50px;
+            width: auto;
+            display: block;
+        }
+
+        .navbar__menu {
+            display: flex;
+            list-style: none;
+            gap: 24px;
+            flex: 2;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .navbar__link {
+            text-decoration: none;
+            color: var(--blue-primary);
+            font-weight: 600;
+            font-size: 0.92rem;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .navbar__link:hover, .navbar__link.active {
+            color: var(--aqua);
+        }
+
+        .navbar__actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .navbar__action-btn {
+            text-decoration: none;
+            color: var(--blue-primary);
+            font-size: 1.1rem;
+            position: relative;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .navbar__action-btn:hover {
+            color: var(--aqua);
+            transform: translateY(-2px);
+        }
+
+        .navbar__cart-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--aqua);
+            color: white;
+            font-size: 0.65rem;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 800;
+            border: 2px solid white;
+        }
+
+        .navbar__toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--blue-primary);
+            cursor: pointer;
+        }
+
+        /* Dropdown del Catálogo */
+        .navbar__catalog-bar {
+            background: #f8f9fa;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            display: none; /* Hidden by default */
+            padding: 12px 0;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .navbar__catalog-bar.active {
+            display: block;
+        }
+
+        .navbar__catalog-bar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+        }
+
+        .navbar__catalog-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .navbar__catalog-option {
+            text-decoration: none;
+            color: var(--blue-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+        }
+
+        .navbar__catalog-option:hover {
+            color: var(--aqua);
+        }
+
+        .navbar__catalog-option i {
+            font-size: 1.1rem;
+            color: var(--aqua);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* HERO DE CONTACTO */
+        .contact-hero {
+            height: 380px;
+            background: linear-gradient(135deg, var(--blue-hero) 0%, var(--blue-primary) 60%, var(--blue-hero-end) 100%);
+            border-radius: 0 0 48px 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            padding: 0 24px;
+        }
+
+        .contact-hero__orbe {
+            position: absolute;
+            right: -100px;
+            top: -100px;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(10,191,202,0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .contact-hero__label {
+            display: block;
+            font-size: 0.68rem;
+            letter-spacing: 0.2em;
+            color: var(--aqua);
+            text-transform: uppercase;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .contact-hero__title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 16px;
+            line-height: 1.1;
+        }
+
+        .contact-hero__subtitle {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.75);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* SECCIÓN PRINCIPAL */
+        .contact-main {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 48px;
+            max-width: 1200px;
+            margin: -60px auto 0;
+            padding: 0 clamp(16px, 4vw, 64px) 80px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* COLUMNA IZQUIERDA */
+        .contact-info-card {
+            background: var(--white);
+            border-radius: 28px;
+            padding: 48px;
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .contact-info__header h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.8rem;
+            color: var(--blue-primary);
+            margin-bottom: 12px;
+        }
+
+        .contact-info__header p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .contact-method {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .contact-method__icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-light);
+            color: var(--aqua);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .contact-method__text strong {
+            display: block;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .contact-method__text span {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        .contact-info__divider {
+            height: 1px;
+            background: rgba(0,0,0,0.06);
+            margin: 8px 0;
+        }
+
+        .contact-social__title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .contact-social__list {
+            display: flex;
+            gap: 12px;
+            list-style: none;
+        }
+
+        .contact-social__link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-light);
+            color: var(--blue-primary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .contact-social__link:hover {
+            background: var(--blue-primary);
+            color: var(--white);
+            transform: translateY(-3px);
+        }
+
+        .contact-hours {
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-hero-end));
+            border-radius: 20px;
+            padding: 28px;
+            color: var(--white);
+            margin-top: 24px;
+        }
+
+        .contact-hours__title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contact-hours__list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .contact-hours__item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .contact-hours__item i {
+            color: var(--aqua);
+            margin-right: 8px;
+        }
+
+        /* COLUMNA DERECHA - FORMULARIO */
+        .contact-form-card {
+            background: var(--white);
+            border-radius: 28px;
+            padding: 56px;
+            box-shadow: var(--shadow-premium);
+        }
+
+        .contact-form__header h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            color: var(--blue-primary);
+            margin-bottom: 8px;
+        }
+
+        .contact-form__header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .contact-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .contact-pill {
+            border: 1.5px solid rgba(0,0,0,0.1);
+            border-radius: 999px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: var(--transition);
+            background: var(--white);
+            color: var(--blue-primary);
+        }
+
+        .contact-pill:hover {
+            border-color: var(--blue-primary);
+        }
+
+        .contact-pill.active {
+            background: var(--blue-primary);
+            color: var(--white);
+            border-color: var(--blue-primary);
+        }
+
+        .contact-form__grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .contact-form__field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .contact-form__field--full {
+            grid-column: span 2;
+        }
+
+        .contact-form__label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--blue-primary);
+            letter-spacing: 0.02em;
+        }
+
+        .contact-form__input, .contact-form__textarea {
+            border: 1.5px solid rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-family: 'Manrope', sans-serif;
+            font-size: 0.95rem;
+            background: var(--bg-input);
+            transition: var(--transition);
+            width: 100%;
+            outline: none;
+        }
+
+        .contact-form__input:focus, .contact-form__textarea:focus {
+            border-color: var(--aqua);
+            box-shadow: 0 0 0 4px rgba(10,191,202,0.1);
+            background: var(--white);
+        }
+
+        .contact-form__textarea {
+            height: 140px;
+            resize: vertical;
+        }
+
+        .contact-form__submit {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-hero-end));
+            color: var(--white);
+            border-radius: 14px;
+            padding: 18px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(8,61,68,0.3);
+            transition: all 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .contact-form__submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 40px rgba(8,61,68,0.35);
+        }
+
+        .contact-form__submit:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .contact-form__footer {
+            grid-column: span 2;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .contact-form__footer i {
+            color: var(--piscina-green);
+        }
+
+        /* SECCIÓN MAPA */
+        .contact-map {
+            height: 400px;
+            background: linear-gradient(135deg, var(--bg-light), var(--bg-page));
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 24px;
+            margin: 0 24px 80px;
+        }
+
+        .contact-map__content i {
+            font-size: 2.5rem;
+            color: var(--aqua);
+            margin-bottom: 16px;
+        }
+
+        .contact-map__content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .contact-map__content p {
+            color: var(--text-muted);
+        }
+
+        /* FOOTER */
+        .footer {
+            background: var(--navy-footer);
+            color: rgba(255,255,255,0.8);
+            padding: 80px 0 40px;
+        }
+
+        .footer__grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 60px;
+        }
+
+        .footer__logo img {
+            height: 46px;
+            margin-bottom: 24px;
+        }
+
+        .footer__desc {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            margin-bottom: 24px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .footer__social {
+            display: flex;
+            gap: 12px;
+        }
+
+        .footer__social-link {
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer__social-link:hover {
+            background: var(--aqua);
+            transform: translateY(-3px);
+        }
+
+        .footer__title {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .footer__links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer__link {
+            text-decoration: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .footer__link:hover {
+            color: var(--aqua);
+            padding-left: 5px;
+        }
+
+        .footer__bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 32px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* WHATSAPP FLOTANTE */
+        .whatsapp-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: #25D366;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: whatsapp-pulse 2s infinite;
+        }
+
+        @keyframes whatsapp-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+
+        /* MENSAJE DE ÉXITO */
+        .success-message {
+            display: none;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            animation: authFadeUp 0.5s ease forwards;
+        }
+
+        .success-message i {
+            font-size: 2.5rem;
+            color: var(--piscina-green);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .success-message h3 {
+            color: #166534;
+            margin-bottom: 8px;
+        }
+
+        .success-message p {
+            color: #16a34a;
+            font-size: 0.95rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .contact-main {
+                grid-template-columns: 1fr;
+            }
+            .footer__grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar__menu {
+                display: none; /* Simplificado para este ejemplo */
+            }
+            .contact-form-card, .contact-info-card {
+                padding: 32px 24px;
+            }
+            .contact-form__grid {
+                grid-template-columns: 1fr;
+            }
+            .contact-form__field--full, .contact-form__submit, .contact-form__footer {
+                grid-column: span 1;
+            }
+            .footer__grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+        }
+
+        @keyframes authFadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .spinner {
+            animation: rotate 2s linear infinite;
+            width: 20px;
+            height: 20px;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 
-<body class="nosotros-page">
+<body>
 
-    <!-- ══════════════════════════════
-         TOP BAR
-         ══════════════════════════════ -->
-    <div class="top-bar">
-        <div class="container">
-            <div class="top-bar__left">
-                <div class="top-bar__item">
-                    <i class="fas fa-phone-alt"></i>
-                    <a href="tel:+573001234567">+57 300 123 4567</a>
-                </div>
-                <div class="top-bar__item">
-                    <i class="fas fa-envelope"></i>
-                    <a href="mailto:info@etiquetarcolombia.com">info@etiquetarcolombia.com</a>
-                </div>
-            </div>
-            <div class="top-bar__right">
-                <div class="top-bar__item">
-                    <i class="fas fa-truck"></i>
-                    Envío a todo Colombia
-                </div>
-                <div class="top-bar__item">
-                    <i class="fas fa-clock"></i>
-                    Lun - Sáb: 8:00 AM - 6:00 PM
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════
-         NAVBAR
-         ══════════════════════════════ -->
+    <!-- NAVBAR -->
     <nav class="navbar" id="navbar">
         <div class="container">
             <a href="/" class="navbar__logo">
@@ -70,216 +784,240 @@
             </a>
             <ul class="navbar__menu" id="navMenu">
                 <li><a href="/" class="navbar__link">Inicio</a></li>
-                <li><a href="/nosotros" class="navbar__link">Nosotros</a></li>
-                <li><a href="/catalogo/piscina" class="navbar__link navbar__link--piscina">
-                    <i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a>
-                </li>
-                <li><a href="/catalogo/agua" class="navbar__link navbar__link--agua">
-                    <i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a>
-                </li>
+                <li><a href="/piscina" class="navbar__link navbar__link--piscina">
+                    <i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa
+                  </a></li>
+                <li><a href="/agua" class="navbar__link navbar__link--agua">
+                    <i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua
+                  </a></li>
+                <li><a href="#" class="navbar__link navbar__link--catalog">Catálogo <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-left:2px;"></i></a></li>
                 <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
                 <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
                 <li><a href="/contacto" class="navbar__link active">Contacto</a></li>
             </ul>
             <div class="navbar__actions">
-                <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta"><i class="fas fa-user"></i></a>
-                <a href="/carrito" class="navbar__action-btn" aria-label="Carrito">
-                    <i class="fas fa-shopping-cart"></i><span class="navbar__cart-badge">{{ carrito_count }}</span>
+                <button class="navbar__action-btn navbar__action-btn--search" aria-label="Buscar">
+                    <i class="fas fa-search"></i>
+                </button>
+                <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta">
+                    <i class="fas fa-user"></i>
                 </a>
-                <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+                <a href="/carrito" class="navbar__action-btn" aria-label="Carrito">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="navbar__cart-badge">{{ carrito_count }}</span>
+                </a>
+                <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Dropdown del Catálogo -->
+        <div class="navbar__catalog-bar" id="catalogBar">
+            <div class="navbar__catalog-bar-inner">
+                <span class="navbar__catalog-label">Elige el catálogo:</span>
+                <a href="/catalogo/piscina" class="navbar__catalog-option">
+                    <i class="fas fa-swimming-pool"></i> Piscina y Spa
+                </a>
+                <a href="/catalogo/agua" class="navbar__catalog-option">
+                    <i class="fas fa-tint"></i> Tratamiento de Agua
+                </a>
             </div>
         </div>
     </nav>
 
-    <!-- ══════════════════════════════
-         HERO SECTION
-         ══════════════════════════════ -->
-    <header class="nos-hero">
-        <div class="nos-hero__bg" style="background-image: url('https://images.unsplash.com/photo-1560185007-cde436f6a4d0?q=80&w=2070&auto=format&fit=crop');"></div>
-        <div class="nos-hero__overlay"></div>
-        <div class="nos-hero__content">
-            <p class="nos-hero__kicker">Expertos</p>
-            <h1 class="nos-hero__title">Por Naturaleza</h1>
-            <p class="nos-hero__subtitle">10 años. +1.000 clientes. Todo Colombia.</p>
+    <!-- HERO DE CONTACTO -->
+    <header class="contact-hero">
+        <div class="contact-hero__orbe"></div>
+        <div class="contact-hero__content">
+            <span class="contact-hero__label">Contáctanos</span>
+            <h1 class="contact-hero__title">Estamos Aquí Para Ayudarte</h1>
+            <p class="contact-hero__subtitle">Resolvemos tus dudas sobre equipos, instalación y mantenimiento. Respuesta en menos de 24 horas hábiles.</p>
         </div>
     </header>
 
-    <!-- ══════════════════════════════
-         FEATURES / DIFERENCIADORES
-         ══════════════════════════════ -->
-    <section class="nos-features">
-        <div class="container">
-            <h2 class="nos-section-title">Qué Nos Diferencia</h2>
-            <p class="nos-section-desc">Tres razones por las que nuestros clientes nos recomiendan en proyectos de agua y piscina.</p>
-            <div class="nos-features__grid">
-                <div class="nos-feature">
-                    <span class="nos-feature__num">01</span>
-                    <h3 class="nos-feature__title">Acompañamiento Real</h3>
-                    <p class="nos-feature__desc">Te asesoramos antes, durante y después del proyecto.<br>Sin recomendaciones genéricas.</p>
-                </div>
-                <div class="nos-feature">
-                    <span class="nos-feature__num">02</span>
-                    <h3 class="nos-feature__title">Criterio Técnico</h3>
-                    <p class="nos-feature__desc">Seleccionamos equipos por rendimiento y durabilidad.<br>No por moda o precio bajo.</p>
-                </div>
-                <div class="nos-feature">
-                    <span class="nos-feature__num">03</span>
-                    <h3 class="nos-feature__title">Cobertura Nacional</h3>
-                    <p class="nos-feature__desc">Atendemos proyectos en todo Colombia con logística confiable.<br>Cumplimos tiempos y calidad.</p>
+    <!-- SECCIÓN PRINCIPAL -->
+    <main class="contact-main">
+        
+        <!-- COLUMNA IZQUIERDA -->
+        <aside class="contact-info-card">
+            <div class="contact-info__header">
+                <h2>Información de Contacto</h2>
+                <p>Nuestros expertos técnicos están listos para brindarte la mejor asesoría personalizada para tu proyecto.</p>
+            </div>
+
+            <div class="contact-method">
+                <div class="contact-method__icon"><i class="fas fa-phone-alt"></i></div>
+                <div class="contact-method__text">
+                    <strong>Teléfono</strong>
+                    <span>+57 300 123 4567 — Lun - Sáb: 8:00 AM - 6:00 PM</span>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- ══════════════════════════════
-         SPLIT SECTION - QUIÉNES SOMOS
-         ══════════════════════════════ -->
-    <section class="nos-split">
-        <div class="nos-split__text">
-            <h2 class="nos-split__title">Quiénes Somos</h2>
-            <p>
-                Somos un equipo técnico-comercial especializado en <strong>Piscina & Spa</strong> y <strong>Tratamiento de Agua</strong>.
-            </p>
-            <p>
-                Diseñamos soluciones claras, ejecutables y rentables para hogares, comercios e industria ligera.
-            </p>
-            <p>
-                Trabajamos con marcas certificadas y acompañamiento continuo para que tomes decisiones sin improvisar.
-            </p>
-            <div class="nos-kpis-inline">
-                <span>10 años</span>
-                <span>+1.000 clientes</span>
-                <span>32 departamentos</span>
+            <div class="contact-method">
+                <div class="contact-method__icon"><i class="fas fa-envelope"></i></div>
+                <div class="contact-method__text">
+                    <strong>Email</strong>
+                    <span>info@etiquetarcolombia.com — Respuesta < 24h</span>
+                </div>
             </div>
-        </div>
-        <div class="nos-split__image" style="background-image: url('https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=1974&auto=format&fit=crop');"></div>
-    </section>
 
-    <!-- ══════════════════════════════
-         SPLIT SECTION - LÍNEAS DE SOLUCIÓN
-         ══════════════════════════════ -->
-    <section class="nos-lines">
-        <div class="container">
-            <h2 class="nos-section-title nos-section-title--light">Nuestras Líneas de Solución</h2>
-            <div class="nos-lines__grid">
-                <article class="nos-line-card nos-line-card--piscina">
-                    <div class="nos-line-card__img" style="background-image: url('https://images.unsplash.com/photo-1601758123927-19636f8d9161?q=80&w=2070&auto=format&fit=crop');"></div>
-                    <div class="nos-line-card__body">
-                        <h3>Piscina &amp; Spa</h3>
-                        <ul>
-                            <li>Bombas y filtros de alto rendimiento</li>
-                            <li>Automatización y control de operación</li>
-                            <li>Químicos y mantenimiento especializado</li>
-                        </ul>
-                        <a href="../catalogo/piscina.html" class="nos-line-card__btn">Explorar Piscinas <i class="fas fa-arrow-right"></i></a>
+            <div class="contact-method">
+                <div class="contact-method__icon"><i class="fas fa-map-marker-alt"></i></div>
+                <div class="contact-method__text">
+                    <strong>Cobertura</strong>
+                    <span>Colombia — Envío Nacional — Ciudades Principales</span>
+                </div>
+            </div>
+
+            <div class="contact-method">
+                <div class="contact-method__icon"><i class="fab fa-whatsapp"></i></div>
+                <div class="contact-method__text">
+                    <strong>WhatsApp</strong>
+                    <span>+57 300 123 4567 — Respuesta inmediata</span>
+                </div>
+            </div>
+
+            <div class="contact-info__divider"></div>
+
+            <div class="contact-social">
+                <h3 class="contact-social__title">Síguenos</h3>
+                <ul class="contact-social__list">
+                    <li><a href="#" class="contact-social__link"><i class="fab fa-facebook-f"></i></a></li>
+                    <li><a href="#" class="contact-social__link"><i class="fab fa-instagram"></i></a></li>
+                    <li><a href="#" class="contact-social__link"><i class="fab fa-youtube"></i></a></li>
+                    <li><a href="#" class="contact-social__link"><i class="fab fa-whatsapp"></i></a></li>
+                </ul>
+            </div>
+
+            <div class="contact-hours">
+                <h3 class="contact-hours__title"><i class="fas fa-clock"></i> Horarios de Atención</h3>
+                <ul class="contact-hours__list">
+                    <li class="contact-hours__item">
+                        <span>Lunes - Viernes:</span>
+                        <span>8:00 AM - 6:00 PM</span>
+                    </li>
+                    <li class="contact-hours__item">
+                        <span>Sábado:</span>
+                        <span>9:00 AM - 2:00 PM</span>
+                    </li>
+                    <li class="contact-hours__item">
+                        <span>Domingo:</span>
+                        <span>Cerrado</span>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- COLUMNA DERECHA -->
+        <section class="contact-form-card">
+            <div id="formContainer">
+                <div class="contact-form__header">
+                    <h2>Envíanos un Mensaje</h2>
+                    <p>Cuéntanos qué necesitas y un asesor técnico se pondrá en contacto contigo.</p>
+                </div>
+
+                <div class="contact-pills">
+                    <div class="contact-pill active" onclick="selectPill(this)">🏊 Piscina & Spa</div>
+                    <div class="contact-pill" onclick="selectPill(this)">💧 Tratamiento de Agua</div>
+                    <div class="contact-pill" onclick="selectPill(this)">🔧 Soporte Técnico</div>
+                </div>
+
+                <form class="contact-form__grid" id="contactForm">
+                    <div class="contact-form__field">
+                        <label class="contact-form__label">Nombre completo *</label>
+                        <input type="text" class="contact-form__input" placeholder="Juan Pérez" required>
                     </div>
-                </article>
-                <article class="nos-line-card nos-line-card--agua">
-                    <div class="nos-line-card__img" style="background-image: url('https://images.unsplash.com/photo-1584974821083-a8f8e6b7f5aa?q=80&w=2070&auto=format&fit=crop');"></div>
-                    <div class="nos-line-card__body">
-                        <h3>Tratamiento de Agua</h3>
-                        <ul>
-                            <li>Ósmosis, UV y carbón activado</li>
-                            <li>Calidad de agua para hogar e industria</li>
-                            <li>Soluciones de instalación y postventa</li>
-                        </ul>
-                        <a href="../catalogo/agua.html" class="nos-line-card__btn">Explorar Purificación <i class="fas fa-arrow-right"></i></a>
+                    <div class="contact-form__field">
+                        <label class="contact-form__label">Empresa (opcional)</label>
+                        <input type="text" class="contact-form__input" placeholder="Nombre de tu empresa">
                     </div>
-                </article>
+                    <div class="contact-form__field">
+                        <label class="contact-form__label">Correo electrónico *</label>
+                        <input type="email" class="contact-form__input" placeholder="tu@email.com" required>
+                    </div>
+                    <div class="contact-form__field">
+                        <label class="contact-form__label">Teléfono / WhatsApp *</label>
+                        <input type="tel" class="contact-form__input" placeholder="+57 300 123 4567" required>
+                    </div>
+                    <div class="contact-form__field contact-form__field--full">
+                        <label class="contact-form__label">Ciudad *</label>
+                        <input type="text" class="contact-form__input" placeholder="Bogotá, Medellín, Cali..." required>
+                    </div>
+                    <div class="contact-form__field contact-form__field--full">
+                        <label class="contact-form__label">Mensaje *</label>
+                        <textarea class="contact-form__textarea" placeholder="¿En qué podemos ayudarte?" required></textarea>
+                    </div>
+                    <button type="submit" class="contact-form__submit" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Enviar Mensaje</span>
+                    </button>
+                    <div class="contact-form__footer">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Tus datos están protegidos</span>
+                    </div>
+                </form>
             </div>
-        </div>
-    </section>
 
-    <!-- ══════════════════════════════
-         TIMELINE - CÓMO TRABAJAMOS
-         ══════════════════════════════ -->
-    <section class="nos-timeline">
-        <div class="container">
-            <h2 class="nos-timeline__title">Cómo Trabajamos</h2>
-            <div class="nos-timeline__grid">
-                <!-- Paso 1 -->
-                <div class="nos-time-item">
-                    <div class="nos-time-item__icon nos-time-item__icon--piscina"><i class="fas fa-search"></i></div>
-                    <h3 class="nos-time-item__year">01</h3>
-                    <h4 class="nos-time-item__title">Diagnóstico</h4>
-                    <p class="nos-time-item__desc">Evaluamos tu necesidad técnica y operativa.</p>
-                </div>
-                <!-- Paso 2 -->
-                <div class="nos-time-item">
-                    <div class="nos-time-item__icon nos-time-item__icon--agua"><i class="fas fa-lightbulb"></i></div>
-                    <h3 class="nos-time-item__year">02</h3>
-                    <h4 class="nos-time-item__title">Propuesta</h4>
-                    <p class="nos-time-item__desc">Diseñamos la solución más conveniente para tu proyecto.</p>
-                </div>
-                <!-- Paso 3 -->
-                <div class="nos-time-item">
-                    <div class="nos-time-item__icon nos-time-item__icon--piscina"><i class="fas fa-truck-loading"></i></div>
-                    <h3 class="nos-time-item__year">03</h3>
-                    <h4 class="nos-time-item__title">Implementación</h4>
-                    <p class="nos-time-item__desc">Coordinamos suministro e instalación con control técnico.</p>
-                </div>
-                <!-- Paso 4 -->
-                <div class="nos-time-item">
-                    <div class="nos-time-item__icon nos-time-item__icon--agua"><i class="fas fa-headset"></i></div>
-                    <h3 class="nos-time-item__year">04</h3>
-                    <h4 class="nos-time-item__title">Seguimiento</h4>
-                    <p class="nos-time-item__desc">Te acompañamos con soporte, repuestos y optimización.</p>
-                </div>
+            <!-- Éxito -->
+            <div class="success-message" id="successMsg">
+                <i class="fas fa-check-circle"></i>
+                <h3>¡Mensaje Enviado!</h3>
+                <p>Gracias por contactarnos. Un asesor técnico te responderá en menos de 24 horas hábiles.</p>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <!-- ══════════════════════════════
-         CTA / NEWSLETTER (RED STRIP)
-         ══════════════════════════════ -->
-    <section class="nos-cta-strip">
-        <div class="container nos-cta-strip__inner">
-            <h2 class="nos-cta-strip__title">¿Listo Para Empezar?</h2>
-            <div class="nos-cta-strip__actions">
-                <a href="../pages/cotizar.html" class="nos-cta-strip__btn nos-cta-strip__btn--primary">Solicitar Cotización <i class="fas fa-arrow-right"></i></a>
-                <a href="https://wa.me/573001234567" target="_blank" class="nos-cta-strip__btn nos-cta-strip__btn--secondary"><i class="fab fa-whatsapp"></i> WhatsApp Directo <i class="fas fa-arrow-right"></i></a>
-            </div>
+    <!-- SECCIÓN MAPA -->
+    <div class="contact-map">
+        <div class="contact-map__content">
+            <i class="fas fa-map-marked-alt"></i>
+            <h3>Colombia — Cobertura Nacional</h3>
+            <p>Atención remota y envíos garantizados a todas las ciudades principales.</p>
         </div>
-    </section>
+    </div>
 
-    <!-- ══════════════════════════════
-         FOOTER
-         ══════════════════════════════ -->
+    <!-- FOOTER -->
     <footer class="footer">
         <div class="container">
             <div class="footer__grid">
                 <div class="footer__col">
-                    <img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:46px; width:auto; display:block; margin-bottom:12px;">
-                    <p class="footer__desc" style="color:#aaa;">Expertos en equipos para piscinas y sistemas de tratamiento de agua. Cobertura nacional con las mejores marcas y garantía.</p>
+                    <div class="footer__logo">
+                        <img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S.">
+                    </div>
+                    <p class="footer__desc">Expertos en equipos para piscinas y sistemas de tratamiento de agua. Cobertura nacional con las mejores marcas y garantía técnica.</p>
                     <div class="footer__social">
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-                        <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#" class="footer__social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="footer__social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="footer__social-link"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="footer__social-link"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
                 <div class="footer__col">
                     <h4 class="footer__title">Piscina & Spa</h4>
                     <ul class="footer__links">
-                        <li><a href="../catalogo/piscina.html#bombas"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Bombas de Agua</a></li>
-                        <li><a href="../catalogo/piscina.html#filtros"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Filtros de Arena</a></li>
-                        <li><a href="../catalogo/piscina.html#limpiafondos"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Limpiafondos</a></li>
+                        <li><a href="/catalogo/piscina" class="footer__link">Bombas de Agua</a></li>
+                        <li><a href="/catalogo/piscina" class="footer__link">Filtros de Arena</a></li>
+                        <li><a href="/catalogo/piscina" class="footer__link">Limpiafondos</a></li>
+                        <li><a href="/catalogo/piscina" class="footer__link">Calefacción</a></li>
                     </ul>
                 </div>
                 <div class="footer__col">
                     <h4 class="footer__title">Tratamiento de Agua</h4>
                     <ul class="footer__links">
-                        <li><a href="../catalogo/agua.html#purificadores"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Purificadores</a></li>
-                        <li><a href="../catalogo/agua.html#osmosis"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Ósmosis Inversa</a></li>
-                        <li><a href="../catalogo/agua.html#uv"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Equipos UV</a></li>
+                        <li><a href="/catalogo/agua" class="footer__link">Purificadores</a></li>
+                        <li><a href="/catalogo/agua" class="footer__link">Ósmosis Inversa</a></li>
+                        <li><a href="/catalogo/agua" class="footer__link">Equipos UV</a></li>
+                        <li><a href="/catalogo/agua" class="footer__link">Suavizadores</a></li>
                     </ul>
                 </div>
                 <div class="footer__col">
                     <h4 class="footer__title">Contacto</h4>
                     <ul class="footer__links">
-                        <li><a href="tel:+573001234567"><i class="fas fa-phone-alt" style="font-size:0.75rem;"></i> +57 300 123 4567</a></li>
-                        <li><a href="mailto:info@etiquetarcolombia.com"><i class="fas fa-envelope" style="font-size:0.75rem;"></i> info@etiquetarcolombia.com</a></li>
-                        <li><a href="../pages/cotizar.html"><i class="fas fa-file-alt" style="font-size:0.75rem;"></i> Solicitar Cotización</a></li>
+                        <li><a href="tel:+573001234567" class="footer__link">+57 300 123 4567</a></li>
+                        <li><a href="mailto:info@etiquetarcolombia.com" class="footer__link">info@etiquetarcolombia.com</a></li>
+                        <li><a href="/cotizar" class="footer__link">Solicitar Cotización</a></li>
+                        <li><a href="/nosotros" class="footer__link">Nuestra Empresa</a></li>
                     </ul>
                 </div>
             </div>
@@ -290,20 +1028,71 @@
     </footer>
 
     <!-- WhatsApp Flotante -->
-    <a href="https://wa.me/573001234567" target="_blank" class="whatsapp-btn" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+    <a href="https://wa.me/573001234567" target="_blank" class="whatsapp-btn">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 
     <!-- Scripts -->
-    <script src="../../estaticos/js/home.js"></script>
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "Etiquetar Colombia",
-            "url": "https://etiquetarcolombia.com",
-            "email": "info@etiquetarcolombia.com",
-            "telephone": "+57 300 123 4567",
-            "description": "Empresa especializada en soluciones para Piscina & Spa y Tratamiento de Agua en Colombia."
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Catalog Toggle
+        const catalogBtn = document.querySelector('.navbar__link--catalog');
+        const catalogBar = document.getElementById('catalogBar');
+
+        if (catalogBtn && catalogBar) {
+            catalogBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                catalogBar.classList.toggle('active');
+                catalogBtn.classList.toggle('active');
+            });
+
+            // Close when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!catalogBtn.contains(e.target) && !catalogBar.contains(e.target)) {
+                    catalogBar.classList.remove('active');
+                    catalogBtn.classList.remove('active');
+                }
+            });
         }
+
+        // Pill selection
+        function selectPill(element) {
+            document.querySelectorAll('.contact-pill').forEach(pill => {
+                pill.classList.remove('active');
+            });
+            element.classList.add('active');
+        }
+
+        // Form Submission logic
+        const contactForm = document.getElementById('contactForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const formContainer = document.getElementById('formContainer');
+        const successMsg = document.getElementById('successMsg');
+
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // UI state: Loading
+            submitBtn.disabled = true;
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> <span>Enviando...</span>';
+
+            // Simulate API call
+            setTimeout(() => {
+                formContainer.style.display = 'none';
+                successMsg.style.display = 'block';
+            }, 2000);
+        });
     </script>
 </body>
+
 </html>

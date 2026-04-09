@@ -4,12 +4,13 @@ from datetime import datetime
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from flask import Flask, Response, g, render_template, request, session
+from flask import Flask, Response, abort, g, render_template, request, session
 from dotenv import load_dotenv
+from sqlalchemy.orm import joinedload
 
 from .config import config_by_name
 from .extensiones import db, migrate
-from .modelos import Banner, Usuario
+from .modelos import Banner, Producto, Usuario
 from .servicios import config_cloudinary
 
 
@@ -112,6 +113,153 @@ def _register_routes(app):
     def agua_landing():
         return render_template("agua-landing.html")
 
+    @app.get("/producto/<string:slug>")
+    def producto_detalle(slug):
+        producto = (
+            Producto.query.options(
+                joinedload(Producto.categoria),
+                joinedload(Producto.imagenes_adicionales),
+                joinedload(Producto.caracteristicas),
+                joinedload(Producto.contenido_kit),
+                joinedload(Producto.campos_tecnicos_valores),
+                joinedload(Producto.recomendados),
+            )
+            .filter(Producto.slug == slug, Producto.activo.is_(True))
+            .first()
+        )
+        if not producto:
+            abort(404)
+
+        especificaciones = []
+        descripcion_publica = (producto.descripcion or "").strip()
+        for valor in producto.campos_tecnicos_valores:
+            campo = valor.campo_tecnico
+            if not campo or not campo.activo:
+                continue
+            valor_mostrar = valor.valor_mostrar or ""
+            if campo.unidad_medida and valor_mostrar:
+                valor_mostrar = f"{valor_mostrar} {campo.unidad_medida}".strip()
+            especificaciones.append(
+                {
+                    "nombre": campo.nombre,
+                    "valor": valor_mostrar,
+                    "orden": campo.orden,
+                    "seccion": "Informacion tecnica",
+                }
+            )
+
+        if producto.especificaciones_tecnicas and isinstance(producto.especificaciones_tecnicas, list):
+            for idx, spec in enumerate(producto.especificaciones_tecnicas):
+                if not isinstance(spec, dict):
+                    continue
+                nombre = str(spec.get("nombre") or "").strip()
+                tipo = str(spec.get("tipo") or "").strip().lower()
+                if not nombre or tipo not in {"cuantitativa", "cualitativa"}:
+                    continue
+
+                if tipo == "cuantitativa":
+                    valor_numero = spec.get("valor_numero")
+                    unidad = str(spec.get("unidad") or "").strip()
+                    if valor_numero is None or not unidad:
+                        continue
+                    try:
+                        valor_num = float(valor_numero)
+                        valor_txt = str(int(valor_num)) if valor_num.is_integer() else str(valor_num)
+                    except (TypeError, ValueError):
+                        valor_txt = str(valor_numero)
+                    valor_mostrar = f"{valor_txt} {unidad}".strip()
+                else:
+                    valor_mostrar = str(spec.get("valor_texto") or "").strip()
+                    if not valor_mostrar:
+                        continue
+
+                especificaciones.append(
+                    {
+                        "nombre": nombre,
+                        "valor": valor_mostrar,
+                        "orden": 5000 + idx,
+                        "seccion": str(spec.get("seccion") or "Informacion tecnica"),
+                    }
+                )
+        # Fallback: algunos productos antiguos guardaron la ficha tecnica dentro de descripcion.
+        # Si no hay especificaciones estructuradas, intentamos extraer pares "Clave: Valor".
+        if not especificaciones and descripcion_publica:
+            patron_claves = [
+                "Marca",
+                "Referencia",
+                "Capacidad",
+                "Volumen",
+                "Material filtrante",
+                "Conexión",
+                "Conexion",
+                "Garantía",
+                "Garantia",
+                "Aplicación",
+                "Aplicacion",
+            ]
+            alternancia = "|".join(re.escape(k) for k in patron_claves)
+            regex = re.compile(
+                rf"({alternancia})\s*:\s*(.*?)(?=\s+(?:{alternancia})\s*:|$)",
+                re.IGNORECASE,
+            )
+            coincidencias = list(regex.finditer(descripcion_publica))
+            if coincidencias:
+                inicio_specs = coincidencias[0].start()
+                descripcion_publica = descripcion_publica[:inicio_specs].strip()
+                for idx, match in enumerate(coincidencias):
+                    clave = (match.group(1) or "").strip()
+                    valor = (match.group(2) or "").strip()
+                    if not clave or not valor:
+                        continue
+                    clave_normal = clave.lower()
+                    seccion = "Funciones" if clave_normal in {"aplicación", "aplicacion"} else "Informacion tecnica"
+                    especificaciones.append(
+                        {
+                            "nombre": clave,
+                            "valor": valor,
+                            "orden": 9000 + idx,
+                            "seccion": seccion,
+                        }
+                    )
+
+        especificaciones.sort(key=lambda item: item["orden"])
+
+        orden_secciones = ["Funciones", "Caracteristicas fisicas", "Informacion tecnica"]
+        mapa_secciones = {k: [] for k in orden_secciones}
+        for item in especificaciones:
+            seccion = str(item.get("seccion") or "Informacion tecnica")
+            if seccion not in mapa_secciones:
+                mapa_secciones[seccion] = []
+            mapa_secciones[seccion].append(item)
+
+        secciones_especificaciones = [
+            {"titulo": titulo, "items": mapa_secciones[titulo]}
+            for titulo in orden_secciones
+            if mapa_secciones.get(titulo)
+        ]
+        secciones_adicionales = [k for k in mapa_secciones.keys() if k not in orden_secciones and mapa_secciones.get(k)]
+        for titulo in sorted(secciones_adicionales):
+            secciones_especificaciones.append({"titulo": titulo, "items": mapa_secciones[titulo]})
+
+        recomendados = [p for p in producto.recomendados if p.activo and p.id != producto.id][:8]
+        galeria = []
+        if producto.imagen_url:
+            galeria.append({"url": producto.imagen_url, "alt": producto.nombre})
+        for img in sorted(producto.imagenes_adicionales, key=lambda x: (x.orden, x.id)):
+            galeria.append({"url": img.imagen_url, "alt": img.alt_text or producto.nombre})
+
+        return render_template(
+            "producto-detalle.html",
+            producto=producto,
+            descripcion_publica=descripcion_publica,
+            galeria=galeria,
+            especificaciones=especificaciones,
+            secciones_especificaciones=secciones_especificaciones,
+            caracteristicas=[c.texto for c in sorted(producto.caracteristicas, key=lambda x: (x.orden, x.id))],
+            contenido_kit=[c.texto for c in sorted(producto.contenido_kit, key=lambda x: (x.orden, x.id))],
+            recomendados=recomendados,
+        )
+
     @app.get("/blog")
     @app.get("/blog/listado.html")
     def blog_listado():
@@ -133,11 +281,14 @@ def _register_routes(app):
         return render_template("blog/articulo-3-mantenimiento-piscina.html")
 
     @app.get("/nosotros")
+    def nosotros():
+        return render_template("pages/nosotros.html")
+
     @app.get("/contacto.html")
     @app.get("/contacto")
     @app.get("/pages/contacto.html")
     def contacto():
-        return render_template("pages/nosotros.html")
+        return render_template("pages/contacto.html")
 
     @app.get("/health")
     def health():

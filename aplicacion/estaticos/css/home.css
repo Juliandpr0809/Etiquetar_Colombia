@@ -354,8 +354,22 @@ body.lp-theme--piscina .navbar.scrolled {
 body.lp-theme--agua .navbar.scrolled .navbar__link, 
 body.lp-theme--agua .navbar.scrolled .navbar__action-btn,
 body.lp-theme--piscina .navbar.scrolled .navbar__link, 
-body.lp-theme--piscina .navbar.scrolled .navbar__action-btn {
+body.lp-theme--piscina .navbar.scrolled .navbar__action-btn,
+body.page-gateway .navbar.scrolled .navbar__link, 
+body.page-gateway .navbar.scrolled .navbar__action-btn,
+body.nosotros-page .navbar.scrolled .navbar__link, 
+body.nosotros-page .navbar.scrolled .navbar__action-btn {
   color: #ffffff !important;
+}
+
+body.page-gateway .navbar.scrolled,
+body.nosotros-page .navbar.scrolled {
+  background: rgba(10, 77, 104, 0.96) !important; /* var(--piscina-primary) para consistencia */
+}
+
+body.page-gateway .navbar.scrolled .navbar__logo img,
+body.nosotros-page .navbar.scrolled .navbar__logo img {
+  filter: brightness(0) invert(1) !important;
 }
 
 body.lp-theme--agua .navbar.scrolled .navbar__logo img,

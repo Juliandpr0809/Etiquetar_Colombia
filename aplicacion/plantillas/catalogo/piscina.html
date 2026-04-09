@@ -74,25 +74,44 @@
             </a>
             <ul class="navbar__menu" id="navMenu">
                 <li><a href="/" class="navbar__link">Inicio</a></li>
-                <li><a href="/nosotros" class="navbar__link">Nosotros</a></li>
-                <li><a href="/catalogo/piscina" class="navbar__link navbar__link--piscina active">
-                        <i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa
-                    </a></li>
-                <li><a href="/catalogo/agua" class="navbar__link navbar__link--agua">
-                        <i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua
-                    </a></li>
+                <li><a href="/piscina" class="navbar__link navbar__link--piscina active">
+                    <i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa
+                  </a></li>
+                <li><a href="/agua" class="navbar__link navbar__link--agua">
+                    <i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua
+                  </a></li>
+                <li><a href="#" class="navbar__link navbar__link--catalog">Catálogo <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-left:2px;"></i></a></li>
                 <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
                 <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
                 <li><a href="/contacto" class="navbar__link">Contacto</a></li>
             </ul>
             <div class="navbar__actions">
-                <button class="navbar__action-btn" aria-label="Buscar"><i class="fas fa-search"></i></button>
-                <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta"><i class="fas fa-user"></i></a>
+                <button class="navbar__action-btn navbar__action-btn--search" aria-label="Buscar">
+                    <i class="fas fa-search"></i>
+                </button>
+                <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta">
+                    <i class="fas fa-user"></i>
+                </a>
                 <a href="/carrito" class="navbar__action-btn" aria-label="Carrito">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="navbar__cart-badge">{{ carrito_count }}</span>
                 </a>
-                <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+                <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Dropdown del Catálogo -->
+        <div class="navbar__catalog-bar" id="catalogBar">
+            <div class="navbar__catalog-bar-inner">
+                <span class="navbar__catalog-label">Elige el catálogo:</span>
+                <a href="/catalogo/piscina" class="navbar__catalog-option">
+                    <i class="fas fa-swimming-pool"></i> Piscina y Spa
+                </a>
+                <a href="/catalogo/agua" class="navbar__catalog-option">
+                    <i class="fas fa-tint"></i> Tratamiento de Agua
+                </a>
             </div>
         </div>
     </nav>
@@ -142,27 +161,11 @@
                         Categorías <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="sidebar-card__body">
-                        <a class="sidebar-cat active--piscina" href="#">
-                            Todas las categorías <span class="sidebar-cat__count">120</span>
-                        </a>
-                        <a class="sidebar-cat" href="#">
-                            Bombas de Agua <span class="sidebar-cat__count">24</span>
-                        </a>
-                        <a class="sidebar-cat" href="#">
-                            Filtros de Arena <span class="sidebar-cat__count">18</span>
-                        </a>
-                        <a class="sidebar-cat" href="#">
-                            Robots Limpiafondos <span class="sidebar-cat__count">12</span>
-                        </a>
-                        <a class="sidebar-cat" href="#">
-                            Químicos y Tratamiento <span class="sidebar-cat__count">30</span>
-                        </a>
-                        <a class="sidebar-cat" href="#">
-                            Iluminación Subacuática <span class="sidebar-cat__count">15</span>
-                        </a>
-                        <a class="sidebar-cat" href="#">
-                            Accesorios <span class="sidebar-cat__count">21</span>
-                        </a>
+                        <div id="catalogCategoryList" data-line="piscina">
+                            <a class="sidebar-cat active--piscina" href="#" data-category="all">
+                                Todas las categorías <span class="sidebar-cat__count">0</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
 

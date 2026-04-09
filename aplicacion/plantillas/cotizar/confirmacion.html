@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Cotización Enviada! | Etiquetar Colombia</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-page: #F4F7F8;
+            --aqua: #0ABFCA;
+            --piscina-green: #0CAF7A;
+            --blue-primary: #083D44;
+            --blue-hero: #0A2730;
+            --blue-hero-end: #0A5C66;
+            --navy-footer: #0D2B38;
+            --text-muted: #5A7A80;
+            --bg-input: #F8FAFB;
+            --bg-light: #EBF4F6;
+            --white: #ffffff;
+            --shadow-premium: 0 8px 48px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--blue-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: var(--transition);
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .navbar.scrolled {
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+
+        .navbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            position: relative;
+        }
+
+        .navbar__logo {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar__logo img {
+            height: 50px;
+            width: auto;
+            display: block;
+        }
+
+        .navbar__menu {
+            display: flex;
+            list-style: none;
+            gap: 24px;
+            flex: 2;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .navbar__link {
+            text-decoration: none;
+            color: var(--blue-primary);
+            font-weight: 600;
+            font-size: 0.92rem;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .navbar__link:hover {
+            color: var(--aqua);
+        }
+
+        .navbar__actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .navbar__action-btn {
+            text-decoration: none;
+            color: var(--blue-primary);
+            font-size: 1.1rem;
+            position: relative;
+        }
+
+        .confirm-page { 
+            min-height: 80vh; 
+            background: var(--bg-page); 
+            padding: 60px clamp(16px, 4vw, 64px); 
+        } 
+        
+        .confirm-hero { 
+            text-align: center; 
+            margin-bottom: 40px; 
+        } 
+        
+        .confirm-hero__icon { 
+            width: 80px; height: 80px; 
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-hero-end)); 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            margin: 0 auto 24px; 
+            font-size: 2rem; color: var(--aqua); 
+            box-shadow: 0 8px 32px rgba(8,61,68,0.25); 
+            animation: iconPop 0.6s cubic-bezier(0.34,1.56,0.64,1); 
+        } 
+        
+        @keyframes iconPop { 
+            from { transform: scale(0); opacity: 0; } 
+            to { transform: scale(1); opacity: 1; } 
+        } 
+        
+        .confirm-hero h1 { 
+            font-family: 'Cormorant Garamond', serif; 
+            font-size: clamp(2rem, 4vw, 3rem); 
+            color: var(--blue-primary); 
+            margin-bottom: 12px; 
+        } 
+        
+        .confirm-hero p { 
+            color: var(--text-muted); 
+            font-size: 1rem; 
+            max-width: 500px; 
+            margin: 0 auto; 
+            line-height: 1.7; 
+        } 
+        
+        .confirm-card { 
+            background: white; 
+            border-radius: 28px; 
+            padding: 48px; 
+            max-width: 680px; 
+            margin: 0 auto; 
+            box-shadow: var(--shadow-premium); 
+            animation: cardSlide 0.5s ease 0.2s both; 
+        } 
+        
+        @keyframes cardSlide { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        } 
+        
+        .confirm-card__tracking { text-align: center; padding: 20px 0; } 
+        
+        .confirm-card__label { 
+            font-size: 0.72rem; 
+            letter-spacing: 0.15em; 
+            text-transform: uppercase; 
+            color: var(--text-muted); 
+            font-weight: 700; 
+        } 
+        
+        .confirm-card__number { 
+            font-family: 'Cormorant Garamond', serif; 
+            font-size: 2.8rem; 
+            font-weight: 700; 
+            color: var(--blue-primary); 
+            letter-spacing: 0.05em; 
+            margin: 8px 0; 
+        } 
+        
+        .confirm-card__copy { 
+            background: var(--bg-light); 
+            color: var(--blue-primary); 
+            border: none; 
+            padding: 8px 20px; 
+            border-radius: 999px; 
+            font-size: 0.82rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: var(--transition); 
+        } 
+        
+        .confirm-card__copy:hover { background: var(--blue-primary); color: white; } 
+        
+        .confirm-card__divider { 
+            height: 1px; 
+            background: rgba(0,0,0,0.06); 
+            margin: 28px 0; 
+        } 
+        
+        .confirm-card__row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 10px 0; 
+            border-bottom: 1px solid rgba(0,0,0,0.04); 
+            font-size: 0.9rem; 
+        } 
+        
+        .confirm-card__row span { color: var(--text-muted); } 
+        
+        .confirm-card__badge {
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+        }
+
+        .confirm-card__badge--piscina { background: #E0F2FE; color: #0369A1; }
+        .confirm-card__badge--agua { background: #ECFDF5; color: #047857; }
+
+        .confirm-card__status--pendiente { 
+            color: #D97706; 
+            background: #FEF3C7; 
+            padding: 4px 12px; 
+            border-radius: 999px; 
+            font-size: 0.78rem; 
+        } 
+        
+        .confirm-card__actions { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+        } 
+        
+        .confirm-btn { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            padding: 14px 24px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            text-decoration: none; 
+            transition: var(--transition); 
+            cursor: pointer; 
+            border: none; 
+        } 
+        
+        .confirm-btn--primary { 
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-hero-end)); 
+            color: white; 
+            box-shadow: 0 4px 20px rgba(8,61,68,0.25); 
+        } 
+        
+        .confirm-btn--primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(8,61,68,0.3); } 
+        
+        .confirm-btn--ghost { 
+            background: var(--bg-page); 
+            color: var(--blue-primary); 
+            border: 1.5px solid rgba(0,0,0,0.08); 
+        } 
+        
+        .confirm-btn--ghost:hover { background: var(--bg-light); } 
+        
+        .confirm-btn--whatsapp { background: #25D366; color: white; } 
+        .confirm-btn--whatsapp:hover { background: #1fba58; transform: translateY(-2px); } 
+        
+        .confirm-card__save { 
+            margin-top: 28px; 
+            background: var(--bg-input); 
+            border-radius: 16px; 
+            padding: 20px; 
+            text-align: center; 
+        } 
+        
+        .confirm-card__save i { color: var(--aqua); margin-bottom: 8px; } 
+        .confirm-card__save p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; } 
+        
+        .confirm-card__link-box { 
+            display: flex; 
+            align-items: center; 
+            background: white; 
+            border: 1.5px solid rgba(0,0,0,0.08); 
+            border-radius: 10px; 
+            padding: 10px 16px; 
+            gap: 12px; 
+            font-size: 0.8rem; 
+            color: var(--blue-primary); 
+            word-break: break-all; 
+        } 
+        
+        .confirm-card__link-box button { 
+            background: none; 
+            border: none; 
+            color: var(--aqua); 
+            cursor: pointer; 
+            font-size: 1rem; 
+            flex-shrink: 0; 
+        }
+
+        /* FOOTER */
+        .footer {
+            background: var(--navy-footer);
+            color: rgba(255,255,255,0.8);
+            padding: 80px 0 40px;
+        }
+
+        .footer__grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 60px;
+        }
+
+        .footer__logo img {
+            height: 46px;
+            margin-bottom: 24px;
+        }
+
+        .footer__desc {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            margin-bottom: 24px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .footer__title {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .footer__links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer__link {
+            text-decoration: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .footer__link:hover {
+            color: var(--aqua);
+        }
+
+        .footer__bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 32px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="/" class="navbar__logo">
+                <img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S.">
+            </a>
+            <ul class="navbar__menu">
+                <li><a href="/" class="navbar__link">Inicio</a></li>
+                <li><a href="/piscina" class="navbar__link">Piscina & Spa</a></li>
+                <li><a href="/agua" class="navbar__link">Tratamiento de Agua</a></li>
+                <li><a href="/blog" class="navbar__link">Blog</a></li>
+                <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
+                <li><a href="/contacto" class="navbar__link">Contacto</a></li>
+            </ul>
+            <div class="navbar__actions">
+                <a href="/perfil" class="navbar__action-btn"><i class="fas fa-user"></i></a>
+                <a href="/carrito" class="navbar__action-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="confirm-page"> 
+        <!-- Hero pequeño --> 
+        <div class="confirm-hero"> 
+          <div class="confirm-hero__icon"> 
+            <i class="fas fa-check-circle"></i> 
+          </div> 
+          <h1>¡Cotización Enviada!</h1> 
+          <p>Hemos recibido tu solicitud. Te responderemos en menos de 24 horas hábiles.</p> 
+        </div> 
+      
+        <!-- Card con número de seguimiento --> 
+        <div class="confirm-card"> 
+          <div class="confirm-card__tracking"> 
+            <span class="confirm-card__label">Tu número de cotización</span> 
+            <div class="confirm-card__number">{{ cotizacion.numero }}</div> 
+            <button class="confirm-card__copy" onclick="copiarNumero('{{ cotizacion.numero }}')"> 
+              <i class="fas fa-copy"></i> Copiar número 
+            </button> 
+          </div> 
+      
+          <div class="confirm-card__divider"></div> 
+      
+          <!-- Resumen de lo enviado --> 
+          <div class="confirm-card__summary"> 
+            <h3 style="margin-bottom: 20px; font-family: 'Cormorant Garamond', serif; font-size: 1.5rem;">Resumen de tu solicitud</h3> 
+            <div class="confirm-card__row"> 
+              <span>Nombre</span><strong>{{ cotizacion.nombre }}</strong> 
+            </div> 
+            <div class="confirm-card__row"> 
+              <span>Correo</span><strong>{{ cotizacion.email }}</strong> 
+            </div> 
+            <div class="confirm-card__row"> 
+              <span>Línea</span> 
+              <strong class="confirm-card__badge confirm-card__badge--{{ cotizacion.linea }}"> 
+                {% if cotizacion.linea == 'piscina' %}🏊 Piscina & Spa 
+                {% else %}💧 Tratamiento de Agua{% endif %} 
+              </strong> 
+            </div> 
+            <div class="confirm-card__row"> 
+              <span>Estado</span> 
+              <strong class="confirm-card__status confirm-card__status--pendiente"> 
+                <i class="fas fa-clock"></i> Pendiente de revisión 
+              </strong> 
+            </div> 
+            <div class="confirm-card__row"> 
+              <span>Fecha</span> 
+              <strong>{{ cotizacion.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</strong> 
+            </div> 
+          </div> 
+      
+          <div class="confirm-card__divider"></div> 
+      
+          <!-- Acciones --> 
+          <div class="confirm-card__actions"> 
+            <a href="/cotizar/ver/{{ cotizacion.token_consulta }}" class="confirm-btn confirm-btn--primary"> 
+              <i class="fas fa-eye"></i> Ver estado de mi cotización 
+            </a> 
+            <a href="/cotizar/consultar" class="confirm-btn confirm-btn--ghost"> 
+              <i class="fas fa-search"></i> Consultar por número 
+            </a> 
+            <a href="https://wa.me/573001234567?text=Hola,%20mi%20cotización%20es%20{{ cotizacion.numero }}" 
+               target="_blank" class="confirm-btn confirm-btn--whatsapp"> 
+              <i class="fab fa-whatsapp"></i> Hacer seguimiento por WhatsApp 
+            </a> 
+          </div> 
+      
+          <!-- Guardar enlace --> 
+          <div class="confirm-card__save"> 
+            <i class="fas fa-bookmark"></i> 
+            <p>Guarda este enlace para consultar tu cotización en cualquier momento:</p> 
+            <div class="confirm-card__link-box"> 
+              <span id="linkCotizacion">{{ request.host_url }}cotizar/ver/{{ cotizacion.token_consulta }}</span> 
+              <button onclick="copiarLink()"><i class="fas fa-copy"></i></button> 
+            </div> 
+          </div> 
+        </div> 
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__grid">
+                <div class="footer__col">
+                    <div class="footer__logo">
+                        <img src="../../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S.">
+                    </div>
+                    <p class="footer__desc">Expertos en equipos para piscinas y sistemas de tratamiento de agua. Cobertura nacional con las mejores marcas y garantía técnica.</p>
+                </div>
+                <div class="footer__col">
+                    <h4 class="footer__title">Piscina & Spa</h4>
+                    <ul class="footer__links">
+                        <li><a href="/catalogo/piscina" class="footer__link">Bombas de Agua</a></li>
+                        <li><a href="/catalogo/piscina" class="footer__link">Filtros de Arena</a></li>
+                    </ul>
+                </div>
+                <div class="footer__col">
+                    <h4 class="footer__title">Tratamiento de Agua</h4>
+                    <ul class="footer__links">
+                        <li><a href="/catalogo/agua" class="footer__link">Purificadores</a></li>
+                        <li><a href="/catalogo/agua" class="footer__link">Ósmosis Inversa</a></li>
+                    </ul>
+                </div>
+                <div class="footer__col">
+                    <h4 class="footer__title">Contacto</h4>
+                    <ul class="footer__links">
+                        <li><a href="tel:+573001234567" class="footer__link">+57 300 123 4567</a></li>
+                        <li><a href="/cotizar" class="footer__link">Solicitar Cotización</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                &copy; 2026 Etiquetar Colombia. Todos los derechos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function copiarNumero(num) {
+            navigator.clipboard.writeText(num).then(() => {
+                alert('Número de cotización copiado al portapapeles');
+            });
+        }
+
+        function copiarLink() {
+            const link = document.getElementById('linkCotizacion').innerText;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Enlace de consulta copiado al portapapeles');
+            });
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+
+</html>
