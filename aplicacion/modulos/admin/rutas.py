@@ -1238,6 +1238,26 @@ def editar_ficha_tecnica_api(ficha_id):
     )
 
 
+@admin_bp.post("/api/fichas-tecnicas/upload-pdf")
+def subir_pdf_ficha_tecnica_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    archivo = request.files.get("archivo")
+    if not _ficha_pdf_valida(archivo):
+        return jsonify({"ok": False, "message": "Debes seleccionar un archivo PDF valido."}), 400
+
+    nombre = (request.form.get("nombre") or "").strip()
+    referencia = (request.form.get("referencia") or "").strip()
+    slug_base = _slugify(referencia or nombre or "ficha-tecnica")
+    if not slug_base:
+        slug_base = f"ficha-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+
+    url = _guardar_ficha_local(archivo, slug=slug_base)
+    return jsonify({"ok": True, "message": "PDF cargado correctamente.", "data": {"url": url}})
+
+
 @admin_bp.post("/api/fichas-tecnicas/importar-json")
 def importar_fichas_tecnicas_json_api():
     admin = _admin_requerido(api=True)

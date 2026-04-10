@@ -34,6 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
     productCategoriaPendiente: null,
     productEspecificacionesTecnicas: [], // Nuevas especificaciones dinámicas
     productImagenesAdicionalesEliminar: [],
+    fichasCategoriasExpandidas: {},
+    fichaSpecsDraft: [],
+    fichaCaracteristicasDraft: [],
+    fichaComponentesDraft: [],
   };
 
   const fmtCop = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(valor || 0));
@@ -1149,7 +1153,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const btnBuscarFichas = qs('#btnBuscarFichas');
-  if (btnBuscarFichas) btnBuscarFichas.addEventListener('click', () => loadFichas().catch((err) => showMsg('error', err.message)));
+  if (btnBuscarFichas) btnBuscarFichas.addEventListener('click', () => renderFichasList(state.fichas));
+
+  const fichasBusquedaInput = qs('#fichasBusqueda');
+  if (fichasBusquedaInput) {
+    fichasBusquedaInput.addEventListener('input', () => renderFichasList(state.fichas));
+  }
+
+  const fichasLineaFiltro = qs('#fichasLineaFiltro');
+  if (fichasLineaFiltro) {
+    fichasLineaFiltro.addEventListener('change', () => renderFichasList(state.fichas));
+  }
+
+  const fichasEstadoFiltro = qs('#fichasEstadoFiltro');
+  if (fichasEstadoFiltro) {
+    fichasEstadoFiltro.addEventListener('change', () => renderFichasList(state.fichas));
+  }
+
+  qsa('[data-close-ficha-detalle]').forEach((btn) => {
+    btn.addEventListener('click', cerrarFichaDetalle);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') cerrarFichaDetalle();
+  });
 
   const btnNuevaFicha = qs('#btnNuevaFicha');
   if (btnNuevaFicha) btnNuevaFicha.addEventListener('click', () => { activateTab('fichas'); resetFichaForm(); });
@@ -1165,28 +1192,81 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnLimpiarFichaForm = qs('#btnLimpiarFichaForm');
   if (btnLimpiarFichaForm) btnLimpiarFichaForm.addEventListener('click', resetFichaForm);
 
+  const garantiaSelect = qs('#ficha-garantia-select');
+  if (garantiaSelect) {
+    garantiaSelect.addEventListener('change', () => {
+      const custom = qs('#ficha-garantia-custom');
+      if (!custom) return;
+      custom.hidden = garantiaSelect.value !== 'personalizada';
+      updateFichaProgress();
+      persistFichaDraft();
+    });
+  }
+
+  const garantiaCustom = qs('#ficha-garantia-custom');
+  if (garantiaCustom) {
+    garantiaCustom.addEventListener('input', () => {
+      updateFichaProgress();
+      persistFichaDraft();
+    });
+  }
+
+  const btnSubirFichaPdf = qs('#btnSubirFichaPdf');
+  const fichaPdfFile = qs('#ficha-pdf-file');
+  if (btnSubirFichaPdf && fichaPdfFile) {
+    btnSubirFichaPdf.addEventListener('click', () => fichaPdfFile.click());
+    fichaPdfFile.addEventListener('change', async () => {
+      const file = fichaPdfFile.files && fichaPdfFile.files[0];
+      if (!file) return;
+      try {
+        const fd = new FormData();
+        fd.append('archivo', file);
+        fd.append('nombre', qs('#ficha-nombre')?.value || 'ficha');
+        fd.append('referencia', qs('#ficha-referencia')?.value || 'ficha');
+        const res = await api('/admin/api/fichas-tecnicas/upload-pdf', {
+          method: 'POST',
+          body: fd,
+        });
+        const url = res?.data?.url || '';
+        const inputUrl = qs('#ficha-pdf-url');
+        if (inputUrl) inputUrl.value = url;
+        const status = qs('#fichaPdfStatus');
+        if (status) status.innerHTML = `PDF cargado: <a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(file.name)}</a>`;
+        showMsg('success', 'PDF cargado correctamente.');
+        updateFichaProgress();
+        persistFichaDraft();
+      } catch (err) {
+        showMsg('error', err.message);
+      } finally {
+        fichaPdfFile.value = '';
+      }
+    });
+  }
+
   const formFicha = qs('#formFichaTecnica');
   if (formFicha) {
     formFicha.addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
+        if (!validarFichaForm(true)) {
+          showMsg('error', 'Completa los campos obligatorios de la ficha.');
+          return;
+        }
+
         const payload = {
           nombre: qs('#ficha-nombre')?.value || '',
           referencia: qs('#ficha-referencia')?.value || '',
           marca: qs('#ficha-marca')?.value || '',
           linea: qs('#ficha-linea')?.value || 'agua',
           categoria_id: qs('#ficha-categoria')?.value || null,
-          garantia: qs('#ficha-garantia')?.value || '',
+          garantia: getFichaGarantiaValue(),
           aplicacion: qs('#ficha-aplicacion')?.value || '',
           descripcion: qs('#ficha-descripcion')?.value || '',
           ficha_pdf_url: qs('#ficha-pdf-url')?.value || '',
-          especificaciones: parseJsonSafe(qs('#ficha-especificaciones-json')?.value, []),
-          caracteristicas: parseJsonSafe(qs('#ficha-caracteristicas-json')?.value, []),
-          componentes: parseJsonSafe(qs('#ficha-componentes-json')?.value, []),
+          especificaciones: getFichaEspecificacionesPayload(),
+          caracteristicas: getFichaCaracteristicasPayload(),
+          componentes: getFichaComponentesPayload(),
         };
-        if (!Array.isArray(payload.especificaciones) || !Array.isArray(payload.caracteristicas) || !Array.isArray(payload.componentes)) {
-          throw new Error('Los campos JSON deben ser arreglos válidos.');
-        }
 
         if (state.editingFichaId) {
           const res = await api(`/admin/api/fichas-tecnicas/${state.editingFichaId}`, {
@@ -1204,6 +1284,7 @@ document.addEventListener('DOMContentLoaded', () => {
           });
           showMsg('success', 'Ficha técnica creada.');
         }
+        clearFichaDraft();
         resetFichaForm();
         await loadFichas();
       } catch (err) {
@@ -2620,11 +2701,640 @@ document.addEventListener('DOMContentLoaded', () => {
     `);
   };
 
+  const FICHA_DRAFT_KEY = 'admin.ficha.draft.v2';
+
+  const UNIDADES_ESPECIFICACIONES = [
+    { grupo: 'Volumen', opciones: ['litros', 'galones', 'pies cúbicos', 'm3'] },
+    { grupo: 'Flujo', opciones: ['GPM', 'L/min', 'L/h', 'm3/h'] },
+    { grupo: 'Potencia', opciones: ['HP', 'Watts', 'kW'] },
+    { grupo: 'Presión', opciones: ['PSI', 'bar', 'metros'] },
+    { grupo: 'Eléctrico', opciones: ['voltios', 'Hz', 'amperios'] },
+    { grupo: 'Tamaño', opciones: ['pulgadas', 'mm', 'cm'] },
+    { grupo: 'Peso', opciones: ['kg', 'lb'] },
+    { grupo: 'Filtración', opciones: ['micras'] },
+  ];
+
+  const FICHA_SECCIONES_DEFAULT = ['Funciones', 'Características físicas', 'Información técnica', 'Información general'];
+
+  function chipClassSeccion(nombre) {
+    const n = String(nombre || '').toLowerCase();
+    if (n.includes('funcion')) return 'ficha-chip--funciones';
+    if (n.includes('física') || n.includes('fisica')) return 'ficha-chip--fisicas';
+    if (n.includes('tecnica') || n.includes('técnica')) return 'ficha-chip--tecnica';
+    return 'ficha-chip--general';
+  }
+
+  function toggleFichaSection(sectionKey, forceOpen = null) {
+    const body = qs(`#fichaSectionBody${sectionKey.charAt(0).toUpperCase()}${sectionKey.slice(1)}`);
+    const btn = qs(`[data-ficha-toggle="${sectionKey}"]`);
+    if (!body || !btn) return;
+    const open = forceOpen == null ? body.hidden : !forceOpen;
+    body.hidden = open;
+    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    const icon = btn.querySelector('.fa-chevron-right, .fa-chevron-down');
+    if (icon) icon.className = `fas ${open ? 'fa-chevron-right' : 'fa-chevron-down'}`;
+  }
+
+  function initFichaSectionsToggle() {
+    qsa('[data-ficha-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        toggleFichaSection(btn.dataset.fichaToggle || 'basic');
+      });
+    });
+    toggleFichaSection('basic', true);
+    ['app', 'spec', 'car', 'comp', 'pdf'].forEach((k) => toggleFichaSection(k, false));
+  }
+
+  function isFichaKitCombo() {
+    const categoriaId = Number(qs('#ficha-categoria')?.value || 0);
+    const categoria = state.categories.find((c) => Number(c.id) === categoriaId);
+    const nombre = String(categoria?.nombre || '').toLowerCase();
+    return nombre.includes('kit') || nombre.includes('combo');
+  }
+
+  function toggleFichaComponentesVisibility() {
+    const group = qs('#fichaComponentesGroup');
+    if (!group) return;
+    group.hidden = !isFichaKitCombo();
+  }
+
+  function getFichaGarantiaValue() {
+    const select = qs('#ficha-garantia-select');
+    const custom = qs('#ficha-garantia-custom');
+    if (!select) return '';
+    if (select.value === 'personalizada') return (custom?.value || '').trim();
+    return (select.value || '').trim();
+  }
+
+  function setFichaGarantiaValue(garantia) {
+    const value = String(garantia || '').trim();
+    const select = qs('#ficha-garantia-select');
+    const custom = qs('#ficha-garantia-custom');
+    if (!select || !custom) return;
+    const opciones = ['6 meses', '1 año', '2 años', '3 años', '5 años'];
+    if (!value) {
+      select.value = '';
+      custom.hidden = true;
+      custom.value = '';
+      return;
+    }
+    if (opciones.includes(value)) {
+      select.value = value;
+      custom.hidden = true;
+      custom.value = '';
+      return;
+    }
+    select.value = 'personalizada';
+    custom.hidden = false;
+    custom.value = value;
+  }
+
+  function moveInArray(arr, from, to) {
+    if (!Array.isArray(arr)) return;
+    if (from < 0 || to < 0 || from >= arr.length || to >= arr.length || from === to) return;
+    const [item] = arr.splice(from, 1);
+    arr.splice(to, 0, item);
+  }
+
+  function wireDrag(container, stateKey, rerender) {
+    if (!container) return;
+    container.querySelectorAll('[data-drag-idx]').forEach((row) => {
+      row.addEventListener('dragstart', (ev) => {
+        row.classList.add('is-dragging');
+        ev.dataTransfer.effectAllowed = 'move';
+        ev.dataTransfer.setData('text/plain', row.dataset.dragIdx || '');
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('is-dragging');
+      });
+      row.addEventListener('dragover', (ev) => {
+        ev.preventDefault();
+      });
+      row.addEventListener('drop', (ev) => {
+        ev.preventDefault();
+        const from = Number(ev.dataTransfer.getData('text/plain'));
+        const to = Number(row.dataset.dragIdx || -1);
+        if (Number.isNaN(from) || Number.isNaN(to)) return;
+        moveInArray(state[stateKey], from, to);
+        rerender();
+        persistFichaDraft();
+      });
+    });
+  }
+
+  function populateFichaSuggestions() {
+    const specNames = new Set(['Caudal', 'Potencia', 'Voltaje', 'Capacidad', 'Volumen', 'Conexión']);
+    (state.fichas || []).forEach((f) => {
+      (Array.isArray(f.especificaciones) ? f.especificaciones : []).forEach((s) => {
+        if (s && s.nombre) specNames.add(String(s.nombre).trim());
+      });
+    });
+
+    const specList = qs('#fichaSpecNameSuggestions');
+    if (specList) {
+      specList.innerHTML = Array.from(specNames).sort((a, b) => a.localeCompare(b, 'es'))
+        .map((n) => `<option value="${escapeHtml(n)}"></option>`).join('');
+    }
+
+    const compList = qs('#fichaComponentesSuggestions');
+    if (compList) {
+      compList.innerHTML = (state.fichas || []).map((f) => (
+        `<option value="${escapeHtml(f.nombre || '')}" label="${escapeHtml(f.referencia || '')}"></option>`
+      )).join('');
+    }
+  }
+
+  function renderFichaEspecificacionesBuilder() {
+    const root = qs('#fichaEspecificacionesBuilder');
+    if (!root) return;
+    if (!state.fichaSpecsDraft.length) {
+      root.innerHTML = '<div class="admin-form-hint">Sin especificaciones aún. Agrega la primera.</div>';
+      return;
+    }
+
+    const unidades = UNIDADES_ESPECIFICACIONES.map((g) => (
+      `<optgroup label="${escapeHtml(g.grupo)}">${g.opciones.map((u) => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('')}</optgroup>`
+    )).join('');
+
+    root.innerHTML = state.fichaSpecsDraft.map((row, idx) => {
+      const tipo = row.tipo === 'cualitativa' ? 'cualitativa' : 'cuantitativa';
+      const seccion = row.seccion || 'Información técnica';
+      return `
+        <div class="ficha-builder-item" draggable="true" data-drag-idx="${idx}">
+          <div class="ficha-builder-actions">
+            <span class="ficha-chip ${chipClassSeccion(seccion)}">${escapeHtml(seccion || 'Información general')}</span>
+            <span class="ficha-chip ${tipo === 'cuantitativa' ? 'ficha-chip--funciones' : 'ficha-chip--general'}">${tipo === 'cuantitativa' ? 'número' : 'texto'}</span>
+          </div>
+          <div class="ficha-builder-grid ficha-builder-grid--4">
+            <div class="admin-form-group">
+              <label>Sección</label>
+              <input class="ficha-spec-seccion" list="fichaSpecSectionSuggestions" value="${escapeHtml(seccion)}" data-idx="${idx}">
+            </div>
+            <div class="admin-form-group">
+              <label>Nombre</label>
+              <input class="ficha-spec-nombre" list="fichaSpecNameSuggestions" value="${escapeHtml(row.nombre || '')}" data-idx="${idx}" placeholder="Ej: Caudal">
+            </div>
+            <div class="admin-form-group">
+              <label>Tipo</label>
+              <select class="ficha-spec-tipo" data-idx="${idx}">
+                <option value="cuantitativa" ${tipo === 'cuantitativa' ? 'selected' : ''}>Cuantitativa</option>
+                <option value="cualitativa" ${tipo === 'cualitativa' ? 'selected' : ''}>Cualitativa</option>
+              </select>
+            </div>
+            <div class="admin-form-group">
+              <label>Valor</label>
+              <input class="ficha-spec-valor" data-idx="${idx}" value="${escapeHtml(row.valor != null ? String(row.valor) : '')}" ${tipo === 'cuantitativa' ? 'inputmode="decimal" placeholder="Ej: 12.5"' : 'placeholder="Valor descriptivo"'}>
+            </div>
+          </div>
+          <div class="ficha-builder-grid">
+            <div class="admin-form-group">
+              <label>Unidad</label>
+              <select class="ficha-spec-unidad" data-idx="${idx}" ${tipo === 'cualitativa' ? 'disabled' : ''}>
+                <option value="">Sin unidad</option>
+                ${unidades}
+              </select>
+            </div>
+            <div class="ficha-builder-actions" style="grid-column: span 2; align-items:end;">
+              <span class="ficha-drag-hint"><i class="fas fa-grip-vertical"></i> Arrastra para reordenar</span>
+              <button type="button" class="admin-mini-btn admin-mini-btn--danger" data-del-spec="${idx}"><i class="fas fa-xmark"></i> Eliminar</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    root.querySelectorAll('.ficha-spec-seccion').forEach((el) => {
+      el.addEventListener('input', () => {
+        const idx = Number(el.dataset.idx);
+        state.fichaSpecsDraft[idx].seccion = el.value;
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+    root.querySelectorAll('.ficha-spec-nombre').forEach((el) => {
+      el.addEventListener('input', () => {
+        const idx = Number(el.dataset.idx);
+        state.fichaSpecsDraft[idx].nombre = el.value;
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+    root.querySelectorAll('.ficha-spec-tipo').forEach((el) => {
+      el.addEventListener('change', () => {
+        const idx = Number(el.dataset.idx);
+        state.fichaSpecsDraft[idx].tipo = el.value;
+        if (el.value === 'cualitativa') state.fichaSpecsDraft[idx].unidad = '';
+        renderFichaEspecificacionesBuilder();
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+    root.querySelectorAll('.ficha-spec-valor').forEach((el) => {
+      el.addEventListener('input', () => {
+        const idx = Number(el.dataset.idx);
+        state.fichaSpecsDraft[idx].valor = el.value;
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+    root.querySelectorAll('.ficha-spec-unidad').forEach((el) => {
+      const idx = Number(el.dataset.idx);
+      el.value = state.fichaSpecsDraft[idx].unidad || '';
+      el.addEventListener('change', () => {
+        state.fichaSpecsDraft[idx].unidad = el.value;
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+    root.querySelectorAll('[data-del-spec]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.fichaSpecsDraft.splice(Number(btn.dataset.delSpec), 1);
+        renderFichaEspecificacionesBuilder();
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+
+    wireDrag(root, 'fichaSpecsDraft', renderFichaEspecificacionesBuilder);
+  }
+
+  function renderFichaCaracteristicasBuilder() {
+    const root = qs('#fichaCaracteristicasBuilder');
+    if (!root) return;
+    if (!state.fichaCaracteristicasDraft.length) {
+      root.innerHTML = '<div class="admin-form-hint">Sin características aún. Ej: 100% libre de corrosión.</div>';
+      return;
+    }
+
+    root.innerHTML = state.fichaCaracteristicasDraft.map((txt, idx) => `
+      <div class="ficha-builder-item" draggable="true" data-drag-idx="${idx}">
+        <div class="ficha-builder-actions">
+          <input class="ficha-car-item" data-idx="${idx}" value="${escapeHtml(txt || '')}" placeholder="Ej: Motor con protección térmica">
+          <button type="button" class="admin-mini-btn admin-mini-btn--danger" data-del-car="${idx}"><i class="fas fa-xmark"></i></button>
+        </div>
+        <span class="ficha-drag-hint"><i class="fas fa-grip-vertical"></i> Arrastra para reordenar</span>
+      </div>
+    `).join('');
+
+    root.querySelectorAll('.ficha-car-item').forEach((el) => {
+      el.addEventListener('input', () => {
+        const idx = Number(el.dataset.idx);
+        state.fichaCaracteristicasDraft[idx] = el.value;
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+    root.querySelectorAll('[data-del-car]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.fichaCaracteristicasDraft.splice(Number(btn.dataset.delCar), 1);
+        renderFichaCaracteristicasBuilder();
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+
+    wireDrag(root, 'fichaCaracteristicasDraft', renderFichaCaracteristicasBuilder);
+  }
+
+  function renderFichaComponentesBuilder() {
+    toggleFichaComponentesVisibility();
+    const root = qs('#fichaComponentesBuilder');
+    if (!root) return;
+    if (!state.fichaComponentesDraft.length) {
+      root.innerHTML = '<div class="admin-form-hint">Sin componentes aún.</div>';
+      return;
+    }
+
+    root.innerHTML = state.fichaComponentesDraft.map((row, idx) => {
+      const ref = String(row.referencia || '').trim().toLowerCase();
+      const found = (state.products || []).find((p) => String(p.referencia || '').trim().toLowerCase() === ref);
+      const thumb = found && found.imagen_url
+        ? `<img src="${escapeHtml(found.imagen_url)}" alt="${escapeHtml(found.nombre || 'Producto')}" class="admin-product-thumb">`
+        : '<span class="admin-product-thumb-placeholder"><i class="fas fa-box"></i></span>';
+      return `
+      <div class="ficha-builder-item" draggable="true" data-drag-idx="${idx}">
+        <div class="admin-item__row" style="align-items:center;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            ${thumb}
+            <strong>${escapeHtml(row.nombre || 'Componente')}</strong>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span class="ficha-ref-badge">${escapeHtml(row.referencia || 'Sin ref')}</span>
+            <span class="ficha-chip ficha-chip--tecnica">x ${escapeHtml(row.cantidad != null ? String(row.cantidad) : '1')}</span>
+          </div>
+        </div>
+        <div class="ficha-builder-grid ficha-builder-grid--4">
+          <div class="admin-form-group">
+            <label>Componente</label>
+            <input class="ficha-comp-nombre" list="fichaComponentesSuggestions" data-idx="${idx}" value="${escapeHtml(row.nombre || '')}" placeholder="Nombre del componente">
+          </div>
+          <div class="admin-form-group">
+            <label>Referencia</label>
+            <input class="ficha-comp-ref" data-idx="${idx}" value="${escapeHtml(row.referencia || '')}" placeholder="Se autocompleta">
+          </div>
+          <div class="admin-form-group">
+            <label>Cantidad</label>
+            <input class="ficha-comp-cant" data-idx="${idx}" type="number" min="0" step="0.01" value="${escapeHtml(row.cantidad != null ? String(row.cantidad) : '1')}">
+          </div>
+          <div class="admin-form-group">
+            <label>Notas</label>
+            <input class="ficha-comp-notas" data-idx="${idx}" value="${escapeHtml(row.notas || '')}" placeholder="Opcional">
+          </div>
+        </div>
+        <div class="ficha-builder-actions">
+          <span class="ficha-drag-hint"><i class="fas fa-grip-vertical"></i> Arrastra para reordenar</span>
+          <button type="button" class="admin-mini-btn admin-mini-btn--danger" data-del-comp="${idx}"><i class="fas fa-xmark"></i> Eliminar</button>
+        </div>
+      </div>
+    `;
+    }).join('');
+
+    root.querySelectorAll('.ficha-comp-nombre').forEach((el) => {
+      el.addEventListener('input', () => {
+        const idx = Number(el.dataset.idx);
+        state.fichaComponentesDraft[idx].nombre = el.value;
+        const match = state.fichas.find((f) => String(f.nombre || '').toLowerCase() === String(el.value || '').toLowerCase());
+        if (match && !state.fichaComponentesDraft[idx].referencia) {
+          state.fichaComponentesDraft[idx].referencia = match.referencia || '';
+          renderFichaComponentesBuilder();
+        }
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+    root.querySelectorAll('.ficha-comp-ref').forEach((el) => {
+      el.addEventListener('input', () => {
+        state.fichaComponentesDraft[Number(el.dataset.idx)].referencia = el.value;
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+    root.querySelectorAll('.ficha-comp-cant').forEach((el) => {
+      el.addEventListener('input', () => {
+        state.fichaComponentesDraft[Number(el.dataset.idx)].cantidad = el.value;
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+    root.querySelectorAll('.ficha-comp-notas').forEach((el) => {
+      el.addEventListener('input', () => {
+        state.fichaComponentesDraft[Number(el.dataset.idx)].notas = el.value;
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+    root.querySelectorAll('[data-del-comp]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.fichaComponentesDraft.splice(Number(btn.dataset.delComp), 1);
+        renderFichaComponentesBuilder();
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    });
+
+    wireDrag(root, 'fichaComponentesDraft', renderFichaComponentesBuilder);
+  }
+
+  function getFichaEspecificacionesPayload() {
+    return state.fichaSpecsDraft
+      .map((row) => ({
+        nombre: String(row.nombre || '').trim(),
+        tipo: row.tipo === 'cualitativa' ? 'cualitativa' : 'cuantitativa',
+        valor: String(row.valor ?? '').trim(),
+        unidad: String(row.unidad || '').trim(),
+        seccion: String(row.seccion || '').trim(),
+      }))
+      .filter((row) => row.nombre && row.valor !== '')
+      .map((row) => (row.tipo === 'cuantitativa'
+        ? { nombre: row.nombre, tipo: row.tipo, valor: row.valor, unidad: row.unidad || null, seccion: row.seccion || null }
+        : { nombre: row.nombre, tipo: row.tipo, valor: row.valor, seccion: row.seccion || null }));
+  }
+
+  function getFichaCaracteristicasPayload() {
+    return state.fichaCaracteristicasDraft
+      .map((x) => String(x || '').trim())
+      .filter(Boolean);
+  }
+
+  function getFichaComponentesPayload() {
+    return state.fichaComponentesDraft
+      .map((row) => ({
+        nombre: String(row.nombre || '').trim(),
+        referencia: String(row.referencia || '').trim() || null,
+        cantidad: row.cantidad === '' ? null : row.cantidad,
+        notas: String(row.notas || '').trim() || null,
+      }))
+      .filter((row) => row.nombre);
+  }
+
+  function validarFichaForm(showErrors) {
+    const required = ['#ficha-nombre', '#ficha-referencia', '#ficha-linea'];
+    let ok = true;
+    required.forEach((sel) => {
+      const el = qs(sel);
+      if (!el) return;
+      const valid = String(el.value || '').trim().length > 0;
+      if (showErrors) el.classList.toggle('admin-invalid', !valid);
+      if (!valid) ok = false;
+    });
+    if (showErrors) {
+      const custom = qs('#ficha-garantia-custom');
+      const select = qs('#ficha-garantia-select');
+      if (select && custom) {
+        const valid = select.value !== 'personalizada' || String(custom.value || '').trim().length > 0;
+        custom.classList.toggle('admin-invalid', !valid);
+        if (!valid) ok = false;
+      }
+    }
+    return ok;
+  }
+
+  function updateFichaProgress() {
+    const basicChecks = [
+      String(qs('#ficha-nombre')?.value || '').trim(),
+      String(qs('#ficha-referencia')?.value || '').trim(),
+      String(qs('#ficha-marca')?.value || '').trim(),
+      String(qs('#ficha-linea')?.value || '').trim(),
+      String(qs('#ficha-categoria')?.value || '').trim(),
+      getFichaGarantiaValue(),
+    ];
+    const appChecks = [
+      String(qs('#ficha-aplicacion')?.value || '').trim(),
+      String(qs('#ficha-descripcion')?.value || '').trim(),
+    ];
+    const specCount = getFichaEspecificacionesPayload().length;
+    const carCount = getFichaCaracteristicasPayload().length;
+    const compCount = getFichaComponentesPayload().length;
+    const hasPdf = String(qs('#ficha-pdf-url')?.value || '').trim().length > 0;
+
+    const checks = [
+      ...basicChecks,
+      ...appChecks,
+      specCount > 0 ? 'ok' : '',
+      carCount > 0 ? 'ok' : '',
+      (!isFichaKitCombo() || compCount > 0) ? 'ok' : '',
+      hasPdf ? 'ok' : '',
+    ];
+
+    const completed = checks.filter((x) => String(x || '').trim()).length;
+    const pct = Math.round((completed / checks.length) * 100);
+    const txt = qs('#fichaProgressText');
+    if (txt) txt.textContent = `${pct}%`;
+    const fill = qs('#fichaProgressFill');
+    if (fill) fill.style.width = `${pct}%`;
+
+    const basicCompleted = basicChecks.filter((x) => String(x || '').trim()).length;
+    const appCompleted = appChecks.filter((x) => String(x || '').trim()).length;
+
+    const setSection = (countId, progressId, label, value, total) => {
+      const c = qs(countId);
+      if (c) c.textContent = label(value, total);
+      const p = qs(progressId);
+      if (p) p.style.width = `${Math.round((value / Math.max(total, 1)) * 100)}%`;
+    };
+
+    setSection('#fichaSectionCountBasic', '#fichaSectionProgressBasic', (v, t) => `${v}/${t}`, basicCompleted, basicChecks.length);
+    setSection('#fichaSectionCountApp', '#fichaSectionProgressApp', (v, t) => `${v}/${t}`, appCompleted, appChecks.length);
+    setSection('#fichaSectionCountSpec', '#fichaSectionProgressSpec', (v) => `${v} campos`, Math.min(specCount, 1), 1);
+    setSection('#fichaSectionCountCar', '#fichaSectionProgressCar', (v) => `${v} ítems`, Math.min(carCount, 1), 1);
+    setSection('#fichaSectionCountComp', '#fichaSectionProgressComp', (v) => `${compCount} componentes`, isFichaKitCombo() ? Math.min(compCount, 1) : 1, 1);
+    setSection('#fichaSectionCountPdf', '#fichaSectionProgressPdf', () => (hasPdf ? 'PDF cargado' : 'Sin PDF'), hasPdf ? 1 : 0, 1);
+
+    const resumen = qs('#fichaSaveSummary');
+    if (resumen) {
+      const nombre = String(qs('#ficha-nombre')?.value || '').trim() || 'Sin nombre';
+      resumen.textContent = `${nombre} · ${specCount} especificaciones · ${carCount} características`;
+    }
+  }
+
+  function fichaDraftSnapshot() {
+    return {
+      nombre: qs('#ficha-nombre')?.value || '',
+      referencia: qs('#ficha-referencia')?.value || '',
+      marca: qs('#ficha-marca')?.value || '',
+      linea: qs('#ficha-linea')?.value || 'agua',
+      categoria: qs('#ficha-categoria')?.value || '',
+      garantia: getFichaGarantiaValue(),
+      aplicacion: qs('#ficha-aplicacion')?.value || '',
+      descripcion: qs('#ficha-descripcion')?.value || '',
+      ficha_pdf_url: qs('#ficha-pdf-url')?.value || '',
+      specs: state.fichaSpecsDraft,
+      caracteristicas: state.fichaCaracteristicasDraft,
+      componentes: state.fichaComponentesDraft,
+    };
+  }
+
+  function persistFichaDraft() {
+    if (state.editingFichaId) return;
+    try {
+      localStorage.setItem(FICHA_DRAFT_KEY, JSON.stringify(fichaDraftSnapshot()));
+    } catch (_err) {
+      // Ignora fallos de storage.
+    }
+  }
+
+  function clearFichaDraft() {
+    try {
+      localStorage.removeItem(FICHA_DRAFT_KEY);
+    } catch (_err) {
+      // Ignora fallos de storage.
+    }
+  }
+
+  function restoreFichaDraftIfAny() {
+    if (state.editingFichaId) return;
+    try {
+      const raw = localStorage.getItem(FICHA_DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (!d || typeof d !== 'object') return;
+      const setVal = (sel, val) => { const el = qs(sel); if (el) el.value = val || ''; };
+      setVal('#ficha-nombre', d.nombre);
+      setVal('#ficha-referencia', d.referencia);
+      setVal('#ficha-marca', d.marca);
+      setVal('#ficha-linea', d.linea || 'agua');
+      setVal('#ficha-categoria', d.categoria || '');
+      setFichaGarantiaValue(d.garantia || '');
+      setVal('#ficha-aplicacion', d.aplicacion);
+      setVal('#ficha-descripcion', d.descripcion);
+      setVal('#ficha-pdf-url', d.ficha_pdf_url);
+      const status = qs('#fichaPdfStatus');
+      if (status) {
+        status.innerHTML = d.ficha_pdf_url
+          ? `PDF de borrador: <a href="${escapeHtml(d.ficha_pdf_url)}" target="_blank" rel="noopener">Abrir</a>`
+          : 'Sin archivo cargado.';
+      }
+      state.fichaSpecsDraft = Array.isArray(d.specs) ? d.specs : [];
+      state.fichaCaracteristicasDraft = Array.isArray(d.caracteristicas) ? d.caracteristicas : [];
+      state.fichaComponentesDraft = Array.isArray(d.componentes) ? d.componentes : [];
+      renderFichaEspecificacionesBuilder();
+      renderFichaCaracteristicasBuilder();
+      renderFichaComponentesBuilder();
+      updateFichaProgress();
+      showMsg('success', 'Se restauró un borrador automático de ficha.');
+    } catch (_err) {
+      // Ignora borradores corruptos.
+    }
+  }
+
+  function wireFichaFieldListeners() {
+    ['#ficha-nombre', '#ficha-referencia', '#ficha-marca', '#ficha-linea', '#ficha-categoria', '#ficha-aplicacion', '#ficha-descripcion']
+      .forEach((sel) => {
+        const el = qs(sel);
+        if (!el) return;
+        el.addEventListener('input', () => {
+          validarFichaForm(false);
+          if (sel === '#ficha-categoria') toggleFichaComponentesVisibility();
+          updateFichaProgress();
+          persistFichaDraft();
+        });
+        el.addEventListener('change', () => {
+          if (sel === '#ficha-categoria') toggleFichaComponentesVisibility();
+          updateFichaProgress();
+          persistFichaDraft();
+        });
+      });
+
+    const addSpec = qs('#btnAddFichaEspecificacion');
+    if (addSpec) {
+      addSpec.addEventListener('click', () => {
+        state.fichaSpecsDraft.push({ seccion: 'Información técnica', nombre: '', tipo: 'cuantitativa', valor: '', unidad: '' });
+        renderFichaEspecificacionesBuilder();
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    }
+
+    const addCar = qs('#btnAddFichaCaracteristica');
+    if (addCar) {
+      addCar.addEventListener('click', () => {
+        state.fichaCaracteristicasDraft.push('');
+        renderFichaCaracteristicasBuilder();
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    }
+
+    const addComp = qs('#btnAddFichaComponente');
+    if (addComp) {
+      addComp.addEventListener('click', () => {
+        state.fichaComponentesDraft.push({ nombre: '', referencia: '', cantidad: 1, notas: '' });
+        renderFichaComponentesBuilder();
+        updateFichaProgress();
+        persistFichaDraft();
+      });
+    }
+
+    setInterval(() => {
+      persistFichaDraft();
+    }, 120000);
+  }
+
   function resetFichaForm() {
     state.editingFichaId = null;
     const idEl = qs('#ficha-id');
     if (idEl) idEl.value = '';
-    ['#ficha-nombre', '#ficha-referencia', '#ficha-marca', '#ficha-garantia', '#ficha-aplicacion', '#ficha-descripcion', '#ficha-pdf-url', '#ficha-especificaciones-json', '#ficha-caracteristicas-json', '#ficha-componentes-json']
+    ['#ficha-nombre', '#ficha-referencia', '#ficha-marca', '#ficha-aplicacion', '#ficha-descripcion', '#ficha-pdf-url']
       .forEach((sel) => {
         const el = qs(sel);
         if (el) el.value = '';
@@ -2633,6 +3343,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (linea) linea.value = 'agua';
     const categoria = qs('#ficha-categoria');
     if (categoria) categoria.value = '';
+    setFichaGarantiaValue('');
+    state.fichaSpecsDraft = [];
+    state.fichaCaracteristicasDraft = [];
+    state.fichaComponentesDraft = [];
+    renderFichaEspecificacionesBuilder();
+    renderFichaCaracteristicasBuilder();
+    renderFichaComponentesBuilder();
+    toggleFichaComponentesVisibility();
+    const status = qs('#fichaPdfStatus');
+    if (status) status.textContent = 'Sin archivo cargado.';
+    updateFichaProgress();
+    validarFichaForm(false);
   }
 
   const fillFichaForm = (ficha) => {
@@ -2645,35 +3367,283 @@ document.addEventListener('DOMContentLoaded', () => {
     setVal('#ficha-marca', ficha.marca);
     setVal('#ficha-linea', ficha.linea || 'agua');
     setVal('#ficha-categoria', ficha.categoria_id ? String(ficha.categoria_id) : '');
-    setVal('#ficha-garantia', ficha.garantia);
+    setFichaGarantiaValue(ficha.garantia || '');
     setVal('#ficha-aplicacion', ficha.aplicacion);
     setVal('#ficha-descripcion', ficha.descripcion);
     setVal('#ficha-pdf-url', ficha.ficha_pdf_url);
-    setVal('#ficha-especificaciones-json', JSON.stringify(ficha.especificaciones || [], null, 2));
-    setVal('#ficha-caracteristicas-json', JSON.stringify(ficha.caracteristicas || [], null, 2));
-    setVal('#ficha-componentes-json', JSON.stringify(ficha.componentes || [], null, 2));
+    const status = qs('#fichaPdfStatus');
+    if (status) {
+      status.innerHTML = ficha.ficha_pdf_url
+        ? `PDF actual: <a href="${escapeHtml(ficha.ficha_pdf_url)}" target="_blank" rel="noopener">Abrir</a>`
+        : 'Sin archivo cargado.';
+    }
+    state.fichaSpecsDraft = Array.isArray(ficha.especificaciones) ? ficha.especificaciones.map((s) => ({
+      seccion: s?.seccion || 'Información técnica',
+      nombre: s?.nombre || '',
+      tipo: s?.tipo || 'cuantitativa',
+      valor: s?.valor != null ? s.valor : '',
+      unidad: s?.unidad || '',
+    })) : [];
+    state.fichaCaracteristicasDraft = Array.isArray(ficha.caracteristicas) ? [...ficha.caracteristicas] : [];
+    state.fichaComponentesDraft = Array.isArray(ficha.componentes) ? ficha.componentes.map((c) => ({
+      nombre: c?.nombre || '',
+      referencia: c?.referencia || '',
+      cantidad: c?.cantidad != null ? c.cantidad : 1,
+      notas: c?.notas || c?.notes || '',
+    })) : [];
+    renderFichaEspecificacionesBuilder();
+    renderFichaCaracteristicasBuilder();
+    renderFichaComponentesBuilder();
+    toggleFichaComponentesVisibility();
+    updateFichaProgress();
+    validarFichaForm(false);
     window.scrollTo({ top: qs('#fichaEditorCard')?.offsetTop || 0, behavior: 'smooth' });
   };
 
+  wireFichaFieldListeners();
+  initFichaSectionsToggle();
+  renderFichaEspecificacionesBuilder();
+  renderFichaCaracteristicasBuilder();
+  renderFichaComponentesBuilder();
+  toggleFichaComponentesVisibility();
+  updateFichaProgress();
+  restoreFichaDraftIfAny();
+
+  const etiquetaLinea = (linea) => (linea === 'agua' ? 'Tratamiento de Agua' : 'Piscina & Spa');
+
+  const iconoCategoriaFicha = (nombreCategoria) => {
+    const n = String(nombreCategoria || '').trim().toLowerCase();
+    if (n.includes('bomba')) return 'fa-water';
+    if (n.includes('tanque')) return 'fa-drum';
+    if (n.includes('uv') || n.includes('lampara') || n.includes('lámpara')) return 'fa-lightbulb';
+    if (n.includes('osmosis') || n.includes('ósmosis')) return 'fa-filter-circle-xmark';
+    if (n.includes('filtro')) return 'fa-filter';
+    if (n.includes('kit') || n.includes('combo')) return 'fa-boxes-stacked';
+    if (n.includes('valvula') || n.includes('válvula')) return 'fa-circle-nodes';
+    if (n.includes('medicion') || n.includes('medición') || n.includes('instrument')) return 'fa-gauge';
+    if (n.includes('resina') || n.includes('medio')) return 'fa-flask';
+    return 'fa-cubes';
+  };
+
+  const productosAsociadosFicha = (fichaId) => (
+    (state.products || []).filter((p) => Number(p.ficha_tecnica_id || 0) === Number(fichaId))
+  );
+
+  const actualizarResumenFichas = (itemsFiltrados) => {
+    const counter = qs('#fichasCounter');
+    if (!counter) return;
+    const total = itemsFiltrados.length;
+    const conProducto = itemsFiltrados.filter((f) => Number(f.productos_asociados_count || 0) > 0).length;
+    const disponibles = total - conProducto;
+    counter.textContent = `${total} fichas en total · ${conProducto} con producto · ${disponibles} disponibles`;
+  };
+
+  const renderFichaDetalle = (ficha) => {
+    const body = qs('#fichaDetalleBody');
+    const modal = qs('#fichaDetalleModal');
+    if (!body || !modal || !ficha) return;
+
+    const specs = Array.isArray(ficha.especificaciones) ? ficha.especificaciones : [];
+    const caracteristicas = Array.isArray(ficha.caracteristicas) ? ficha.caracteristicas : [];
+    const componentes = Array.isArray(ficha.componentes) ? ficha.componentes : [];
+    const relacionados = productosAsociadosFicha(ficha.id);
+
+    body.innerHTML = `
+      <div class="ficha-modal__meta">
+        <div class="ficha-modal__meta-item"><small>Nombre</small><strong>${escapeHtml(ficha.nombre || 'N/A')}</strong></div>
+        <div class="ficha-modal__meta-item"><small>Referencia</small><strong>${escapeHtml(ficha.referencia || 'Sin referencia')}</strong></div>
+        <div class="ficha-modal__meta-item"><small>Marca</small><strong>${escapeHtml(ficha.marca || 'Sin marca')}</strong></div>
+        <div class="ficha-modal__meta-item"><small>Línea</small><strong>${escapeHtml(etiquetaLinea(ficha.linea || 'piscina'))}</strong></div>
+        <div class="ficha-modal__meta-item"><small>Categoría</small><strong>${escapeHtml(ficha.categoria_nombre || 'Sin categoría')}</strong></div>
+        <div class="ficha-modal__meta-item"><small>Estado</small><strong>${Number(ficha.productos_asociados_count || 0) > 0 ? 'Con producto asociado' : 'Disponible'}</strong></div>
+      </div>
+
+      <div class="ficha-modal__section">
+        <h4>Descripción</h4>
+        <p>${escapeHtml(ficha.descripcion || 'Sin descripción.')}</p>
+      </div>
+
+      <div class="ficha-modal__section">
+        <h4>Especificaciones técnicas</h4>
+        ${specs.length ? `
+          <table class="ficha-modal__table">
+            <thead><tr><th>Nombre</th><th>Tipo</th><th>Valor</th><th>Unidad</th></tr></thead>
+            <tbody>
+              ${specs.map((s) => `
+                <tr>
+                  <td>${escapeHtml(s?.nombre || '')}</td>
+                  <td>${escapeHtml(s?.tipo || '')}</td>
+                  <td>${escapeHtml(s?.valor != null ? String(s.valor) : '')}</td>
+                  <td>${escapeHtml(s?.unidad || '')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : '<p class="admin-form-hint">Sin especificaciones registradas.</p>'}
+      </div>
+
+      <div class="ficha-modal__section">
+        <h4>Características</h4>
+        ${caracteristicas.length
+          ? `<ul class="ficha-modal__list">${caracteristicas.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>`
+          : '<p class="admin-form-hint">Sin características registradas.</p>'}
+      </div>
+
+      <div class="ficha-modal__section">
+        <h4>Componentes</h4>
+        ${componentes.length ? `
+          <table class="ficha-modal__table">
+            <thead><tr><th>Nombre</th><th>Referencia</th><th>Cantidad</th><th>Notas</th></tr></thead>
+            <tbody>
+              ${componentes.map((c) => `
+                <tr>
+                  <td>${escapeHtml(c?.nombre || '')}</td>
+                  <td>${escapeHtml(c?.referencia || '')}</td>
+                  <td>${escapeHtml(c?.cantidad != null ? String(c.cantidad) : '')}</td>
+                  <td>${escapeHtml(c?.notas || c?.notes || '')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : '<p class="admin-form-hint">Sin componentes registrados.</p>'}
+      </div>
+
+      <div class="ficha-modal__section">
+        <h4>Productos que usan esta ficha</h4>
+        ${relacionados.length
+          ? `<ul class="ficha-modal__list">${relacionados.map((p) => `<li><a href="/admin?tab=productos&producto=${p.id}">${escapeHtml(p.nombre || `Producto #${p.id}`)}</a></li>`).join('')}</ul>`
+          : '<p class="admin-form-hint">Aún no hay productos asociados.</p>'}
+      </div>
+    `;
+
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  };
+
+  function cerrarFichaDetalle() {
+    const modal = qs('#fichaDetalleModal');
+    if (!modal) return;
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  const fichasFiltradas = (items) => {
+    const query = (qs('#fichasBusqueda')?.value || '').trim().toLowerCase();
+    const linea = (qs('#fichasLineaFiltro')?.value || '').trim();
+    const estado = (qs('#fichasEstadoFiltro')?.value || '').trim();
+
+    return items.filter((f) => {
+      const nombre = String(f.nombre || '').toLowerCase();
+      const referencia = String(f.referencia || '').toLowerCase();
+      const byQuery = !query || nombre.includes(query) || referencia.includes(query);
+      const byLinea = !linea || String(f.linea || '') === linea;
+      const asociados = Number(f.productos_asociados_count || 0);
+      const byEstado = !estado
+        || (estado === 'con_producto' && asociados > 0)
+        || (estado === 'disponibles' && asociados === 0);
+      return byQuery && byLinea && byEstado;
+    });
+  };
+
   const renderFichasList = (items) => {
-    renderList('#fichasList', items, (f) => `
-      <div class="admin-item__row">
-        <strong>${escapeHtml(f.nombre)}</strong>
-        <span class="admin-badge admin-badge--${Number(f.productos_asociados_count || 0) > 0 ? 'agua' : 'activo'}">${Number(f.productos_asociados_count || 0) > 0 ? `${Number(f.productos_asociados_count || 0)} asociados` : 'Disponible'}</span>
-      </div>
-      <div class="admin-meta-text">${escapeHtml(f.referencia || 'Sin referencia')} · ${escapeHtml(f.marca || 'Sin marca')} · ${escapeHtml(f.categoria_nombre || 'Sin categoría')}</div>
-      <div class="admin-inline-actions" style="margin-top:8px">
-        <button class="admin-mini-btn" data-edit-ficha="${f.id}"><i class="fas fa-pen"></i> Editar</button>
-      </div>
-    `);
+    const root = qs('#fichasList');
+    if (!root) return;
+
+    const visibles = fichasFiltradas(items);
+    actualizarResumenFichas(visibles);
+    root.innerHTML = '';
+
+    if (!visibles.length) {
+      root.innerHTML = '<div class="admin-item">Sin fichas para los filtros aplicados.</div>';
+      return;
+    }
+
+    const porCategoria = visibles.reduce((acc, ficha) => {
+      const key = ficha.categoria_nombre || 'Sin categoría';
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(ficha);
+      return acc;
+    }, {});
+
+    Object.entries(porCategoria)
+      .sort((a, b) => a[0].localeCompare(b[0], 'es'))
+      .forEach(([categoria, fichas]) => {
+        const total = fichas.length;
+        const conProducto = fichas.filter((f) => Number(f.productos_asociados_count || 0) > 0).length;
+        const disponibles = total - conProducto;
+        const expandida = !!state.fichasCategoriasExpandidas[categoria];
+        const icono = iconoCategoriaFicha(categoria);
+
+        const wrap = document.createElement('div');
+        wrap.className = 'fichas-group';
+        wrap.innerHTML = `
+          <button type="button" class="fichas-group__trigger" data-toggle-ficha-cat="${escapeHtml(categoria)}" aria-expanded="${expandida ? 'true' : 'false'}">
+            <span class="fichas-group__meta">
+              <span class="fichas-group__icon"><i class="fas ${icono}"></i></span>
+              <span class="fichas-group__title">${escapeHtml(categoria)}</span>
+              <span class="fichas-group__resume">${total} fichas · ${conProducto} con producto · ${disponibles} disponibles</span>
+            </span>
+            <span class="fichas-group__chevron"><i class="fas ${expandida ? 'fa-chevron-down' : 'fa-chevron-right'}"></i></span>
+          </button>
+          <div class="fichas-group__body" ${expandida ? '' : 'hidden'}>
+            ${fichas.map((f) => {
+              const asociados = Number(f.productos_asociados_count || 0);
+              return `
+                <article class="ficha-compact">
+                  <div class="ficha-compact__head">
+                    <h4 class="ficha-compact__name">${escapeHtml(f.nombre || 'Sin nombre')}</h4>
+                    <span class="ficha-ref-badge">${escapeHtml(f.referencia || 'Sin ref')}</span>
+                  </div>
+                  <div class="ficha-compact__sub">${escapeHtml(f.marca || 'Sin marca')} · ${escapeHtml(etiquetaLinea(f.linea || 'piscina'))}</div>
+                  <div class="ficha-actions">
+                    <span class="ficha-status ${asociados > 0 ? 'ficha-status--ok' : 'ficha-status--free'}">${asociados > 0 ? `${asociados} con producto` : 'Disponible'}</span>
+                    <button class="admin-mini-btn" data-use-ficha="${f.id}"><i class="fas fa-arrow-right"></i> Usar</button>
+                    <button class="admin-mini-btn" data-edit-ficha="${f.id}"><i class="fas fa-pen"></i> Editar</button>
+                    <button class="admin-mini-btn" data-detail-ficha="${f.id}"><i class="fas fa-eye"></i> Ver detalle</button>
+                  </div>
+                </article>
+              `;
+            }).join('')}
+          </div>
+        `;
+        root.appendChild(wrap);
+      });
+
+    qsa('[data-toggle-ficha-cat]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const categoria = btn.dataset.toggleFichaCat;
+        state.fichasCategoriasExpandidas[categoria] = !state.fichasCategoriasExpandidas[categoria];
+        renderFichasList(state.fichas);
+      });
+    });
 
     qsa('[data-edit-ficha]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const ficha = state.fichas.find((x) => x.id === Number(btn.dataset.editFicha));
-        if (ficha) {
-          activateTab('fichas');
-          fillFichaForm(ficha);
-        }
+        if (!ficha) return;
+        activateTab('fichas');
+        fillFichaForm(ficha);
+      });
+    });
+
+    qsa('[data-use-ficha]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const ficha = state.fichas.find((x) => x.id === Number(btn.dataset.useFicha));
+        if (!ficha) return;
+        resetProductForm();
+        activateTab('productos');
+        aplicarFichaEnFormularioProducto(ficha);
+        const slugInput = qs('#prod-slug');
+        if (slugInput && !slugInput.value) slugInput.value = slugify(ficha.nombre || '');
+        showMsg('success', 'Ficha aplicada al formulario de producto.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    qsa('[data-detail-ficha]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const ficha = state.fichas.find((x) => x.id === Number(btn.dataset.detailFicha));
+        renderFichaDetalle(ficha);
       });
     });
   };
@@ -2684,7 +3654,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.categories.map((c) => `<option value="${c.id}">${escapeHtml(c.nombre)} (${c.linea === 'agua' ? 'Agua' : 'Piscina'})</option>`)
       )
       .join('');
-    const ids = ['#fichasCategoriaFiltro', '#ficha-categoria', '#ficha-rapida-categoria'];
+    const ids = ['#ficha-categoria', '#ficha-rapida-categoria'];
     ids.forEach((sel) => {
       const el = qs(sel);
       if (el) {
@@ -2693,18 +3663,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (current) el.value = current;
       }
     });
+    populateFichaSuggestions();
+    toggleFichaComponentesVisibility();
   };
 
   const loadFichas = async () => {
-    const q = (qs('#fichasBusqueda')?.value || '').trim();
-    const categoria = (qs('#fichasCategoriaFiltro')?.value || '').trim();
-    const linea = (qs('#fichasLineaFiltro')?.value || '').trim();
-    const params = new URLSearchParams();
-    if (q) params.set('q', q);
-    if (categoria) params.set('categoria_id', categoria);
-    if (linea) params.set('linea', linea);
-    const data = await api(`/admin/api/fichas-tecnicas${params.toString() ? `?${params.toString()}` : ''}`);
+    const data = await api('/admin/api/fichas-tecnicas');
     state.fichas = data.data || [];
+    populateFichaSuggestions();
     renderFichasList(state.fichas);
     renderFichaSeleccionadaPreview();
   };

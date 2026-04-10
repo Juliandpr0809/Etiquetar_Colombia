@@ -1,0 +1,148 @@
+[
+  {
+    "nombre": "Sistema de Desinfección UV Serie Platinum 40 GPM",
+    "referencia": "PKUV-40-RAV-PH",
+    "marca": "Purikor",
+    "categoria": "Lámparas UV",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": true,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Capacidad", "valor": "40", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Corriente máxima", "valor": "2.06", "unidad": "amp", "tipo": "cuantitativa" },
+      { "nombre": "Cantidad de focos", "valor": "2", "tipo": "cuantitativa" },
+      { "nombre": "Potencia total", "valor": "195", "unidad": "Watts", "tipo": "cuantitativa" },
+      { "nombre": "Potencia por foco", "valor": "75", "unidad": "watts/foco", "tipo": "cuantitativa" },
+      { "nombre": "Conexiones Entrada/Salida", "valor": "1.5\" NPT Macho", "tipo": "cualitativa" },
+      { "nombre": "Alarma", "valor": "Auditiva y Visual", "tipo": "cualitativa" },
+      { "nombre": "Recordatorio días de uso", "valor": "Si", "tipo": "cualitativa" },
+      { "nombre": "Voltaje de alimentación", "valor": "110-240", "unidad": "V", "tipo": "cuantitativa" },
+      { "nombre": "Marca de focos", "valor": "PHILIPS", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Contador de tiempo para reemplazo de luz UV",
+      "Proceso libre de sustancias químicas",
+      "Desinfección instantánea y eficiente",
+      "Portalámpara en acero inoxidable 304",
+      "No cambia las propiedades del agua"
+    ],
+    "componentes": [
+      { "nombre": "Foco UV PHILIPS", "referencia": null, "cantidad": 2, "notes": "75 Watts c/u" },
+      { "nombre": "Balastro controlador", "referencia": null, "cantidad": 1, "notes": "Con recordatorio de días" }
+    ]
+  },
+  {
+    "nombre": "Rotámetro para Medición de Líquidos Metro 40 GPM",
+    "referencia": "METRO40B1.5",
+    "marca": "Purikor",
+    "categoria": "Medición de Flujo",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Rango de flujo (GPM)", "valor": "4-40", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Rango de flujo (LPM)", "valor": "15-150", "unidad": "LPM", "tipo": "cuantitativa" },
+      { "nombre": "Diámetro de conexión", "valor": "1.5", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Tipo de conexión", "valor": "Hembra NPT", "tipo": "cualitativa" },
+      { "nombre": "Medio", "valor": "Agua", "tipo": "cualitativa" },
+      { "nombre": "Diseño", "valor": "Redondo", "tipo": "cualitativa" },
+      { "nombre": "Presión máxima de operación", "valor": "100", "unidad": "psi", "tipo": "cuantitativa" },
+      { "nombre": "Exactitud", "valor": "±5%", "tipo": "cuantitativa" },
+      { "nombre": "Temperatura máxima ambiente", "valor": "50", "unidad": "°C", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Cuerpo en acrílico (Polimetacrilato de metilo)",
+      "Flotador y guía en acero inoxidable 304",
+      "Conectores de entrada y salida en PVC",
+      "Barra de valores impresa en gpm y lpm",
+      "El líquido no está en contacto con materiales sujetos a oxidación"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Medidor PH de Alcalinidad y Acidez Digital",
+    "referencia": "PK-PH9",
+    "marca": "Purikor",
+    "categoria": "Instrumentación Digital",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Rango de medición", "valor": "0.0 a 14.0", "unidad": "ppm", "tipo": "cuantitativa" },
+      { "nombre": "Máxima temperatura", "valor": "50", "unidad": "°C", "tipo": "cuantitativa" },
+      { "nombre": "Exactitud", "valor": "±0.1pH (a 20°C) ± 0.2pH", "tipo": "cuantitativa" },
+      { "nombre": "Resolución", "valor": "0.1", "tipo": "cuantitativa" },
+      { "nombre": "Vida útil de la batería", "valor": "150", "unidad": "hrs", "tipo": "cuantitativa" },
+      { "nombre": "Baterías", "valor": "3 x LR44 1.5V", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Pantalla Digital LCD",
+      "Diseño pequeño y robusto",
+      "Incluye estuche para transporte",
+      "Valor de medición instantáneo",
+      "Equipo calibrado de fábrica"
+    ],
+    "componentes": [
+      { "nombre": "Baterías LR44", "referencia": null, "cantidad": 3, "notes": "Instaladas" },
+      { "nombre": "Estuche de transporte", "referencia": null, "cantidad": 1, "notes": null }
+    ]
+  },
+  {
+    "nombre": "Resina Catiónica de Intercambio Iónico Bulto 26.5L",
+    "referencia": "PK-RESINA-CA",
+    "marca": "Purikor",
+    "categoria": "Medios Filtrantes",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": null,
+    "especificaciones": [
+      { "nombre": "Presentación", "valor": "26.5", "unidad": "litros", "tipo": "cuantitativa" },
+      { "nombre": "Peso del bulto", "valor": "22", "unidad": "kg", "tipo": "cuantitativa" },
+      { "nombre": "Retención de humedad estructural", "valor": "<2%", "tipo": "cuantitativa" },
+      { "nombre": "Densidad húmeda aparente", "valor": "0.82-0.83", "unidad": "g/ml", "tipo": "cuantitativa" },
+      { "nombre": "Forma de envío iónica", "valor": "Na +", "tipo": "cualitativa" },
+      { "nombre": "Capacidad intercambio (húmeda)", "valor": ">2", "unidad": "eq/L", "tipo": "cuantitativa" },
+      { "nombre": "Disolución materia orgánica (COD)", "valor": "< 1", "unidad": "mg/L", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Remueve la dureza del agua eliminando calcio y magnesio",
+      "Alta eficiencia en la regeneración",
+      "Recuperación de capacidad de intercambio iónico",
+      "Certificación NSF",
+      "Alta pureza"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Zeolita Mineral para Filtración Bulto 22kg",
+    "referencia": "PKZEOLITA",
+    "marca": "Purikor",
+    "categoria": "Medios Filtrantes",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": null,
+    "especificaciones": [
+      { "nombre": "Desempeño de filtrado", "valor": "3-5", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Flujo de servicio", "valor": "8.5 a 10", "unidad": "gpm/ft²", "tipo": "cuantitativa" },
+      { "nombre": "Flujo de retrolavado", "valor": "12 a 10", "unidad": "gpm/ft²", "tipo": "cuantitativa" },
+      { "nombre": "Duración de retrolavado", "valor": "5 a 15", "unidad": "min", "tipo": "cuantitativa" },
+      { "nombre": "Profundidad del lecho", "valor": "30 a 40", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Estabilidad térmica", "valor": "Hasta 500", "unidad": "°C", "tipo": "cuantitativa" },
+      { "nombre": "Peso volumétrico (PVS)", "valor": "21.4", "unidad": "kg/ft³", "tipo": "cuantitativa" },
+      { "nombre": "Peso del bulto", "valor": "22", "unidad": "kg", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Retiene sólidos suspendidos",
+      "Brinda un menor diferencial de presión",
+      "Posee una mayor superficie y porosidad con menor densidad",
+      "Ayuda a reducir malos olores (amoniaco)",
+      "Medio filtrante más durable (más de 4 años)"
+    ],
+    "componentes": []
+  }
+]

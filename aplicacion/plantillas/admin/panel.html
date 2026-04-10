@@ -447,12 +447,6 @@
                             <label for="fichasBusqueda">Buscar</label>
                             <input id="fichasBusqueda" placeholder="Nombre o referencia">
                         </div>
-                        <div class="admin-form-group" style="min-width:220px;">
-                            <label for="fichasCategoriaFiltro">Categoría</label>
-                            <select id="fichasCategoriaFiltro">
-                                <option value="">Todas</option>
-                            </select>
-                        </div>
                         <div class="admin-form-group" style="min-width:180px;">
                             <label for="fichasLineaFiltro">Línea</label>
                             <select id="fichasLineaFiltro">
@@ -461,8 +455,17 @@
                                 <option value="piscina">Piscina &amp; Spa</option>
                             </select>
                         </div>
+                        <div class="admin-form-group" style="min-width:180px;">
+                            <label for="fichasEstadoFiltro">Estado</label>
+                            <select id="fichasEstadoFiltro">
+                                <option value="">Todas</option>
+                                <option value="con_producto">Con producto</option>
+                                <option value="disponibles">Disponibles</option>
+                            </select>
+                        </div>
                         <button type="button" id="btnBuscarFichas" class="admin-mini-btn">Filtrar</button>
                     </div>
+                    <div id="fichasCounter" class="fichas-counter" aria-live="polite">0 fichas en total · 0 con producto · 0 disponibles</div>
                     <div class="admin-inline-actions" style="margin-top:8px;">
                         <button type="button" id="btnNuevaFicha" class="admin-mini-btn"><i class="fas fa-plus"></i> Nueva ficha</button>
                         <button type="button" id="btnImportarFichas" class="admin-mini-btn"><i class="fas fa-file-import"></i> Importar JSON</button>
@@ -470,68 +473,163 @@
                     <div id="fichasList" class="admin-list" style="margin-top:12px;"></div>
                 </article>
 
+                <div id="fichaDetalleModal" class="ficha-modal" hidden>
+                    <div class="ficha-modal__backdrop" data-close-ficha-detalle="1"></div>
+                    <div class="ficha-modal__panel" role="dialog" aria-modal="true" aria-labelledby="fichaDetalleTitle">
+                        <div class="ficha-modal__header">
+                            <h3 id="fichaDetalleTitle"><i class="fas fa-circle-info"></i> Detalle de ficha</h3>
+                            <button type="button" class="admin-mini-btn" data-close-ficha-detalle="1"><i class="fas fa-xmark"></i> Cerrar</button>
+                        </div>
+                        <div id="fichaDetalleBody" class="ficha-modal__body"></div>
+                    </div>
+                </div>
+
                 <article class="admin-card" style="margin-top:12px;" id="fichaEditorCard">
                     <h3><i class="fas fa-pen"></i> Crear / editar ficha</h3>
                     <form id="formFichaTecnica" class="admin-form-grid">
                         <input type="hidden" id="ficha-id">
-                        <div class="product-form-2col">
-                            <div class="admin-form-group">
-                                <label for="ficha-nombre">Nombre</label>
-                                <input id="ficha-nombre" required>
+                        <section class="ficha-section ficha-section--basic" data-ficha-section="basic">
+                            <button type="button" class="ficha-section__header" data-ficha-toggle="basic" aria-expanded="true">
+                                <span class="ficha-section__title"><i class="fas fa-tags"></i> Información básica</span>
+                                <span class="ficha-section__meta"><span id="fichaSectionCountBasic" class="ficha-section__badge">0/6</span><i class="fas fa-chevron-down"></i></span>
+                            </button>
+                            <div class="ficha-section__progress"><span id="fichaSectionProgressBasic"></span></div>
+                            <div class="ficha-section__body" id="fichaSectionBodyBasic">
+                                <div class="product-form-2col">
+                                    <div class="admin-form-group">
+                                        <label for="ficha-nombre">Nombre</label>
+                                        <input id="ficha-nombre" required>
+                                    </div>
+                                    <div class="admin-form-group">
+                                        <label for="ficha-referencia">Referencia</label>
+                                        <input id="ficha-referencia" required>
+                                    </div>
+                                </div>
+                                <div class="product-form-2col">
+                                    <div class="admin-form-group">
+                                        <label for="ficha-marca">Marca</label>
+                                        <input id="ficha-marca">
+                                    </div>
+                                    <div class="admin-form-group">
+                                        <label for="ficha-linea">Línea</label>
+                                        <select id="ficha-linea" required>
+                                            <option value="agua">Tratamiento de Agua</option>
+                                            <option value="piscina">Piscina &amp; Spa</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="ficha-categoria">Categoría</label>
+                                    <select id="ficha-categoria">
+                                        <option value="">Sin categoría</option>
+                                    </select>
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="ficha-garantia-select">Garantía</label>
+                                    <select id="ficha-garantia-select">
+                                        <option value="">Sin garantía</option>
+                                        <option value="6 meses">6 meses</option>
+                                        <option value="1 año">1 año</option>
+                                        <option value="2 años">2 años</option>
+                                        <option value="3 años">3 años</option>
+                                        <option value="5 años">5 años</option>
+                                        <option value="personalizada">Personalizada</option>
+                                    </select>
+                                    <input id="ficha-garantia-custom" placeholder="Ej: Garantía variable según componente" style="margin-top:6px;" hidden>
+                                </div>
                             </div>
-                            <div class="admin-form-group">
-                                <label for="ficha-referencia">Referencia</label>
-                                <input id="ficha-referencia" required>
+                        </section>
+
+                        <section class="ficha-section ficha-section--app" data-ficha-section="app">
+                            <button type="button" class="ficha-section__header" data-ficha-toggle="app" aria-expanded="false">
+                                <span class="ficha-section__title"><i class="fas fa-file-lines"></i> Aplicación y descripción</span>
+                                <span class="ficha-section__meta"><span id="fichaSectionCountApp" class="ficha-section__badge">0/2</span><i class="fas fa-chevron-right"></i></span>
+                            </button>
+                            <div class="ficha-section__progress"><span id="fichaSectionProgressApp"></span></div>
+                            <div class="ficha-section__body" id="fichaSectionBodyApp" hidden>
+                                <div class="admin-form-group">
+                                    <label for="ficha-aplicacion">Aplicación</label>
+                                    <textarea id="ficha-aplicacion" rows="2" placeholder="Ideal para sistemas de suavización residencial y comercial de hasta 26 GPM."></textarea>
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="ficha-descripcion">Descripción</label>
+                                    <textarea id="ficha-descripcion" rows="2" placeholder="La bomba Silen-S es una motobomba silenciosa diseñada para recircular agua en piscinas residenciales y comerciales."></textarea>
+                                </div>
                             </div>
-                        </div>
-                        <div class="product-form-2col">
-                            <div class="admin-form-group">
-                                <label for="ficha-marca">Marca</label>
-                                <input id="ficha-marca">
+                        </section>
+
+                        <section class="ficha-section ficha-section--spec" data-ficha-section="spec">
+                            <button type="button" class="ficha-section__header" data-ficha-toggle="spec" aria-expanded="false">
+                                <span class="ficha-section__title"><i class="fas fa-gear"></i> Especificaciones técnicas</span>
+                                <span class="ficha-section__meta"><span id="fichaSectionCountSpec" class="ficha-section__badge">0 campos</span><i class="fas fa-chevron-right"></i></span>
+                            </button>
+                            <div class="ficha-section__progress"><span id="fichaSectionProgressSpec"></span></div>
+                            <div class="ficha-section__body" id="fichaSectionBodySpec" hidden>
+                                <datalist id="fichaSpecNameSuggestions"></datalist>
+                                <datalist id="fichaSpecSectionSuggestions">
+                                    <option value="Funciones"></option>
+                                    <option value="Características físicas"></option>
+                                    <option value="Información técnica"></option>
+                                    <option value="Información general"></option>
+                                </datalist>
+                                <div id="fichaEspecificacionesBuilder" class="ficha-builder-list"></div>
+                                <button type="button" id="btnAddFichaEspecificacion" class="admin-mini-btn"><i class="fas fa-plus"></i> Más especificación</button>
                             </div>
-                            <div class="admin-form-group">
-                                <label for="ficha-linea">Línea</label>
-                                <select id="ficha-linea" required>
-                                    <option value="agua">Tratamiento de Agua</option>
-                                    <option value="piscina">Piscina &amp; Spa</option>
-                                </select>
+                        </section>
+
+                        <section class="ficha-section ficha-section--car" data-ficha-section="car">
+                            <button type="button" class="ficha-section__header" data-ficha-toggle="car" aria-expanded="false">
+                                <span class="ficha-section__title"><i class="fas fa-circle-check"></i> Características destacadas</span>
+                                <span class="ficha-section__meta"><span id="fichaSectionCountCar" class="ficha-section__badge">0 ítems</span><i class="fas fa-chevron-right"></i></span>
+                            </button>
+                            <div class="ficha-section__progress"><span id="fichaSectionProgressCar"></span></div>
+                            <div class="ficha-section__body" id="fichaSectionBodyCar" hidden>
+                                <div id="fichaCaracteristicasBuilder" class="ficha-builder-list"></div>
+                                <button type="button" id="btnAddFichaCaracteristica" class="admin-mini-btn"><i class="fas fa-plus"></i> Agregar característica</button>
                             </div>
+                        </section>
+
+                        <section class="ficha-section ficha-section--comp" data-ficha-section="comp" id="fichaComponentesGroup" hidden>
+                            <button type="button" class="ficha-section__header" data-ficha-toggle="comp" aria-expanded="false">
+                                <span class="ficha-section__title"><i class="fas fa-box-open"></i> Componentes del kit</span>
+                                <span class="ficha-section__meta"><span id="fichaSectionCountComp" class="ficha-section__badge">0 componentes</span><i class="fas fa-chevron-right"></i></span>
+                            </button>
+                            <div class="ficha-section__progress"><span id="fichaSectionProgressComp"></span></div>
+                            <div class="ficha-section__body" id="fichaSectionBodyComp" hidden>
+                                <datalist id="fichaComponentesSuggestions"></datalist>
+                                <div id="fichaComponentesBuilder" class="ficha-builder-list"></div>
+                                <button type="button" id="btnAddFichaComponente" class="admin-mini-btn"><i class="fas fa-plus"></i> Agregar componente</button>
+                            </div>
+                        </section>
+
+                        <section class="ficha-section ficha-section--pdf" data-ficha-section="pdf">
+                            <button type="button" class="ficha-section__header" data-ficha-toggle="pdf" aria-expanded="false">
+                                <span class="ficha-section__title"><i class="fas fa-file-arrow-up"></i> PDF y archivos</span>
+                                <span class="ficha-section__meta"><span id="fichaSectionCountPdf" class="ficha-section__badge">Sin PDF</span><i class="fas fa-chevron-right"></i></span>
+                            </button>
+                            <div class="ficha-section__progress"><span id="fichaSectionProgressPdf"></span></div>
+                            <div class="ficha-section__body" id="fichaSectionBodyPdf" hidden>
+                                <div class="admin-form-group">
+                                    <label for="ficha-pdf-url">URL PDF de ficha</label>
+                                    <input id="ficha-pdf-url" placeholder="/estaticos/manuales/ficha.pdf" hidden>
+                                    <div class="admin-inline-actions ficha-dropzone">
+                                        <input id="ficha-pdf-file" type="file" accept="application/pdf,.pdf" hidden>
+                                        <button type="button" id="btnSubirFichaPdf" class="admin-mini-btn"><i class="fas fa-file-arrow-up"></i> Subir PDF</button>
+                                        <span id="fichaPdfStatus" class="admin-form-hint">Sin archivo cargado.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="ficha-progress-wrap">
+                            <div class="ficha-progress-head">
+                                <strong>Completitud de ficha</strong>
+                                <span id="fichaProgressText">0%</span>
+                            </div>
+                            <div class="ficha-progress-bar"><span id="fichaProgressFill"></span></div>
                         </div>
-                        <div class="admin-form-group">
-                            <label for="ficha-categoria">Categoría</label>
-                            <select id="ficha-categoria">
-                                <option value="">Sin categoría</option>
-                            </select>
-                        </div>
-                        <div class="admin-form-group">
-                            <label for="ficha-garantia">Garantía (texto)</label>
-                            <input id="ficha-garantia" placeholder="Ej: 1 año">
-                        </div>
-                        <div class="admin-form-group">
-                            <label for="ficha-aplicacion">Aplicación</label>
-                            <textarea id="ficha-aplicacion" rows="2"></textarea>
-                        </div>
-                        <div class="admin-form-group">
-                            <label for="ficha-descripcion">Descripción</label>
-                            <textarea id="ficha-descripcion" rows="2"></textarea>
-                        </div>
-                        <div class="admin-form-group">
-                            <label for="ficha-pdf-url">URL PDF de ficha</label>
-                            <input id="ficha-pdf-url" placeholder="https://...">
-                        </div>
-                        <div class="admin-form-group">
-                            <label for="ficha-especificaciones-json">Especificaciones (JSON)</label>
-                            <textarea id="ficha-especificaciones-json" rows="5" placeholder='[{"nombre":"Capacidad","tipo":"cuantitativa","valor":"4","unidad":"litros"}]'></textarea>
-                        </div>
-                        <div class="admin-form-group">
-                            <label for="ficha-caracteristicas-json">Características (JSON)</label>
-                            <textarea id="ficha-caracteristicas-json" rows="4" placeholder='["Fácil instalación", "Compacto"]'></textarea>
-                        </div>
-                        <div class="admin-form-group">
-                            <label for="ficha-componentes-json">Componentes (JSON)</label>
-                            <textarea id="ficha-componentes-json" rows="4" placeholder='[{"nombre":"Manguera","cantidad":1}]'></textarea>
-                        </div>
-                        <div class="admin-inline-actions">
+                        <div class="admin-inline-actions ficha-submit-bar">
+                            <span id="fichaSaveSummary" class="admin-form-hint">Sin nombre · 0 especificaciones · 0 características</span>
                             <button class="admin-btn" type="submit"><i class="fas fa-save"></i> Guardar ficha</button>
                             <button class="admin-mini-btn" type="button" id="btnLimpiarFichaForm"><i class="fas fa-rotate-left"></i> Limpiar</button>
                         </div>
