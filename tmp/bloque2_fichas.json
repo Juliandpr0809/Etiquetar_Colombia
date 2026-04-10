@@ -1,0 +1,166 @@
+[
+  {
+    "nombre": "Filtro Cartucho de Polipropileno Termofusionado 2.5\" x 10\" 5 Micras",
+    "referencia": "PKCPP2.5X10X5",
+    "marca": "Purikor",
+    "categoria": "Filtros de Cartucho Polipropileno",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Diámetro", "valor": "2.5", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Altura", "valor": "10", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales", "valor": "5", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "2-8", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Caída de presión", "valor": "0.6", "unidad": "psi", "tipo": "cuantitativa", "condicion": "a 8 GPM" }
+    ],
+    "caracteristicas": [
+      "Bajo costo",
+      "Alta retención de sólidos",
+      "Buena resistencia química",
+      "No presenta migración de fibras o partículas",
+      "Baja caída de presión"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Filtro Cartucho de Polipropileno Termofusionado 4.5\" x 20\" 50 Micras",
+    "referencia": "PKCPP4.5X20X50",
+    "marca": "Purikor",
+    "categoria": "Filtros de Cartucho Polipropileno",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Diámetro", "valor": "4.5", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Altura", "valor": "20", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales", "valor": "50", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "2-8", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Caída de presión", "valor": "0.6", "unidad": "psi", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Altos rangos de remoción y mejor retención de partículas",
+      "Niveles de filtración: 5, 10, 20, 25 y 50 micras"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Filtro Cartucho de Tela Filtrante Plegada 2.5\" x 10\" 1 Micra",
+    "referencia": "PKCPL2.5X10X1",
+    "marca": "Purikor",
+    "categoria": "Filtros de Cartucho Plegados",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Diámetro", "valor": "2.5", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Altura", "valor": "10", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales", "valor": "1", "unidad": "micra", "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "4", "unidad": "GPM", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Mayor superficie de retención de sólidos",
+      "Menor costo de filtración",
+      "Alta eficiencia",
+      "Lavable / reusable",
+      "Larga duración"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Filtro Cartucho de Tela Filtrante Plegada 4.5\" x 20\" 20 Micras",
+    "referencia": "PKCPL4.5X20X20",
+    "marca": "Purikor",
+    "categoria": "Filtros de Cartucho Plegados",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Diámetro", "valor": "4.5", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Altura", "valor": "20", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales", "valor": "20", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "25", "unidad": "GPM", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Mayor superficie de retención de sólidos",
+      "Niveles de filtración: 1, 5, 20 y 50 micras"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Filtro Cartucho Carbón Activado Granular GAC 2.5\" x 10\"",
+    "referencia": "PKCGAC2.5X10",
+    "marca": "Purikor",
+    "categoria": "Filtros de Cartucho Carbón Activado",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Descripción carbón", "valor": "Granular (GAC)", "tipo": "cualitativa" },
+      { "nombre": "Diámetro", "valor": "2.5", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Altura", "valor": "10", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales", "valor": "N/A", "tipo": "cualitativa" },
+      { "nombre": "Reducción de cloro", "valor": "2500 gal a 1 gpm", "tipo": "cuantitativa" },
+      { "nombre": "Conexiones", "valor": "N/A", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Remueve malos olores y cloro presente en el agua",
+      "Fabricados con carbón de cáscara de coco vegetal",
+      "Ideales para sistemas de pre y post filtración",
+      "Construcción durable"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Filtro Cartucho Carbón Activado Block CTO 4.5\" x 20\"",
+    "referencia": "PKCCTO4.5X20X5",
+    "marca": "Purikor",
+    "categoria": "Filtros de Cartucho Carbón Activado",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Descripción carbón", "valor": "Block (CTO)", "tipo": "cualitativa" },
+      { "nombre": "Diámetro", "valor": "4.5", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Altura", "valor": "20", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales", "valor": "5", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Reducción de cloro", "valor": "20000 gal a 8 gpm", "tipo": "cuantitativa" },
+      { "nombre": "Caída de presión", "valor": "2.5", "unidad": "psi", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Remueve remanentes de mal olor, cloro, sedimentos y partículas suspendidas",
+      "Alta eficiencia",
+      "Baja pérdida de presión"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Filtro en Línea Carbón Activado Post Filtración 2.5\" x 10\"",
+    "referencia": "PKCCAL2.5X10",
+    "marca": "Purikor",
+    "categoria": "Filtros en Línea",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Uso", "valor": "Post filtración / Refrigeradores", "tipo": "cualitativa" },
+      { "nombre": "Diámetro", "valor": "2.5", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Altura", "valor": "10", "unidad": "pulgadas", "tipo": "cuantitativa" },
+      { "nombre": "Reducción de cloro", "valor": "1500 gal a 0.75 gpm", "tipo": "cuantitativa" },
+      { "nombre": "Conexión", "valor": "1/4\" NPT", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Da un último toque para mejorar el sabor al agua",
+      "Ideal como filtro en refrigeradores domésticos",
+      "Fabricado con carbón de cáscara de coco"
+    ],
+    "componentes": []
+  }
+]

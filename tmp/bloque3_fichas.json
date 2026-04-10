@@ -1,0 +1,147 @@
+[
+  {
+    "nombre": "Portafiltro Estándar Blanco 1/4\" Hembra",
+    "referencia": "PKPFB10X.25",
+    "marca": "Purikor",
+    "categoria": "Portafiltros",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": true,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Flujo nominal", "valor": "1", "unidad": "gpm", "tipo": "cuantitativa" },
+      { "nombre": "Conexión de entrada/salida", "valor": "1/4\"", "unidad": "pulgadas", "tipo": "cualitativa" },
+      { "nombre": "Tipo de rosca", "valor": "Hembra", "tipo": "cualitativa" },
+      { "nombre": "Conexión con refuerzo en bronce", "valor": "No", "tipo": "cualitativa" },
+      { "nombre": "Color del cuerpo", "valor": "Blanco", "tipo": "cualitativa" },
+      { "nombre": "Color de la tapa", "valor": "Blanco", "tipo": "cualitativa" },
+      { "nombre": "Botón de purga", "valor": "No", "tipo": "cualitativa" },
+      { "nombre": "Material de construcción", "valor": "Polipropileno", "tipo": "cualitativa" },
+      { "nombre": "O-Ring", "valor": "EPDM y gel de sílice", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Solución eficiente y económica para el acondicionamiento de agua",
+      "Diseñado para cartuchos de sedimentos (PP, PL) y carbón activado (CTO, GAC)",
+      "Construcción robusta en polipropileno",
+      "Fácil instalación"
+    ],
+    "componentes": [
+      { "nombre": "Llave para portafiltros", "referencia": null, "cantidad": 1, "notas": null },
+      { "nombre": "Soporte de montaje (bracket)", "referencia": null, "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Pre-filtro de Malla Lavable 1/2\" Hembra",
+    "referencia": "PKPFMALLA5X.5",
+    "marca": "Purikor",
+    "categoria": "Portafiltros Especiales",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": true,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Flujo máximo", "valor": "3", "unidad": "gpm", "tipo": "cuantitativa" },
+      { "nombre": "Conexión de entrada/salida", "valor": "1/2\"", "unidad": "pulgadas", "tipo": "cualitativa" },
+      { "nombre": "Tipo de rosca", "valor": "Hembra", "tipo": "cualitativa" },
+      { "nombre": "Conexión con refuerzo en bronce", "valor": "Sí", "tipo": "cualitativa" },
+      { "nombre": "Micras del cartucho de malla", "valor": "40 a 90", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Color del cuerpo", "valor": "Azul / Transparente", "tipo": "cualitativa" },
+      { "nombre": "Color de la tapa", "valor": "Azul", "tipo": "cualitativa" },
+      { "nombre": "Purga", "valor": "No", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Construcción del portafiltro en polipropileno",
+      "Cartucho de malla metálico en acero inox. 304",
+      "Alta precisión de filtración",
+      "Cartucho lavable"
+    ],
+    "componentes": [
+      { "nombre": "Llave para portafiltros", "referencia": null, "cantidad": 1, "notas": null },
+      { "nombre": "Válvula para drenaje", "referencia": null, "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Portamembrana Fibra de Vidrio 4\" x 40\" Entrada Superior",
+    "referencia": "PK-PM40E300-1",
+    "marca": "Purikor",
+    "categoria": "Portamembranas",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Máxima presión de operación", "valor": "300", "unidad": "PSI", "tipo": "cuantitativa" },
+      { "nombre": "Elementos contenidos", "valor": "1", "tipo": "cuantitativa" },
+      { "nombre": "Tipo de conexión", "valor": "Superior", "tipo": "cualitativa" },
+      { "nombre": "Medida", "valor": "4 x 40", "unidad": "pulgadas", "tipo": "cualitativa" },
+      { "nombre": "Conexión Alimentación/Concentrado", "valor": "3/4\" NPT", "tipo": "cualitativa" },
+      { "nombre": "Conexión Permeado", "valor": "1/2\" NPT", "tipo": "cualitativa" },
+      { "nombre": "Peso", "valor": "6.4", "unidad": "kg", "tipo": "cuantitativa" },
+      { "nombre": "Material del cuerpo", "valor": "Plástico reforzado con fibra de vidrio (FRP)", "tipo": "cualitativa" },
+      { "nombre": "Material de tapas", "valor": "Plástico ABS", "tipo": "cualitativa" },
+      { "nombre": "Material bloqueador de tapas", "valor": "Acero inoxidable 304", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "No conduce electricidad",
+      "No corrosiva",
+      "Alta resistencia a la presión",
+      "O-rings de sellado en EPDM"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Membrana Ósmosis Inversa Comercial Baja Presión 4\" x 40\"",
+    "referencia": "PKRO-4040LP-E",
+    "marca": "Purikor",
+    "categoria": "Membranas de Ósmosis Inversa",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Flujo de permeado", "valor": "2400", "unidad": "GPD", "tipo": "cuantitativa" },
+      { "nombre": "Flujo de permeado (m3/d)", "valor": "9.1", "unidad": "m3/d", "tipo": "cuantitativa" },
+      { "nombre": "Rechazo de sales nominal", "valor": "99.5", "unidad": "%", "tipo": "cuantitativa" },
+      { "nombre": "Rechazo de sales mínimo", "valor": "99.4", "unidad": "%", "tipo": "cuantitativa" },
+      { "nombre": "Área de membrana", "valor": "85", "unidad": "ft2", "tipo": "cuantitativa" },
+      { "nombre": "Presión de operación", "valor": "225", "unidad": "psi", "tipo": "cuantitativa" },
+      { "nombre": "Máxima presión de operación", "valor": "0.75 / 19.1", "unidad": "psi/Mpa", "tipo": "cuantitativa" },
+      { "nombre": "Diámetro interno tubo permeado", "valor": "4 / 101.6", "unidad": "pulgadas/mm", "tipo": "cuantitativa" },
+      { "nombre": "Peso", "valor": "3.5", "unidad": "kg", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Alta taza de rechazo y gran estabilidad",
+      "Diseño de construcción lavable para mayor rendimiento",
+      "Opción de conexión en serie para mayor capacidad",
+      "Desempeño estable y excelente flujo"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Membrana para Agua de Mar 8\" x 40\"",
+    "referencia": "PKRO-8040SW",
+    "marca": "Purikor",
+    "categoria": "Membranas Especiales",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Aplicación", "valor": "Agua de Mar", "tipo": "cualitativa" },
+      { "nombre": "Flujo de permeado", "valor": "6500", "unidad": "GPD", "tipo": "cuantitativa" },
+      { "nombre": "Rechazo de sales nominal", "valor": "99.8", "unidad": "%", "tipo": "cuantitativa" },
+      { "nombre": "Presión de operación", "valor": "800", "unidad": "psi", "tipo": "cuantitativa" },
+      { "nombre": "Máxima presión de operación", "valor": "1200", "unidad": "psi", "tipo": "cuantitativa" },
+      { "nombre": "Rango de temperatura del agua", "valor": "4 a 45", "unidad": "°C", "tipo": "cuantitativa" },
+      { "nombre": "Rango de pH (continuo)", "valor": "3 a 10", "tipo": "cuantitativa" },
+      { "nombre": "Máxima concentración de minerales (entrada)", "valor": "3000", "unidad": "ppm", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Alto rechazo de sal",
+      "Excelente flujo",
+      "Hoja de permeo en poliamida",
+      "Cuerpo de membrana en fibra de vidrio"
+    ],
+    "componentes": []
+  }
+]
