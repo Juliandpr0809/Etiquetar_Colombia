@@ -1,0 +1,101 @@
+[
+  {
+    "nombre": "Kit de mantenimiento 12 meses para PKF-3UV",
+    "referencia": "KIT12-FB3UV",
+    "marca": "Purikor",
+    "categoria": "Kits de Mantenimiento",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": true,
+    "garantia": null,
+    "especificaciones": [
+      { "nombre": "Período de mantenimiento", "valor": "12", "unidad": "meses", "tipo": "cuantitativa" },
+      { "nombre": "Equipo compatible", "valor": "PKF-3UV", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Kit completo para mantenimiento anual preventivo",
+      "Asegura la calidad del agua purificada",
+      "Incluye lámpara UV original PHILIPS"
+    ],
+    "componentes": [
+      { "nombre": "Filtro cartucho polipropileno termofusionado 2.5”x10” para 5 micras", "referencia": "PKCPP2.5X10X5", "cantidad": 2, "notas": null },
+      { "nombre": "Filtro cartucho de carbón activado Block CTO 2.5”x10” para 5 micras", "referencia": "PKCCTO2.5X10X5", "cantidad": 2, "notas": null },
+      { "nombre": "Lámpara UV PHILIPS de 6 watts", "referencia": "R-PK-UV-6W", "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Kit de mantenimiento 12 meses para PKRO100-5P y PKUF-5",
+    "referencia": "KIT12-ROUF",
+    "marca": "Purikor",
+    "categoria": "Kits de Mantenimiento",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": true,
+    "garantia": null,
+    "especificaciones": [
+      { "nombre": "Período de mantenimiento", "valor": "12", "unidad": "meses", "tipo": "cuantitativa" },
+      { "nombre": "Equipos compatibles", "valor": "PKRO100-5P, PKUF-5", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Mantenimiento para sistemas de ósmosis y ultrafiltración sin UV",
+      "Incluye filtros de sedimentos y carbón activado (Block, Granular y en Línea)"
+    ],
+    "componentes": [
+      { "nombre": "Filtro cartucho polipropileno termofusionado 2.5”x10” para 5 micras", "referencia": "PKCPP2.5X10X5", "cantidad": 2, "notas": null },
+      { "nombre": "Filtro cartucho de carbón activado Block CTO 2.5”x10” para 5 micras", "referencia": "PKCCTO2.5X10X5", "cantidad": 2, "notas": null },
+      { "nombre": "Filtro cartucho carbón activado granular GAC 2.5”x10”", "referencia": "PKCGAC2.5X10", "cantidad": 2, "notas": null },
+      { "nombre": "Filtro cartucho carbón activado granular en línea 2.5”x10”", "referencia": "PKCCAL2.5X10", "cantidad": 2, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Kit de mantenimiento 24 meses para PKUF-5",
+    "referencia": "KIT24-UF",
+    "marca": "Purikor",
+    "categoria": "Kits de Mantenimiento",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": true,
+    "garantia": null,
+    "especificaciones": [
+      { "nombre": "Período de mantenimiento", "valor": "24", "unidad": "meses", "tipo": "cuantitativa" },
+      { "nombre": "Equipo compatible", "valor": "PKUF-5", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Mantenimiento mayor que incluye cambio de membrana de ultrafiltración",
+      "Diseñado para 2 años de operación"
+    ],
+    "componentes": [
+      { "nombre": "Filtro cartucho polipropileno termofusionado 2.5”x10” para 5 micras", "referencia": "PKCPP2.5X10X5", "cantidad": 4, "notas": null },
+      { "nombre": "Filtro cartucho de carbón activado Block CTO 2.5”x10” para 5 micras", "referencia": "PKCCTO2.5X10X5", "cantidad": 4, "notas": null },
+      { "nombre": "Filtro cartucho carbón activado granular GAC 2.5”x10”", "referencia": "PKCGAC2.5X10", "cantidad": 4, "notas": null },
+      { "nombre": "Filtro cartucho carbón activado granular en línea 2.5”x10”", "referencia": "PKCCAL2.5X10", "cantidad": 4, "notas": null },
+      { "nombre": "Membrana de ultrafiltración, flujo nominal 1 gpm", "referencia": "PKUF-M", "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Kit de mantenimiento 24 meses para PKRO400-6UVP con UV",
+    "referencia": "KIT24-RO400UV",
+    "marca": "Purikor",
+    "categoria": "Kits de Mantenimiento",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": true,
+    "garantia": null,
+    "especificaciones": [
+      { "nombre": "Período de mantenimiento", "valor": "24", "unidad": "meses", "tipo": "cuantitativa" },
+      { "nombre": "Equipo compatible", "valor": "PKRO400-6UVP", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Kit de mantenimiento profundo de 2 años",
+      "Incluye membrana de ósmosis de alta capacidad (400 GPD) y 2 lámparas UV"
+    ],
+    "componentes": [
+      { "nombre": "Filtro cartucho polipropileno termofusionado 2.5”x10” para 5 micras", "referencia": "PKCPP2.5X10X5", "cantidad": 4, "notas": null },
+      { "nombre": "Filtro cartucho de carbón activado Block CTO 2.5”x10” para 5 micras", "referencia": "PKCCTO2.5X10X5", "cantidad": 4, "notas": null },
+      { "nombre": "Filtro cartucho carbón activado granular GAC 2.5”x10”", "referencia": "PKCGAC2.5X10", "cantidad": 4, "notas": null },
+      { "nombre": "Filtro cartucho carbón activado granular en línea 2.5”x10”", "referencia": "PKCCAL2.5X10", "cantidad": 4, "notas": null },
+      { "nombre": "Membrana de ósmosis inversa flujo nominal 400 gpd", "referencia": "PKM-400G", "cantidad": 1, "notas": null },
+      { "nombre": "Lámpara UV PHILIPS de 6 watts", "referencia": "R-PK-UV-6W", "cantidad": 2, "notas": null }
+    ]
+  }
+]
