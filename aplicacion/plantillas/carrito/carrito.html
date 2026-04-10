@@ -156,7 +156,7 @@
         const cartSummaryLabelEl = document.getElementById('cartSummaryLabel');
         const checkoutLinkEl = document.getElementById('checkoutLink');
 
-        const priceFormat = (value) => '$' + Number(value || 0).toLocaleString('es-CO');
+        const priceFormat = (value) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(value || 0));
 
         function renderCart(data) {
             const items = data.items || [];

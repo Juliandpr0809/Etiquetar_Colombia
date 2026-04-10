@@ -37,6 +37,28 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) { /* noop */ }
   };
 
+  const currencyFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+  const formatCurrencyNodes = () => {
+    document.querySelectorAll([
+      '[data-price-value]',
+      '.lp-prod-card__price',
+      '.lp-prod-card__price-old',
+      '.product-card__price',
+      '.product-card__price-old',
+      '.cart-item__price',
+      '.cart-item__price-old',
+      '.cart-summary__line span:last-child',
+      '.cart-summary__total span:last-child',
+      '.track-response__price strong'
+    ].join(',')).forEach((node) => {
+      const raw = node.dataset.priceValue || node.textContent || '0';
+      const normalized = Number(String(raw).replace(/[^0-9.-]/g, ''));
+      if (Number.isNaN(normalized)) return;
+      node.textContent = currencyFormatter.format(normalized);
+    });
+  };
+
   window.etiquetarCart = {
     addItem: async (productoId, cantidad = 1) => {
       const response = await fetch('/carrito/api/items', {
@@ -239,6 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
   });
+
+  formatCurrencyNodes();
 
   // ── Search toggle ──
   const searchBtn = document.querySelector('.navbar__action-btn--search');

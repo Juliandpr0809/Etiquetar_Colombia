@@ -433,7 +433,7 @@
             {% if cotizacion.precio_ofertado %} 
             <div class="track-response__price"> 
               <span>Precio ofertado</span> 
-              <strong>${{ cotizacion.precio_ofertado }}</strong> 
+                            <strong data-price-value="{{ cotizacion.precio_ofertado }}">{{ cotizacion.precio_ofertado }}</strong> 
             </div> 
             {% endif %} 
             <div class="track-response__message">
@@ -513,6 +513,11 @@
     </footer>
 
     <script>
+        const currencyFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+        document.querySelectorAll('[data-price-value]').forEach((node) => {
+            node.textContent = currencyFormatter.format(Number(node.dataset.priceValue || 0));
+        });
+
         // Navbar scroll effect
         window.addEventListener('scroll', () => {
             const navbar = document.getElementById('navbar');

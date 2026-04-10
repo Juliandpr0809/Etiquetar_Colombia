@@ -71,9 +71,9 @@
                     <p class="product-detail-ref">Referencia: {{ referencia_publica or producto.slug }}</p>
 
                     <div class="product-detail-price-block">
-                        <strong class="catalog-card__price catalog-card__price--{{ producto.linea }}">${{ "{:,}".format(producto.precio_final|float|int) }}</strong>
+                        <strong class="catalog-card__price catalog-card__price--{{ producto.linea }}" data-price-value="{{ producto.precio_final }}">{{ producto.precio_final }}</strong>
                         {% if producto.precio_anterior and producto.precio_anterior > producto.precio_final %}
-                        <span class="catalog-card__price-old">${{ "{:,}".format(producto.precio_anterior|float|int) }}</span>
+                        <span class="catalog-card__price-old" data-price-value="{{ producto.precio_anterior }}">{{ producto.precio_anterior }}</span>
                         {% endif %}
                     </div>
 
@@ -183,7 +183,7 @@
                             <div class="catalog-card__category catalog-card__category--{{ rec.linea }}">{{ rec.categoria.nombre if rec.categoria else rec.linea|capitalize }}</div>
                             <h3 class="catalog-card__name"><a href="/producto/{{ rec.slug }}">{{ rec.nombre }}</a></h3>
                             <div class="catalog-card__pricing">
-                                <span class="catalog-card__price catalog-card__price--{{ rec.linea }}">${{ "{:,}".format(rec.precio_final|float|int) }}</span>
+                                <span class="catalog-card__price catalog-card__price--{{ rec.linea }}" data-price-value="{{ rec.precio_final }}">{{ rec.precio_final }}</span>
                             </div>
                         </div>
                     </div>
@@ -196,6 +196,11 @@
 
     <script src="{{ url_for('static', filename='js/home.js') }}"></script>
     <script>
+        const currencyFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+        document.querySelectorAll('[data-price-value]').forEach((node) => {
+            node.textContent = currencyFormatter.format(Number(node.dataset.priceValue || 0));
+        });
+
         document.querySelectorAll('.product-thumb-btn').forEach((btn) => {
             btn.addEventListener('click', () => {
                 const main = document.getElementById('productMainImage');

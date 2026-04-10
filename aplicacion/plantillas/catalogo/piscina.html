@@ -216,24 +216,15 @@
                         Marca <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="sidebar-card__body">
-                        <div class="filter-checks">
-                            <label class="filter-check"><input type="checkbox"><span
-                                    class="filter-check__label">Pentair</span><span
-                                    class="filter-check__num">(18)</span></label>
-                            <label class="filter-check"><input type="checkbox"><span
-                                    class="filter-check__label">Hayward</span><span
-                                    class="filter-check__num">(22)</span></label>
-                            <label class="filter-check"><input type="checkbox"><span
-                                    class="filter-check__label">Dolphin</span><span
-                                    class="filter-check__num">(8)</span></label>
-                            <label class="filter-check"><input type="checkbox"><span
-                                    class="filter-check__label">Astralpool</span><span
-                                    class="filter-check__num">(15)</span></label>
-                            <label class="filter-check"><input type="checkbox"><span
-                                    class="filter-check__label">Jacuzzi</span><span
-                                    class="filter-check__num">(10)</span></label>
-                        </div>
+                        <div class="filter-checks" id="catalogBrandList"></div>
                     </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-card__header sidebar-card__header--piscina">
+                        Filtros técnicos <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="sidebar-card__body" id="catalogTechFilters"></div>
                 </div>
             </aside>
 
@@ -249,8 +240,11 @@
                             <span>Ordenar por:</span>
                             <select>
                                 <option value="relevance">Más relevantes</option>
+                                <option value="best-sellers">Más vendidos</option>
+                                <option value="newest">Más recientes</option>
                                 <option value="price-asc">Precio: menor a mayor</option>
                                 <option value="price-desc">Precio: mayor a menor</option>
+                                <option value="discount-desc">Con descuento primero</option>
                                 <option value="name-asc">Nombre: A - Z</option>
                                 <option value="name-desc">Nombre: Z - A</option>
                             </select>

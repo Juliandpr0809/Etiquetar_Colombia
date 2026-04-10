@@ -310,7 +310,7 @@
             'chk-doc', 'chk-dir', 'chk-depto', 'chk-city'
         ];
 
-        const priceFormat = (v) => '$' + Number(v).toLocaleString('es-CO');
+        const priceFormat = (v) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v || 0));
 
         async function refreshCheckout() {
             const res = await fetch('/carrito/api');
