@@ -1,0 +1,149 @@
+[
+  {
+    "nombre": "Válvula de Control Automático para Filtración por Tiempo (Tanque 9\"x48\")",
+    "referencia": "PKVF26T-1-948",
+    "marca": "Purikor",
+    "categoria": "Válvulas de Control Automático",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "5 años",
+    "especificaciones": [
+      { "nombre": "Modo de retro-lavado", "valor": "Tiempo", "tipo": "cualitativa" },
+      { "nombre": "Capacidad del sistema", "valor": "1", "unidad": "ft³", "tipo": "cuantitativa" },
+      { "nombre": "Dimensiones del tanque", "valor": "9\" x 48\"", "tipo": "cualitativa" },
+      { "nombre": "Superficie de filtración", "valor": "0.44", "unidad": "ft²", "tipo": "cuantitativa" },
+      { "nombre": "Flujo Zeolita (Residencial 16 gpm/ft²)", "valor": "6.60", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Flujo Zeolita (Comercial 8 gpm/ft²)", "valor": "3.52", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Flujo Zeolita (Retro-lavado 12 gpm/ft²)", "valor": "5.28", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Flujo Carbón Activado (Residencial)", "valor": "7.50", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Flujo Carbón Activado (Comercial)", "valor": "2.70", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Flujo Carbón Activado (Retro-lavado)", "valor": "5.28", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Conexión Entrada/Salida", "valor": "1\"", "unidad": "NPT", "tipo": "cualitativa" },
+      { "nombre": "Conexión Drenaje", "valor": "1/2\" Conex. Espiga", "tipo": "cualitativa" },
+      { "nombre": "Conexión Tanque", "valor": "2.5\"", "unidad": "NPSM", "tipo": "cualitativa" },
+      { "nombre": "Voltaje de alimentación", "valor": "110", "unidad": "V", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Válvula certificada por la NSF, ACS, CE y RoHS",
+      "Pantalla LCD que muestra la hora actual y modo de regeneración",
+      "Perilla mecánica que indica el modo del ciclo de operación",
+      "Cuerpo de válvula construido en Noryl (PPO)",
+      "Tornillería en acero inoxidable y O-rings en EPDM"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Válvula de Control Automático para Suavización por Demanda (Tanque 10\"x54\")",
+    "referencia": "PKVS26D-1.5-1054",
+    "marca": "Purikor",
+    "categoria": "Válvulas de Control Automático",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "5 años",
+    "especificaciones": [
+      { "nombre": "Modo de retro-lavado", "valor": "Demanda", "tipo": "cualitativa" },
+      { "nombre": "Capacidad del sistema", "valor": "1.5", "unidad": "ft³", "tipo": "cuantitativa" },
+      { "nombre": "Dimensiones del tanque", "valor": "10\" x 54\"", "tipo": "cualitativa" },
+      { "nombre": "Capacidad en granos (9 lbs sal/ft³)", "valor": "37,500", "unidad": "granos", "tipo": "cuantitativa" },
+      { "nombre": "Flujo Servicio Nominal", "valor": "7.5", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Flujo Servicio Pico", "valor": "11", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Conexión Entrada/Salida", "valor": "1/2\" Conex. Espiga", "tipo": "cualitativa" },
+      { "nombre": "Conexión Salmuera", "valor": "3/8\" Conex. Rápida", "tipo": "cualitativa" },
+      { "nombre": "Conexión Tanque", "valor": "2.5\"", "unidad": "NPSM", "tipo": "cualitativa" },
+      { "nombre": "Ajuste de dureza", "valor": "Manual en salida", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Pantalla LCD amigable de 2 líneas (16 caracteres)",
+      "Válvula de alta eficiencia: ahorra hasta 75% de sal y 58% de agua",
+      "Bypass incluido",
+      "Diseño versátil y eficiente",
+      "El agua nunca está en contacto con materiales sujetos a oxidación"
+    ],
+    "componentes": [
+      { "nombre": "Bypass para válvula", "referencia": null, "cantidad": 1, "notas": "Integrado en el equipo" },
+      { "nombre": "Transformador de voltaje", "referencia": null, "cantidad": 1, "notas": "Para alimentación 110V" }
+    ]
+  },
+  {
+    "nombre": "Válvula de Control Automático de Alto Flujo PKVF48D (Tanque 21\"x62\")",
+    "referencia": "PKVF48D-7-2162",
+    "marca": "Purikor",
+    "categoria": "Válvulas de Control Automático",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "5 años",
+    "especificaciones": [
+      { "nombre": "Capacidad del sistema", "valor": "7", "unidad": "ft³", "tipo": "cuantitativa" },
+      { "nombre": "Superficie de filtración", "valor": "2.41", "unidad": "ft²", "tipo": "cuantitativa" },
+      { "nombre": "Flujo Zeolita Residencial", "valor": "38.56", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Flujo Carbón Residencial", "valor": "38-45", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Conexión Entrada/Salida", "valor": "1.5\"", "unidad": "NPT", "tipo": "cualitativa" },
+      { "nombre": "Conexión Tanque", "valor": "4\"", "unidad": "NPSM", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Resistente al agua",
+      "Pantalla a color que muestra flujo en GPM y capacidad restante",
+      "Programación amigable",
+      "Ideal para aplicaciones de gran escala"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Válvula Manual Multifunción para Filtración 1\"",
+    "referencia": "PKVMF-1-4V",
+    "marca": "Purikor",
+    "categoria": "Válvulas Manuales",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Etapas", "valor": "Filtración, Retrolavado, Enjuague rápido", "tipo": "cualitativa" },
+      { "nombre": "Flujo de servicio", "valor": "17.6", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Conexión Entrada/Salida", "valor": "1\"", "tipo": "cualitativa" },
+      { "nombre": "Conexión Drenaje", "valor": "1\"", "tipo": "cualitativa" },
+      { "nombre": "Base de tanque", "valor": "2.5\"", "tipo": "cualitativa" },
+      { "nombre": "Posición de operación", "valor": "Vertical", "tipo": "cualitativa" },
+      { "nombre": "Tipo de manija", "valor": "Palanca", "tipo": "cualitativa" },
+      { "nombre": "Capacidad de tanque sugerida", "valor": "1/2 - 3", "unidad": "ft³", "tipo": "cuantitativa" },
+      { "nombre": "Tamaño de tanque sugerido (diámetro)", "valor": "6\" a 14\"", "tipo": "cualitativa" },
+      { "nombre": "Peso", "valor": "1.4", "unidad": "kg", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Fácil instalación, ya que no requiere electricidad",
+      "Evita el paso de agua cruda durante el retrolavado",
+      "Compatible con tanques de hasta 3 ft³",
+      "El agua nunca está en contacto con materiales sujetos a oxidación"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Válvula Manual Multifunción para Suavización 3/4\"",
+    "referencia": "PKVMS-3/4-2V",
+    "marca": "Purikor",
+    "categoria": "Válvulas Manuales",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Etapas", "valor": "Servicio, Retrolavado, Salmuera y enjuague lento, Enjuague rápido, Relleno", "tipo": "cualitativa" },
+      { "nombre": "Flujo de servicio", "valor": "8.8", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Conexión Entrada/Salida", "valor": "3/4\"", "tipo": "cualitativa" },
+      { "nombre": "Conexión Drenaje", "valor": "1/2\"", "tipo": "cualitativa" },
+      { "nombre": "Conexión Salmuera", "valor": "3/8\"", "tipo": "cualitativa" },
+      { "nombre": "Base de tanque", "valor": "2.5\"", "tipo": "cualitativa" },
+      { "nombre": "Peso", "valor": "0.7", "unidad": "kg", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Rotación de 360° de la manija",
+      "Modo de operación manual",
+      "Compatible con tanques de hasta 5 ft³",
+      "Producto Nuevo"
+    ],
+    "componentes": []
+  }
+]

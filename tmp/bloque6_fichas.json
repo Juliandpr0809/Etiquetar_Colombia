@@ -1,0 +1,161 @@
+[
+  {
+    "nombre": "Tanque de Fibra de Vidrio Polyglass 1.5 ft³ Azul",
+    "referencia": "PKT1054-1.5",
+    "marca": "Purikor",
+    "categoria": "Tanques de Fibra de Vidrio",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "5 años",
+    "especificaciones": [
+      { "nombre": "Capacidad", "valor": "1.5", "unidad": "pies cúbicos", "tipo": "cuantitativa" },
+      { "nombre": "Capacidad de material filtrante (Litros)", "valor": "42.4", "unidad": "litros", "tipo": "cuantitativa" },
+      { "nombre": "Capacidad de material filtrante (Galones)", "valor": "11.2", "unidad": "galones", "tipo": "cuantitativa" },
+      { "nombre": "Volumen total (Litros)", "valor": "61", "unidad": "litros", "tipo": "cuantitativa" },
+      { "nombre": "Volumen total (Galones)", "valor": "16.1", "unidad": "galones", "tipo": "cuantitativa" },
+      { "nombre": "Conexión hembra superior", "valor": "2.5\" NPSM", "tipo": "cualitativa" },
+      { "nombre": "Material de recubrimiento interno", "valor": "Polietileno de alta densidad (HDPE)", "tipo": "cualitativa" },
+      { "nombre": "Presión de operación", "valor": "0-150", "unidad": "PSI", "tipo": "cuantitativa" },
+      { "nombre": "Presión de ruptura", "valor": "600", "unidad": "PSI", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "100% libre de corrosión",
+      "El agua nunca está en contacto con materiales sujetos a oxidación",
+      "Base de polietileno (PE) muy robusta resistente a los impactos",
+      "Fabricados con tecnología de moldeado sin costuras",
+      "Diseño elegante"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Tanque de Fibra de Vidrio 2 ft³ Negro con Tubo Central",
+    "referencia": "PKTN-1248-2",
+    "marca": "Purikor",
+    "categoria": "Tanques de Fibra de Vidrio Serie PKTN",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "5 años",
+    "especificaciones": [
+      { "nombre": "Capacidad", "valor": "2", "unidad": "pies cúbicos", "tipo": "cuantitativa" },
+      { "nombre": "Volumen total (Litros)", "valor": "78.54", "unidad": "litros", "tipo": "cuantitativa" },
+      { "nombre": "Diámetro tubo central", "valor": "25.5", "unidad": "mm", "tipo": "cuantitativa" },
+      { "nombre": "Conexión hembra superior", "valor": "2.5\" NPSM", "tipo": "cualitativa" },
+      { "nombre": "Peso", "valor": "9", "unidad": "kg", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Incluye tubo central y colector inferior",
+      "Color negro para sistemas de suavización y filtración",
+      "Resistentes: sometidos a pruebas de ruptura de hasta 4 veces su presión de operación"
+    ],
+    "componentes": [
+      { "nombre": "Tubo central", "referencia": null, "cantidad": 1, "notas": "25.5mm diámetro exterior" },
+      { "nombre": "Colector inferior", "referencia": null, "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Tanque de Salmuera 145 Litros",
+    "referencia": "PKTS145",
+    "marca": "Purikor",
+    "categoria": "Tanques de Salmuera",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": true,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Capacidad (Litros)", "valor": "145", "unidad": "litros", "tipo": "cuantitativa" },
+      { "nombre": "Capacidad (Galones)", "valor": "38", "unidad": "galones", "tipo": "cuantitativa" },
+      { "nombre": "Conexión de seguridad para desbordamiento", "valor": "3/8\" Conexión Espiga", "tipo": "cualitativa" },
+      { "nombre": "Material", "valor": "Polietileno de alta densidad (HDPE)", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Fácil instalación",
+      "Construcción robusta",
+      "Tapa de seguridad con cierre con bloqueo",
+      "Mejora la calidad del agua"
+    ],
+    "componentes": [
+      { "nombre": "Manguera para succión de salmuera", "referencia": null, "cantidad": 2, "notas": "metros, diámetro 3/8\"" }
+    ]
+  },
+  {
+    "nombre": "Kit de Suavizador No Ensamblado 3 pies cúbicos Demanda",
+    "referencia": "SOFT27D-3",
+    "marca": "Purikor",
+    "categoria": "Kits de Suavización",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": true,
+    "garantia": "Variable según componente",
+    "especificaciones": [
+      { "nombre": "Capacidad", "valor": "3", "unidad": "pies cúbicos", "tipo": "cuantitativa" },
+      { "nombre": "Tipo de válvula", "valor": "Digital por Demanda", "tipo": "cualitativa" },
+      { "nombre": "Flujo máximo", "valor": "27", "unidad": "GPM", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Kit completo listo para armar",
+      "Válvula certificada por la NSF, ACS, CE y RoHS",
+      "Resina catiónica que remueve calcio y magnesio"
+    ],
+    "componentes": [
+      { "nombre": "Válvula para suavizador por demanda digital", "referencia": "PKVS27D-3-1465", "cantidad": 1, "notas": "27 GPM máx." },
+      { "nombre": "Tanque para salmuera", "referencia": "PKTS145", "cantidad": 1, "notas": "145 litros" },
+      { "nombre": "Tanque en fibra de vidrio 14\"x65\"", "referencia": "PKT1465-3", "cantidad": 1, "notas": "3 pies cúbicos" },
+      { "nombre": "Bulto de resina catiónica", "referencia": "PKRES", "cantidad": 3, "notas": "Presentación 26.5 litros (22 kg)" }
+    ]
+  },
+  {
+    "nombre": "Suavizador Inteligente Ensamblado en Gabinete 0.8 ft³",
+    "referencia": "PKSOFT835-0.8G",
+    "marca": "Purikor",
+    "categoria": "Suavizadores de Gabinete",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Capacidad de tratamiento de agua", "valor": "2500", "unidad": "L/H", "tipo": "cuantitativa" },
+      { "nombre": "Contenido de resina", "valor": "20", "unidad": "litros", "tipo": "cuantitativa" },
+      { "nombre": "Capacidad en pies cúbicos", "valor": "0.8", "unidad": "ft³", "tipo": "cuantitativa" },
+      { "nombre": "Voltaje de alimentación", "valor": "1 x 127", "unidad": "Vca", "tipo": "cuantitativa" },
+      { "nombre": "Peso", "valor": "33", "unidad": "kg", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Suavizador inteligente con pantalla LCD para fácil puesta en marcha",
+      "Diseño elegante, compacto y ligero",
+      "Previene la formación e incrustación de sarro",
+      "Ahorro: reduce el consumo de detergentes, jabones y suavizantes",
+      "El agua nunca está en contacto con materiales sujetos a oxidación"
+    ],
+    "componentes": []
+  },
+  {
+    "nombre": "Suavizador Ensamblado en Gabinete Estándar 1.5 ft³",
+    "referencia": "PKSOFT1044-1.5G",
+    "marca": "Purikor",
+    "categoria": "Suavizadores de Gabinete",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Capacidad en pies cúbicos", "valor": "1.5", "unidad": "ft³", "tipo": "cuantitativa" },
+      { "nombre": "Capacidad en litros (tanque)", "valor": "48.8", "unidad": "litros", "tipo": "cuantitativa" },
+      { "nombre": "Capacidad en galones (tanque)", "valor": "12.9", "unidad": "galones", "tipo": "cuantitativa" },
+      { "nombre": "Capacidad máxima", "valor": "10", "unidad": "gal/min", "tipo": "cuantitativa" },
+      { "nombre": "Válvula controladora", "valor": "PKVS26D", "tipo": "cualitativa" },
+      { "nombre": "Voltaje", "valor": "110", "unidad": "V", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Equipo ensamblado en una sola unidad (válvula, tanque y depósito de salmuera)",
+      "Válvula con pantalla iluminada de fácil programación",
+      "Evita incrustaciones en tuberías, calderas y calentadores",
+      "Incluye resina marca PURIKOR",
+      "Certificaciones: ACS, Water Quality Association"
+    ],
+    "componentes": [
+      { "nombre": "Resina catiónica Purikor", "referencia": "PKRES", "cantidad": 1.5, "notas": "pies cúbicos" }
+    ]
+  }
+]
