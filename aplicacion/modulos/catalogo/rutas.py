@@ -4,7 +4,7 @@ import re
 from flask import Blueprint, abort, jsonify, render_template
 from sqlalchemy.orm import joinedload
 
-from aplicacion.modelos import Categoria, Producto
+from aplicacion.modelos import Categoria, KitProducto, Producto
 
 
 catalogo_bp = Blueprint("catalogo", __name__, url_prefix="/catalogo")
@@ -35,21 +35,28 @@ def api_productos():
     data = [
         {
             "id": p.id,
-            "nombre": p.nombre,
+            "nombre": (p.ficha_tecnica.nombre if p.ficha_tecnica and p.ficha_tecnica.nombre else p.nombre),
             "slug": p.slug,
             "linea": p.linea,
+            "tipo_producto": p.tipo_producto or ("kit" if p.es_kit else "estandar"),
+            "es_kit": bool(p.es_kit or (p.tipo_producto in {"combo", "kit"})),
             "categoria_id": p.categoria_id,
             "categoria_nombre": p.categoria.nombre if p.categoria else "Sin categoria",
             "categoria_slug": p.categoria.slug if p.categoria else None,
-            "marca": p.marca,
-            "referencia": p.referencia,
+            "marca": (p.ficha_tecnica.marca if p.ficha_tecnica and p.ficha_tecnica.marca else p.marca),
+            "referencia": (p.ficha_tecnica.referencia if p.ficha_tecnica and p.ficha_tecnica.referencia else p.referencia),
             "precio": float(p.precio),
             "precio_anterior": float(p.precio_anterior) if p.precio_anterior is not None else None,
             "precio_final": float(p.precio_final),
             "descuento": float(p.promocion_activa.porcentaje_descuento) if p.tiene_promocion else 0,
             "stock": p.stock,
             "imagen_url": p.imagen_url,
-            "ficha_url": p.ficha_url,
+            "ficha_url": p.ficha_url or (p.ficha_tecnica.ficha_pdf_url if p.ficha_tecnica else None),
+            "aplicacion_recomendada": (
+                p.ficha_tecnica.aplicacion
+                if p.ficha_tecnica and p.ficha_tecnica.aplicacion
+                else p.aplicacion_recomendada
+            ),
             "especificaciones_tecnicas": p.especificaciones_tecnicas or [],
         }
         for p in productos
@@ -90,6 +97,7 @@ def producto_detalle(slug):
             joinedload(Producto.imagenes_adicionales),
             joinedload(Producto.caracteristicas),
             joinedload(Producto.contenido_kit),
+            joinedload(Producto.kit_componentes).joinedload(KitProducto.producto),
             joinedload(Producto.campos_tecnicos_valores),
             joinedload(Producto.recomendados),
         )
@@ -100,7 +108,15 @@ def producto_detalle(slug):
         abort(404)
 
     especificaciones = []
-    descripcion_publica = (producto.descripcion or "").strip()
+    ficha = producto.ficha_tecnica
+    descripcion_publica = (
+        (ficha.descripcion if ficha and ficha.descripcion else producto.descripcion) or ""
+    ).strip()
+    marca_publica = (ficha.marca if ficha and ficha.marca else producto.marca)
+    referencia_publica = (ficha.referencia if ficha and ficha.referencia else producto.referencia)
+    aplicacion_publica = ficha.aplicacion if ficha and ficha.aplicacion else producto.aplicacion_recomendada
+    garantia_publica_meses = producto.garantia_meses
+    ficha_url_publica = producto.ficha_url or (ficha.ficha_pdf_url if ficha else None)
     
     # Especificaciones de campos técnicos de categoría (pre-definidos)
     for valor in producto.campos_tecnicos_valores:
@@ -120,8 +136,14 @@ def producto_detalle(slug):
         )
     
     # Especificaciones técnicas dinámicas (JSON)
-    if producto.especificaciones_tecnicas and isinstance(producto.especificaciones_tecnicas, list):
-        for idx, spec in enumerate(producto.especificaciones_tecnicas):
+    specs_fuente = None
+    if ficha and isinstance(ficha.especificaciones, list) and ficha.especificaciones:
+        specs_fuente = _normalizar_specs_ficha(ficha.especificaciones)
+    elif producto.especificaciones_tecnicas and isinstance(producto.especificaciones_tecnicas, list):
+        specs_fuente = producto.especificaciones_tecnicas
+
+    if specs_fuente:
+        for idx, spec in enumerate(specs_fuente):
             if not isinstance(spec, dict):
                 continue
             nombre = spec.get("nombre", "").strip()
@@ -213,6 +235,20 @@ def producto_detalle(slug):
         secciones_especificaciones.append({"titulo": titulo, "items": mapa_secciones[titulo]})
 
     recomendados = [p for p in producto.recomendados if p.activo and p.id != producto.id][:8]
+    kit_componentes = [
+        {
+            "producto_id": rel.producto.id,
+            "nombre": rel.producto.nombre,
+            "slug": rel.producto.slug,
+            "imagen_url": rel.producto.imagen_url,
+            "cantidad": float(rel.cantidad or 0),
+            "cantidad_mostrar": str(int(float(rel.cantidad))) if float(rel.cantidad).is_integer() else str(float(rel.cantidad)),
+            "nota": rel.nota or "",
+            "referencia": rel.producto.referencia,
+        }
+        for rel in sorted(producto.kit_componentes, key=lambda x: (x.orden, x.id))
+        if rel.producto and rel.producto.activo
+    ]
     galeria = []
     if producto.imagen_url:
         galeria.append({"url": producto.imagen_url, "alt": producto.nombre})
@@ -223,10 +259,72 @@ def producto_detalle(slug):
         "producto-detalle.html",
         producto=producto,
         descripcion_publica=descripcion_publica,
+        marca_publica=marca_publica,
+        referencia_publica=referencia_publica,
+        aplicacion_publica=aplicacion_publica,
+        garantia_publica_meses=garantia_publica_meses,
+        ficha_url_publica=ficha_url_publica,
         galeria=galeria,
         especificaciones=especificaciones,
         secciones_especificaciones=secciones_especificaciones,
-        caracteristicas=[c.texto for c in sorted(producto.caracteristicas, key=lambda x: (x.orden, x.id))],
-        contenido_kit=[c.texto for c in sorted(producto.contenido_kit, key=lambda x: (x.orden, x.id))],
+        caracteristicas=(
+            [str(x).strip() for x in ficha.caracteristicas if str(x).strip()]
+            if ficha and isinstance(ficha.caracteristicas, list)
+            else [c.texto for c in sorted(producto.caracteristicas, key=lambda x: (x.orden, x.id))]
+        ),
+        contenido_kit=(
+            [
+                (
+                    f"{str(x.get('nombre') or '').strip()}"
+                    f"{' x' + str(x.get('cantidad')) if x.get('cantidad') not in (None, '') else ''}"
+                    f"{' (' + str(x.get('notas')).strip() + ')' if str(x.get('notas') or '').strip() else ''}"
+                ).strip()
+                if isinstance(x, dict)
+                else str(x).strip()
+                for x in (ficha.componentes or [])
+                if (isinstance(x, dict) and str(x.get('nombre') or '').strip()) or str(x).strip()
+            ]
+            if ficha and isinstance(ficha.componentes, list)
+            else [c.texto for c in sorted(producto.contenido_kit, key=lambda x: (x.orden, x.id))]
+        ),
+        kit_componentes=kit_componentes,
         recomendados=recomendados,
     )
+
+
+def _normalizar_specs_ficha(especificaciones_ficha: list) -> list:
+    normalizadas = []
+    for item in especificaciones_ficha:
+        if not isinstance(item, dict):
+            continue
+        nombre = str(item.get("nombre") or "").strip()
+        tipo = str(item.get("tipo") or "").strip().lower()
+        if not nombre or tipo not in {"cuantitativa", "cualitativa"}:
+            continue
+        if tipo == "cuantitativa":
+            try:
+                valor_numero = float(item.get("valor"))
+            except (TypeError, ValueError):
+                continue
+            normalizadas.append(
+                {
+                    "nombre": nombre,
+                    "tipo": "cuantitativa",
+                    "valor_numero": valor_numero,
+                    "unidad": str(item.get("unidad") or "").strip(),
+                    "seccion": "Informacion tecnica",
+                }
+            )
+        else:
+            valor_texto = str(item.get("valor") or "").strip()
+            if not valor_texto:
+                continue
+            normalizadas.append(
+                {
+                    "nombre": nombre,
+                    "tipo": "cualitativa",
+                    "valor_texto": valor_texto,
+                    "seccion": "Informacion tecnica",
+                }
+            )
+    return normalizadas

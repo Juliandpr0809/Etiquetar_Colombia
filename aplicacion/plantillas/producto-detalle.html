@@ -64,8 +64,11 @@
 
                 <section class="product-detail-info">
                     <span class="catalog-card__category catalog-card__category--{{ producto.linea }}">{{ producto.categoria.nombre if producto.categoria else (producto.linea|capitalize) }}</span>
+                    {% if producto.es_kit %}
+                    <span class="catalog-card__badge" style="margin-left:8px; position:static; display:inline-flex;">Kit</span>
+                    {% endif %}
                     <h1>{{ producto.nombre }}</h1>
-                    <p class="product-detail-ref">Referencia: {{ producto.referencia or producto.slug }}</p>
+                    <p class="product-detail-ref">Referencia: {{ referencia_publica or producto.slug }}</p>
 
                     <div class="product-detail-price-block">
                         <strong class="catalog-card__price catalog-card__price--{{ producto.linea }}">${{ "{:,}".format(producto.precio_final|float|int) }}</strong>
@@ -83,20 +86,43 @@
                         <a class="catalog-card__quote-btn" href="https://wa.me/573001234567?text={{ ('Hola, estoy interesado en ' ~ producto.nombre ~ ' (' ~ (producto.referencia or producto.slug) ~ ')') | urlencode }}" target="_blank" rel="noopener">
                             <i class="fab fa-whatsapp"></i>
                         </a>
-                        {% if producto.ficha_url %}
-                        <a class="catalog-card__quote-btn" href="{{ producto.ficha_url }}" target="_blank" rel="noopener" title="Descargar ficha técnica">
+                        {% if ficha_url_publica %}
+                        <a class="catalog-card__quote-btn" href="{{ ficha_url_publica }}" target="_blank" rel="noopener" title="Descargar ficha técnica">
                             <i class="fas fa-file-pdf"></i>
                         </a>
                         {% endif %}
                     </div>
 
                     <div class="product-detail-meta">
-                        {% if producto.marca %}<span><strong>Marca:</strong> {{ producto.marca }}</span>{% endif %}
-                        {% if producto.garantia_meses %}<span><strong>Garantía:</strong> {{ producto.garantia_meses }} meses</span>{% endif %}
+                        {% if marca_publica %}<span><strong>Marca:</strong> {{ marca_publica }}</span>{% endif %}
+                        {% if garantia_publica_meses %}<span><strong>Garantía:</strong> {{ garantia_publica_meses }} meses</span>{% endif %}
+                        {% if aplicacion_publica %}<span><strong>Aplicación:</strong> {{ aplicacion_publica }}</span>{% endif %}
                         <span><strong>Disponibilidad:</strong> {{ 'En stock' if producto.stock > 0 else 'Sobre pedido' }}</span>
                     </div>
                 </section>
             </div>
+
+            {% if producto.tipo_producto in ['combo', 'kit'] and kit_componentes %}
+            <section class="product-detail-section">
+                <h3>¿Qué incluye este {{ 'combo' if producto.tipo_producto == 'combo' else 'kit' }}?</h3>
+                <div class="catalog-grid">
+                    {% for comp in kit_componentes %}
+                    <article class="catalog-card">
+                        <div class="catalog-card__img">
+                            <a href="/producto/{{ comp.slug }}">
+                                <img src="{{ comp.imagen_url or '/placeholder/400x300/F0F7FF/0077B6?text=' + comp.nombre|replace(' ', '+') }}" alt="{{ comp.nombre }}">
+                            </a>
+                        </div>
+                        <div class="catalog-card__body">
+                            <div class="catalog-card__category catalog-card__category--{{ producto.linea }}">Componente del kit</div>
+                            <h3 class="catalog-card__name"><a href="/producto/{{ comp.slug }}">{{ comp.nombre }}</a></h3>
+                            <div class="catalog-card__sku">Cantidad: {{ comp.cantidad_mostrar }}{% if comp.nota %} · {{ comp.nota }}{% endif %}</div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
 
             {% if secciones_especificaciones %}
             <section class="product-detail-section">
@@ -133,7 +159,7 @@
             </section>
             {% endif %}
 
-            {% if contenido_kit %}
+            {% if contenido_kit and producto.tipo_producto == 'estandar' %}
             <section class="product-detail-section">
                 <h3>Contenido del kit</h3>
                 <ul class="product-list-bullets">

@@ -34,6 +34,7 @@ from aplicacion.modelos import (
     CampoTecnico,
     Categoria,
     CategoriaCampoTecnico,
+    FichaTecnica,
     ConfiguracionEnvio,
     Cotizacion,
     Notificacion,
@@ -45,6 +46,7 @@ from aplicacion.modelos import (
     ProductoContenidoKit,
     ProductoImagenAdicional,
     ProductoRecomendado,
+    KitProducto,
     Promocion,
     Usuario,
 )
@@ -366,6 +368,134 @@ def _serializar_categoria(categoria: Categoria) -> dict:
     }
 
 
+def _normalizar_estado_disponibilidad(valor: str | None) -> str:
+    estado = (valor or "").strip().lower()
+    mapa = {
+        "disponible_bajo_pedido": "disponible_bajo_pedido",
+        "bajo_pedido": "disponible_bajo_pedido",
+        "stock": "en_stock",
+        "en stock": "en_stock",
+        "en_stock": "en_stock",
+        "borrador": "borrador",
+    }
+    return mapa.get(estado, "borrador")
+
+
+def _serializar_ficha_tecnica(ficha: FichaTecnica) -> dict:
+    productos = list(ficha.productos or [])
+    primer_producto = productos[0] if productos else None
+    return {
+        "id": ficha.id,
+        "nombre": ficha.nombre,
+        "referencia": ficha.referencia,
+        "marca": ficha.marca or "",
+        "categoria_id": ficha.categoria_id,
+        "categoria_nombre": ficha.categoria.nombre if ficha.categoria else None,
+        "linea": ficha.linea,
+        "descripcion": ficha.descripcion or "",
+        "especificaciones": ficha.especificaciones if isinstance(ficha.especificaciones, list) else [],
+        "caracteristicas": ficha.caracteristicas if isinstance(ficha.caracteristicas, list) else [],
+        "componentes": ficha.componentes if isinstance(ficha.componentes, list) else [],
+        "garantia": ficha.garantia or "",
+        "aplicacion": ficha.aplicacion or "",
+        "ficha_pdf_url": ficha.ficha_pdf_url,
+        "tiene_producto_asociado": len(productos) > 0,
+        "productos_asociados_count": len(productos),
+        "producto_id": primer_producto.id if primer_producto else None,
+        "producto_nombre": primer_producto.nombre if primer_producto else None,
+        "creado_en": ficha.creado_en.isoformat() if ficha.creado_en else None,
+        "actualizado_en": ficha.actualizado_en.isoformat() if ficha.actualizado_en else None,
+    }
+
+
+def _normalizar_especificaciones_import(valor) -> list:
+    if not isinstance(valor, list):
+        return []
+    salida = []
+    for item in valor:
+        if not isinstance(item, dict):
+            continue
+        nombre = str(item.get("nombre") or "").strip()
+        tipo = str(item.get("tipo") or "").strip().lower()
+        if not nombre:
+            continue
+        if tipo == "cuantitativa":
+            unidad = str(item.get("unidad") or "").strip()
+            valor_bruto = item.get("valor")
+            if valor_bruto in (None, ""):
+                continue
+            try:
+                valor_numero = float(valor_bruto)
+            except (TypeError, ValueError):
+                continue
+            salida.append(
+                {
+                    "nombre": nombre,
+                    "tipo": "cuantitativa",
+                    "valor_numero": valor_numero,
+                    "unidad": unidad,
+                    "seccion": "Informacion tecnica",
+                }
+            )
+            continue
+
+        valor_texto = str(item.get("valor") or "").strip()
+        if not valor_texto:
+            continue
+        salida.append(
+            {
+                "nombre": nombre,
+                "tipo": "cualitativa",
+                "valor_texto": valor_texto,
+                "seccion": "Informacion tecnica",
+            }
+        )
+    return salida
+
+
+def _sync_producto_desde_ficha(producto: Producto, ficha: FichaTecnica):
+    producto.nombre = ficha.nombre
+    producto.marca = ficha.marca or None
+    producto.referencia = ficha.referencia or None
+    producto.categoria_id = ficha.categoria_id
+    producto.linea = ficha.linea if ficha.linea in {"piscina", "agua"} else producto.linea
+    producto.descripcion = ficha.descripcion or None
+    producto.especificaciones_tecnicas = _normalizar_especificaciones_import(ficha.especificaciones)
+    producto.aplicacion_recomendada = ficha.aplicacion or None
+
+    garantia_txt = (ficha.garantia or "").strip().lower()
+    if garantia_txt:
+        match = re.search(r"(\d+)", garantia_txt)
+        if match:
+            try:
+                producto.garantia_meses = max(int(match.group(1)) * (12 if "ano" in garantia_txt or "año" in garantia_txt else 1), 0)
+            except (TypeError, ValueError):
+                pass
+
+    if ficha.ficha_pdf_url and not producto.ficha_url:
+        producto.ficha_url = ficha.ficha_pdf_url
+
+    if isinstance(ficha.caracteristicas, list):
+        producto.caracteristicas.clear()
+        for idx, texto in enumerate([str(x).strip() for x in ficha.caracteristicas if str(x).strip()]):
+            producto.caracteristicas.append(ProductoCaracteristica(texto=texto, orden=idx))
+
+    if isinstance(ficha.componentes, list):
+        producto.contenido_kit.clear()
+        for idx, comp in enumerate(ficha.componentes):
+            if isinstance(comp, dict):
+                nombre = str(comp.get("nombre") or "").strip()
+                cantidad = comp.get("cantidad")
+                notas = str(comp.get("notas") or "").strip()
+                texto = nombre
+                if cantidad not in (None, ""):
+                    texto = f"{texto} x{cantidad}"
+                if notas:
+                    texto = f"{texto} ({notas})"
+                if texto.strip():
+                    producto.contenido_kit.append(ProductoContenidoKit(texto=texto.strip(), orden=idx))
+
+
 def _upsert_campos_tecnicos_categoria(categoria: Categoria, campos_payload: list):
     existentes_por_slug = {c.slug: c for c in categoria.campos_tecnicos}
     slugs_recibidos = set()
@@ -590,6 +720,53 @@ def _actualizar_relaciones_producto(producto: Producto, categoria: Categoria | N
             })
     
     producto.especificaciones_tecnicas = especificaciones_validas if especificaciones_validas else None
+
+    componentes_raw = _json_list_from_form("kit_componentes_json")
+    componentes_validos = []
+    ids_componentes = set()
+    for idx, item in enumerate(componentes_raw):
+        if not isinstance(item, dict):
+            continue
+        try:
+            producto_id = int(item.get("producto_id"))
+        except (TypeError, ValueError):
+            continue
+        if producto_id == producto.id or producto_id in ids_componentes:
+            continue
+
+        try:
+            cantidad = Decimal(str(item.get("cantidad") or "1"))
+        except Exception:
+            cantidad = Decimal("1")
+        if cantidad <= 0:
+            cantidad = Decimal("1")
+
+        nota = (str(item.get("nota") or "")).strip()[:255] or None
+        ids_componentes.add(producto_id)
+        componentes_validos.append(
+            {
+                "producto_id": producto_id,
+                "cantidad": cantidad,
+                "nota": nota,
+                "orden": idx,
+            }
+        )
+
+    KitProducto.query.filter_by(kit_id=producto.id).delete()
+    if producto.tipo_producto in {"combo", "kit"}:
+        for item in componentes_validos:
+            existe = db.session.query(Producto.id).filter_by(id=item["producto_id"]).first()
+            if not existe:
+                continue
+            db.session.add(
+                KitProducto(
+                    kit_id=producto.id,
+                    producto_id=item["producto_id"],
+                    cantidad=item["cantidad"],
+                    nota=item["nota"],
+                    orden=item["orden"],
+                )
+            )
 
 
 @admin_bp.get("/api/campos-tecnicos/sugerencias")
@@ -873,6 +1050,556 @@ def editar_categoria_api(categoria_id):
     return jsonify({"ok": True, "message": "Categoria actualizada.", "data": _serializar_categoria(categoria)})
 
 
+@admin_bp.get("/api/fichas-tecnicas")
+def listar_fichas_tecnicas_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    q = (request.args.get("q") or "").strip().lower()
+    linea = (request.args.get("linea") or "").strip().lower()
+    categoria_id_raw = (request.args.get("categoria_id") or "").strip()
+    solo_disponibles = _bool_form(request.args.get("solo_disponibles"), default=False)
+
+    query = FichaTecnica.query
+    if q:
+        patron = f"%{q}%"
+        query = query.filter(
+            (func.lower(FichaTecnica.nombre).like(patron))
+            | (func.lower(FichaTecnica.referencia).like(patron))
+        )
+    if linea in {"agua", "piscina"}:
+        query = query.filter(FichaTecnica.linea == linea)
+    if categoria_id_raw:
+        try:
+            query = query.filter(FichaTecnica.categoria_id == int(categoria_id_raw))
+        except (TypeError, ValueError):
+            pass
+    if solo_disponibles:
+        query = query.outerjoin(Producto, Producto.ficha_tecnica_id == FichaTecnica.id).filter(Producto.id.is_(None))
+
+    fichas = query.order_by(FichaTecnica.nombre.asc()).limit(500).all()
+    return jsonify({"ok": True, "data": [_serializar_ficha_tecnica(f) for f in fichas]})
+
+
+@admin_bp.get("/api/fichas-tecnicas/buscar")
+def buscar_fichas_tecnicas_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    q = (request.args.get("q") or "").strip().lower()
+    limite = min(max(int(request.args.get("limit") or 20), 1), 60)
+    if not q:
+        return jsonify({"ok": True, "data": []})
+
+    patron = f"%{q}%"
+    fichas = (
+        FichaTecnica.query.filter(
+            (func.lower(FichaTecnica.nombre).like(patron))
+            | (func.lower(FichaTecnica.referencia).like(patron))
+        )
+        .order_by(FichaTecnica.nombre.asc())
+        .limit(limite)
+        .all()
+    )
+    return jsonify({"ok": True, "data": [_serializar_ficha_tecnica(f) for f in fichas]})
+
+
+@admin_bp.post("/api/fichas-tecnicas")
+def crear_ficha_tecnica_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    nombre = (payload.get("nombre") or "").strip()
+    referencia = (payload.get("referencia") or "").strip()
+    marca = (payload.get("marca") or "").strip() or None
+    linea = (payload.get("linea") or "agua").strip().lower()
+    descripcion = (payload.get("descripcion") or "").strip() or None
+    garantia = (payload.get("garantia") or "").strip() or None
+    aplicacion = (payload.get("aplicacion") or "").strip() or None
+    ficha_pdf_url = (payload.get("ficha_pdf_url") or "").strip() or None
+    categoria_id = payload.get("categoria_id")
+
+    if not nombre or not referencia:
+        return jsonify({"ok": False, "message": "Nombre y referencia son obligatorios para la ficha."}), 400
+    if linea not in {"agua", "piscina"}:
+        return jsonify({"ok": False, "message": "La linea de la ficha debe ser agua o piscina."}), 400
+    if FichaTecnica.query.filter(func.lower(FichaTecnica.referencia) == referencia.lower()).first():
+        return jsonify({"ok": False, "message": "Ya existe una ficha con esa referencia."}), 409
+
+    categoria = None
+    if categoria_id not in (None, ""):
+        try:
+            categoria = Categoria.query.get(int(categoria_id))
+        except (TypeError, ValueError):
+            categoria = None
+        if not categoria:
+            return jsonify({"ok": False, "message": "La categoria seleccionada no existe."}), 400
+        linea = categoria.linea
+
+    especificaciones = payload.get("especificaciones") if isinstance(payload.get("especificaciones"), list) else []
+    caracteristicas = payload.get("caracteristicas") if isinstance(payload.get("caracteristicas"), list) else []
+    componentes = payload.get("componentes") if isinstance(payload.get("componentes"), list) else []
+
+    ficha = FichaTecnica(
+        nombre=nombre,
+        referencia=referencia,
+        marca=marca,
+        categoria_id=categoria.id if categoria else None,
+        linea=linea,
+        descripcion=descripcion,
+        especificaciones=especificaciones,
+        caracteristicas=caracteristicas,
+        componentes=componentes,
+        garantia=garantia,
+        aplicacion=aplicacion,
+        ficha_pdf_url=ficha_pdf_url,
+    )
+    db.session.add(ficha)
+    db.session.commit()
+
+    return jsonify({"ok": True, "message": "Ficha tecnica creada.", "data": _serializar_ficha_tecnica(ficha)}), 201
+
+
+@admin_bp.patch("/api/fichas-tecnicas/<int:ficha_id>")
+def editar_ficha_tecnica_api(ficha_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    ficha = FichaTecnica.query.get_or_404(ficha_id)
+    payload = request.get_json(silent=True) or {}
+
+    nombre = (payload.get("nombre") or ficha.nombre).strip()
+    referencia = (payload.get("referencia") or ficha.referencia).strip()
+    marca = (payload.get("marca") or "").strip() or None
+    linea = (payload.get("linea") or ficha.linea).strip().lower()
+    descripcion = (payload.get("descripcion") or "").strip() or None
+    garantia = (payload.get("garantia") or "").strip() or None
+    aplicacion = (payload.get("aplicacion") or "").strip() or None
+    ficha_pdf_url = (payload.get("ficha_pdf_url") or "").strip() or None
+
+    if not nombre or not referencia:
+        return jsonify({"ok": False, "message": "Nombre y referencia son obligatorios."}), 400
+    if linea not in {"agua", "piscina"}:
+        return jsonify({"ok": False, "message": "La linea de la ficha debe ser agua o piscina."}), 400
+
+    existe_ref = FichaTecnica.query.filter(
+        FichaTecnica.id != ficha.id,
+        func.lower(FichaTecnica.referencia) == referencia.lower(),
+    ).first()
+    if existe_ref:
+        return jsonify({"ok": False, "message": "Ya existe otra ficha con esa referencia."}), 409
+
+    categoria = None
+    categoria_id = payload.get("categoria_id", ficha.categoria_id)
+    if categoria_id not in (None, ""):
+        try:
+            categoria = Categoria.query.get(int(categoria_id))
+        except (TypeError, ValueError):
+            categoria = None
+        if not categoria:
+            return jsonify({"ok": False, "message": "La categoria seleccionada no existe."}), 400
+        linea = categoria.linea
+
+    ficha.nombre = nombre
+    ficha.referencia = referencia
+    ficha.marca = marca
+    ficha.categoria_id = categoria.id if categoria else None
+    ficha.linea = linea
+    ficha.descripcion = descripcion
+    ficha.garantia = garantia
+    ficha.aplicacion = aplicacion
+    ficha.ficha_pdf_url = ficha_pdf_url
+    if isinstance(payload.get("especificaciones"), list):
+        ficha.especificaciones = payload.get("especificaciones")
+    if isinstance(payload.get("caracteristicas"), list):
+        ficha.caracteristicas = payload.get("caracteristicas")
+    if isinstance(payload.get("componentes"), list):
+        ficha.componentes = payload.get("componentes")
+
+    advertencia = None
+    if ficha.productos:
+        for producto_asociado in ficha.productos:
+            _sync_producto_desde_ficha(producto_asociado, ficha)
+        advertencia = "Se sincronizaron los cambios en los productos asociados (excepto precio, foto y stock)."
+
+    db.session.commit()
+    return jsonify(
+        {
+            "ok": True,
+            "message": "Ficha tecnica actualizada.",
+            "warning": advertencia,
+            "data": _serializar_ficha_tecnica(ficha),
+        }
+    )
+
+
+@admin_bp.post("/api/fichas-tecnicas/importar-json")
+def importar_fichas_tecnicas_json_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    items = payload.get("items")
+    dry_run = bool(payload.get("dry_run", True))
+
+    if not isinstance(items, list) or not items:
+        return jsonify({"ok": False, "message": "Debes enviar una lista JSON de fichas en 'items'."}), 400
+
+    resumen = {
+        "total": len(items),
+        "validos": 0,
+        "duplicados": 0,
+        "creados": 0,
+        "errores": 0,
+        "errores_detalle": [],
+    }
+
+    existentes_ref = {
+        (ref or "").strip().lower()
+        for (ref,) in db.session.query(FichaTecnica.referencia).all()
+        if ref
+    }
+    nuevas_fichas = []
+
+    for idx, item in enumerate(items):
+        if not isinstance(item, dict):
+            resumen["errores"] += 1
+            resumen["errores_detalle"].append({"fila": idx + 1, "error": "Registro invalido (debe ser objeto JSON)."})
+            continue
+
+        nombre = str(item.get("nombre") or "").strip()
+        referencia = str(item.get("referencia") or "").strip()
+        categoria_nombre = str(item.get("categoria") or "").strip()
+        linea = str(item.get("linea") or "").strip().lower()
+        marca = str(item.get("marca") or "").strip() or None
+        garantia = str(item.get("garantia") or "").strip() or None
+
+        if not nombre or not referencia:
+            resumen["errores"] += 1
+            resumen["errores_detalle"].append({"fila": idx + 1, "referencia": referencia, "error": "Nombre y referencia son obligatorios."})
+            continue
+
+        ref_key = referencia.lower()
+        if ref_key in existentes_ref:
+            resumen["duplicados"] += 1
+            resumen["errores_detalle"].append({"fila": idx + 1, "referencia": referencia, "error": "Referencia ya existe, se omitio."})
+            continue
+
+        categoria = None
+        if not categoria_nombre:
+            resumen["errores"] += 1
+            resumen["errores_detalle"].append(
+                {
+                    "fila": idx + 1,
+                    "referencia": referencia,
+                    "error": "La categoria es obligatoria y debe existir exactamente en el sistema.",
+                }
+            )
+            continue
+
+        categoria = Categoria.query.filter(Categoria.nombre == categoria_nombre).first()
+        if not categoria:
+            resumen["errores"] += 1
+            resumen["errores_detalle"].append(
+                {
+                    "fila": idx + 1,
+                    "referencia": referencia,
+                    "error": "Categoria no encontrada. Crea la categoria exacta antes de importar.",
+                }
+            )
+            continue
+
+        linea = categoria.linea
+
+        especificaciones_raw = item.get("especificaciones") if isinstance(item.get("especificaciones"), list) else []
+        caracteristicas_raw = item.get("caracteristicas") if isinstance(item.get("caracteristicas"), list) else []
+        componentes_raw = item.get("componentes") if isinstance(item.get("componentes"), list) else []
+
+        especificaciones = []
+        for spec in especificaciones_raw:
+            if not isinstance(spec, dict):
+                continue
+            nombre_spec = str(spec.get("nombre") or "").strip()
+            tipo_spec = str(spec.get("tipo") or "").strip().lower()
+            valor_raw = spec.get("valor")
+            unidad = str(spec.get("unidad") or "").strip() or None
+            if not nombre_spec or tipo_spec not in {"cuantitativa", "cualitativa"}:
+                continue
+
+            especificaciones.append(
+                {
+                    "nombre": nombre_spec,
+                    "tipo": tipo_spec,
+                    "valor": valor_raw,
+                    "unidad": unidad,
+                }
+            )
+
+        caracteristicas = [str(c).strip() for c in caracteristicas_raw if str(c).strip()]
+        componentes = []
+        for comp in componentes_raw:
+            if not isinstance(comp, dict):
+                continue
+            nombre_comp = str(comp.get("nombre") or "").strip()
+            if not nombre_comp:
+                continue
+            componentes.append(
+                {
+                    "nombre": nombre_comp,
+                    "referencia": comp.get("referencia"),
+                    "cantidad": comp.get("cantidad"),
+                    "notas": comp.get("notas"),
+                }
+            )
+
+        ficha = FichaTecnica(
+            nombre=nombre,
+            referencia=referencia,
+            marca=marca,
+            categoria_id=categoria.id if categoria else None,
+            linea=linea,
+            descripcion=str(item.get("descripcion") or "").strip() or None,
+            especificaciones=especificaciones,
+            caracteristicas=caracteristicas,
+            componentes=componentes,
+            garantia=garantia,
+            aplicacion=str(item.get("aplicacion") or "").strip() or None,
+            ficha_pdf_url=str(item.get("ficha_pdf_url") or "").strip() or None,
+        )
+        nuevas_fichas.append(ficha)
+        existentes_ref.add(ref_key)
+        resumen["validos"] += 1
+
+    if not dry_run and nuevas_fichas:
+        db.session.add_all(nuevas_fichas)
+        db.session.commit()
+        resumen["creados"] = len(nuevas_fichas)
+
+    return jsonify(
+        {
+            "ok": True,
+            "message": "Validacion completada." if dry_run else "Importacion completada.",
+            "data": resumen,
+        }
+    )
+
+
+@admin_bp.post("/api/fichas-tecnicas/preparar-categorias")
+def preparar_categorias_desde_json_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    items = payload.get("items")
+    dry_run = bool(payload.get("dry_run", True))
+
+    if not isinstance(items, list) or not items:
+        return jsonify({"ok": False, "message": "Debes enviar una lista JSON de fichas en 'items'."}), 400
+
+    resumen = {
+        "total": len(items),
+        "existentes": 0,
+        "por_crear": 0,
+        "creadas": 0,
+        "errores": 0,
+        "errores_detalle": [],
+        "categorias_detectadas": [],
+    }
+
+    candidatos = {}
+    for idx, item in enumerate(items):
+        if not isinstance(item, dict):
+            resumen["errores"] += 1
+            resumen["errores_detalle"].append({"fila": idx + 1, "error": "Registro invalido (debe ser objeto JSON)."})
+            continue
+
+        categoria_nombre = str(item.get("categoria") or "").strip()
+        linea = str(item.get("linea") or "").strip().lower()
+        if not categoria_nombre:
+            resumen["errores"] += 1
+            resumen["errores_detalle"].append({"fila": idx + 1, "error": "Falta categoria."})
+            continue
+        if linea not in {"agua", "piscina"}:
+            resumen["errores"] += 1
+            resumen["errores_detalle"].append(
+                {
+                    "fila": idx + 1,
+                    "categoria": categoria_nombre,
+                    "error": "Linea invalida. Debe ser 'agua' o 'piscina'.",
+                }
+            )
+            continue
+        candidatos[categoria_nombre] = linea
+
+    existentes = {
+        c.nombre: c
+        for c in Categoria.query.filter(Categoria.nombre.in_(list(candidatos.keys()))).all()
+    }
+
+    por_crear = []
+    for nombre_cat, linea_cat in candidatos.items():
+        if nombre_cat in existentes:
+            resumen["existentes"] += 1
+            resumen["categorias_detectadas"].append(
+                {"nombre": nombre_cat, "linea": existentes[nombre_cat].linea, "estado": "existente"}
+            )
+            continue
+        por_crear.append((nombre_cat, linea_cat))
+        resumen["por_crear"] += 1
+        resumen["categorias_detectadas"].append(
+            {"nombre": nombre_cat, "linea": linea_cat, "estado": "faltante"}
+        )
+
+    if not dry_run and por_crear:
+        slugs_ocupados = {s for (s,) in db.session.query(Categoria.slug).all() if s}
+        for nombre_cat, linea_cat in por_crear:
+            slug_base = _slugify(nombre_cat) or f"categoria-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+            slug_final = slug_base
+            i = 2
+            while slug_final in slugs_ocupados:
+                slug_final = f"{slug_base}-{i}"
+                i += 1
+            slugs_ocupados.add(slug_final)
+            db.session.add(
+                Categoria(
+                    nombre=nombre_cat,
+                    slug=slug_final,
+                    linea=linea_cat,
+                    descripcion=None,
+                    activo=True,
+                )
+            )
+            resumen["creadas"] += 1
+        db.session.commit()
+
+    return jsonify(
+        {
+            "ok": True,
+            "message": "Validacion de categorias completada." if dry_run else "Categorias creadas correctamente.",
+            "data": resumen,
+        }
+    )
+
+
+@admin_bp.post("/api/fichas-tecnicas/sincronizar-productos-existentes")
+def sincronizar_fichas_desde_productos_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    dry_run = bool(payload.get("dry_run", False))
+
+    resumen = {
+        "productos_total": 0,
+        "ya_vinculados": 0,
+        "fichas_creadas": 0,
+        "vinculos_actualizados": 0,
+        "omitidos_sin_categoria": 0,
+        "errores": 0,
+        "errores_detalle": [],
+    }
+
+    productos = Producto.query.order_by(Producto.id.asc()).all()
+    resumen["productos_total"] = len(productos)
+
+    referencias_existentes = {
+        (ref or "").strip().lower()
+        for (ref,) in db.session.query(FichaTecnica.referencia).all()
+        if ref
+    }
+
+    for producto in productos:
+        if producto.ficha_tecnica_id:
+            resumen["ya_vinculados"] += 1
+            continue
+        if not producto.categoria_id:
+            resumen["omitidos_sin_categoria"] += 1
+            continue
+
+        referencia_base = (producto.referencia or "").strip() or (producto.slug or "").strip() or f"PROD-{producto.id}"
+        referencia = referencia_base
+        suffix = 2
+        while referencia.lower() in referencias_existentes:
+            referencia = f"{referencia_base}-{suffix}"
+            suffix += 1
+        referencias_existentes.add(referencia.lower())
+
+        garantia_txt = None
+        if producto.garantia_meses not in (None, 0):
+            meses = int(producto.garantia_meses)
+            garantia_txt = f"{meses // 12} año" if meses % 12 == 0 and meses >= 12 else f"{meses} meses"
+
+        especificaciones_ficha = []
+        if isinstance(producto.especificaciones_tecnicas, list):
+            for spec in producto.especificaciones_tecnicas:
+                if not isinstance(spec, dict):
+                    continue
+                nombre = str(spec.get("nombre") or "").strip()
+                tipo = str(spec.get("tipo") or "").strip().lower()
+                if not nombre or tipo not in {"cuantitativa", "cualitativa"}:
+                    continue
+                if tipo == "cuantitativa":
+                    especificaciones_ficha.append(
+                        {
+                            "nombre": nombre,
+                            "tipo": "cuantitativa",
+                            "valor": spec.get("valor_numero"),
+                            "unidad": spec.get("unidad"),
+                        }
+                    )
+                else:
+                    especificaciones_ficha.append(
+                        {
+                            "nombre": nombre,
+                            "tipo": "cualitativa",
+                            "valor": spec.get("valor_texto"),
+                            "unidad": None,
+                        }
+                    )
+
+        ficha = FichaTecnica(
+            nombre=producto.nombre,
+            referencia=referencia,
+            marca=producto.marca,
+            categoria_id=producto.categoria_id,
+            linea=producto.linea,
+            descripcion=producto.descripcion,
+            especificaciones=especificaciones_ficha,
+            caracteristicas=[c.texto for c in sorted(producto.caracteristicas, key=lambda x: (x.orden, x.id))],
+            componentes=[{"nombre": c.texto, "referencia": None, "cantidad": None, "notas": None} for c in sorted(producto.contenido_kit, key=lambda x: (x.orden, x.id))],
+            garantia=garantia_txt,
+            aplicacion=producto.aplicacion_recomendada,
+            ficha_pdf_url=producto.ficha_url,
+        )
+
+        if not dry_run:
+            db.session.add(ficha)
+            db.session.flush()
+            producto.ficha_tecnica_id = ficha.id
+
+        resumen["fichas_creadas"] += 1
+        resumen["vinculos_actualizados"] += 1
+
+    if not dry_run:
+        db.session.commit()
+
+    return jsonify(
+        {
+            "ok": True,
+            "message": "Sincronizacion completada.",
+            "data": resumen,
+        }
+    )
+
+
 @admin_bp.post("/api/productos")
 def crear_producto_api():
     admin = _admin_requerido(api=True)
@@ -883,19 +1610,32 @@ def crear_producto_api():
     slug = (request.form.get("slug") or "").strip().lower()
     linea = (request.form.get("linea") or "piscina").strip().lower()
     categoria_id_raw = (request.form.get("categoria_id") or "").strip()
+    ficha_tecnica_id_raw = (request.form.get("ficha_tecnica_id") or "").strip()
     descripcion = (request.form.get("descripcion") or "").strip()
+    tipo_producto = (request.form.get("tipo_producto") or "estandar").strip().lower()
     marca = (request.form.get("marca") or "").strip()
     referencia = (request.form.get("referencia") or "").strip()
+    aplicacion_recomendada = (request.form.get("aplicacion_recomendada") or "").strip()
     garantia_meses_raw = (request.form.get("garantia_meses") or "").strip()
     precio = _decimal(request.form.get("precio"), "0")
     precio_anterior_raw = (request.form.get("precio_anterior") or "").strip()
     precio_anterior = _decimal(precio_anterior_raw, "0") if precio_anterior_raw else None
     stock = _int_nonneg(request.form.get("stock"), 0)
+    estado_disponibilidad = _normalizar_estado_disponibilidad(request.form.get("estado_disponibilidad"))
     imagen_url = (request.form.get("imagen_url") or "").strip() or None
     imagen = request.files.get("imagen")
     ficha_pdf = request.files.get("ficha_pdf")
 
     categoria = None
+    ficha_tecnica = None
+    if ficha_tecnica_id_raw:
+        try:
+            ficha_tecnica = FichaTecnica.query.get(int(ficha_tecnica_id_raw))
+        except (TypeError, ValueError):
+            ficha_tecnica = None
+        if not ficha_tecnica:
+            return jsonify({"ok": False, "message": "La ficha tecnica seleccionada no existe."}), 400
+
     if categoria_id_raw:
         try:
             categoria = Categoria.query.get(int(categoria_id_raw))
@@ -911,6 +1651,9 @@ def crear_producto_api():
             garantia_meses = max(int(garantia_meses_raw), 0)
         except (TypeError, ValueError):
             return jsonify({"ok": False, "message": "La garantia debe estar en meses (numero entero)."}), 400
+
+    if tipo_producto not in {"estandar", "combo", "kit"}:
+        tipo_producto = "estandar"
 
     if not nombre or not slug:
         return jsonify({"ok": False, "message": "Nombre y slug son obligatorios."}), 400
@@ -945,16 +1688,21 @@ def crear_producto_api():
         linea=linea if linea in {"piscina", "agua"} else "piscina",
         categoria_id=categoria.id if categoria else None,
         descripcion=descripcion or None,
+        tipo_producto=tipo_producto,
+        es_kit=(tipo_producto in {"combo", "kit"}),
         marca=marca or None,
         referencia=referencia or None,
+        aplicacion_recomendada=aplicacion_recomendada or None,
         garantia_meses=garantia_meses,
         precio=precio,
         precio_anterior=precio_anterior,
         stock=max(stock, 0),
         activo=True,
+        estado_disponibilidad=estado_disponibilidad,
         imagen_url=imagen_url,
         imagen_public_id=imagen_public_id,
         ficha_url=ficha_url,
+        ficha_tecnica_id=ficha_tecnica.id if ficha_tecnica else None,
     )
     db.session.add(producto)
     db.session.flush()
@@ -967,6 +1715,11 @@ def crear_producto_api():
     except Exception:
         db.session.rollback()
         return jsonify({"ok": False, "message": "No se pudieron guardar los datos avanzados del producto."}), 500
+
+    if ficha_tecnica:
+        _sync_producto_desde_ficha(producto, ficha_tecnica)
+        if not ficha_url and ficha_tecnica.ficha_pdf_url:
+            producto.ficha_url = ficha_tecnica.ficha_pdf_url
 
     db.session.commit()
 
@@ -989,15 +1742,21 @@ def listar_productos_api():
                     "nombre": p.nombre,
                     "slug": p.slug,
                     "linea": p.linea,
+                    "tipo_producto": p.tipo_producto or ("kit" if p.es_kit else "estandar"),
+                    "es_kit": bool(p.es_kit or (p.tipo_producto in {"combo", "kit"})),
                     "categoria_id": p.categoria_id,
                     "categoria_nombre": p.categoria.nombre if p.categoria else None,
                     "descripcion": p.descripcion or "",
                     "marca": p.marca or "",
                     "referencia": p.referencia or "",
+                    "ficha_tecnica_id": p.ficha_tecnica_id,
+                    "ficha_tecnica_nombre": p.ficha_tecnica.nombre if p.ficha_tecnica else None,
+                    "aplicacion_recomendada": p.aplicacion_recomendada or "",
                     "garantia_meses": p.garantia_meses,
                     "precio": float(p.precio),
                     "precio_anterior": float(p.precio_anterior) if p.precio_anterior is not None else None,
                     "stock": p.stock,
+                    "estado_disponibilidad": p.estado_disponibilidad or "borrador",
                     "imagen_url": p.imagen_url,
                     "ficha_url": p.ficha_url,
                     "caracteristicas": [c.texto for c in sorted(p.caracteristicas, key=lambda x: (x.orden, x.id))],
@@ -1019,6 +1778,18 @@ def listar_productos_api():
                         }
                         for img in sorted(p.imagenes_adicionales, key=lambda x: (x.orden, x.id))
                     ],
+                    "kit_componentes": [
+                        {
+                            "producto_id": rel.producto_id,
+                            "nombre": rel.producto.nombre if rel.producto else "",
+                            "slug": rel.producto.slug if rel.producto else "",
+                            "cantidad": float(rel.cantidad or 0),
+                            "nota": rel.nota or "",
+                            "orden": rel.orden,
+                        }
+                        for rel in sorted(p.kit_componentes, key=lambda x: (x.orden, x.id))
+                        if rel.producto
+                    ],
                     "activo": p.activo,
                 }
                 for p in productos
@@ -1038,19 +1809,32 @@ def editar_producto_api(producto_id):
     slug = (request.form.get("slug") or request.form.get("slug", producto.slug) or producto.slug).strip().lower()
     linea = (request.form.get("linea") or producto.linea).strip().lower()
     categoria_id_raw = (request.form.get("categoria_id") or "").strip()
+    ficha_tecnica_id_raw = (request.form.get("ficha_tecnica_id") or "").strip()
     descripcion = (request.form.get("descripcion") or "").strip()
+    tipo_producto = (request.form.get("tipo_producto") or ("kit" if producto.es_kit else "estandar")).strip().lower()
     marca = (request.form.get("marca") or "").strip()
     referencia = (request.form.get("referencia") or "").strip()
+    aplicacion_recomendada = (request.form.get("aplicacion_recomendada") or "").strip()
     garantia_meses_raw = (request.form.get("garantia_meses") or "").strip()
     precio = _decimal(request.form.get("precio", producto.precio), str(producto.precio))
     precio_anterior_raw = (request.form.get("precio_anterior") or "").strip()
     precio_anterior = _decimal(precio_anterior_raw, "0") if precio_anterior_raw else None
     stock = _int_nonneg(request.form.get("stock", producto.stock), producto.stock)
+    estado_disponibilidad = _normalizar_estado_disponibilidad(request.form.get("estado_disponibilidad") or producto.estado_disponibilidad)
     imagen = request.files.get("imagen")
     ficha_pdf = request.files.get("ficha_pdf")
     eliminar_ficha = (request.form.get("eliminar_ficha") or "").strip().lower() in {"1", "true", "on", "si"}
 
     categoria = None
+    ficha_tecnica = None
+    if ficha_tecnica_id_raw:
+        try:
+            ficha_tecnica = FichaTecnica.query.get(int(ficha_tecnica_id_raw))
+        except (TypeError, ValueError):
+            ficha_tecnica = None
+        if not ficha_tecnica:
+            return jsonify({"ok": False, "message": "La ficha tecnica seleccionada no existe."}), 400
+
     if categoria_id_raw:
         try:
             categoria = Categoria.query.get(int(categoria_id_raw))
@@ -1066,6 +1850,9 @@ def editar_producto_api(producto_id):
             garantia_meses = max(int(garantia_meses_raw), 0)
         except (TypeError, ValueError):
             return jsonify({"ok": False, "message": "La garantia debe estar en meses (numero entero)."}), 400
+
+    if tipo_producto not in {"estandar", "combo", "kit"}:
+        tipo_producto = producto.tipo_producto or "estandar"
 
     existe = Producto.query.filter(Producto.slug == slug, Producto.id != producto.id).first()
     if existe:
@@ -1098,12 +1885,17 @@ def editar_producto_api(producto_id):
     producto.linea = linea if linea in {"piscina", "agua"} else producto.linea
     producto.categoria_id = categoria.id if categoria else None
     producto.descripcion = descripcion or None
+    producto.tipo_producto = tipo_producto
+    producto.es_kit = tipo_producto in {"combo", "kit"}
     producto.marca = marca or None
     producto.referencia = referencia or None
+    producto.aplicacion_recomendada = aplicacion_recomendada or None
     producto.garantia_meses = garantia_meses
     producto.precio = precio
     producto.precio_anterior = precio_anterior
     producto.stock = max(stock, 0)
+    producto.estado_disponibilidad = estado_disponibilidad
+    producto.ficha_tecnica_id = ficha_tecnica.id if ficha_tecnica else None
 
     try:
         _actualizar_relaciones_producto(producto, categoria)
@@ -1114,9 +1906,59 @@ def editar_producto_api(producto_id):
         db.session.rollback()
         return jsonify({"ok": False, "message": "No se pudieron actualizar los datos avanzados del producto."}), 500
 
+    if ficha_tecnica:
+        _sync_producto_desde_ficha(producto, ficha_tecnica)
+        if not (ficha_pdf and getattr(ficha_pdf, "filename", "")) and ficha_tecnica.ficha_pdf_url:
+            producto.ficha_url = ficha_tecnica.ficha_pdf_url
+
     db.session.commit()
 
     return jsonify({"ok": True, "message": "Producto actualizado correctamente."})
+
+
+@admin_bp.get("/api/productos/buscar")
+def buscar_productos_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    q = (request.args.get("q") or "").strip().lower()
+    excluir_id = request.args.get("exclude_id")
+    limite = min(max(int(request.args.get("limit") or 20), 1), 80)
+
+    query = Producto.query.order_by(Producto.nombre.asc())
+    if q:
+        query = query.filter(
+            (func.lower(Producto.nombre).like(f"%{q}%"))
+            | (func.lower(Producto.slug).like(f"%{q}%"))
+            | (func.lower(func.coalesce(Producto.referencia, "")).like(f"%{q}%"))
+        )
+    if excluir_id:
+        try:
+            query = query.filter(Producto.id != int(excluir_id))
+        except (TypeError, ValueError):
+            pass
+
+    items = query.limit(limite).all()
+    return jsonify(
+        {
+            "ok": True,
+            "data": [
+                {
+                    "id": p.id,
+                    "nombre": p.nombre,
+                    "slug": p.slug,
+                    "referencia": p.referencia,
+                    "linea": p.linea,
+                    "tipo_producto": p.tipo_producto or ("kit" if p.es_kit else "estandar"),
+                    "precio": float(p.precio or 0),
+                    "stock": int(p.stock or 0),
+                    "es_kit": bool(p.es_kit),
+                }
+                for p in items
+            ],
+        }
+    )
 
 
 @admin_bp.patch("/api/productos/<int:producto_id>/estado")

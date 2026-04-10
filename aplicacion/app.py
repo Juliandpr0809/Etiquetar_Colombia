@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 
 from .config import config_by_name
 from .extensiones import db, migrate
-from .modelos import Banner, Producto, Usuario
+from .modelos import Banner, KitProducto, Producto, Usuario
 from .servicios import config_cloudinary
 
 
@@ -60,6 +60,10 @@ def _register_blueprints(app):
 
 
 def _register_routes(app):
+    @app.get("/favicon.ico")
+    def favicon():
+        return Response(status=204)
+
     @app.get("/placeholder/<path:spec>")
     def placeholder_image(spec):
         parts = spec.split("/")
@@ -121,6 +125,7 @@ def _register_routes(app):
                 joinedload(Producto.imagenes_adicionales),
                 joinedload(Producto.caracteristicas),
                 joinedload(Producto.contenido_kit),
+                joinedload(Producto.kit_componentes).joinedload(KitProducto.producto),
                 joinedload(Producto.campos_tecnicos_valores),
                 joinedload(Producto.recomendados),
             )
@@ -131,7 +136,17 @@ def _register_routes(app):
             abort(404)
 
         especificaciones = []
-        descripcion_publica = (producto.descripcion or "").strip()
+        ficha = producto.ficha_tecnica
+        descripcion_publica = (
+            (ficha.descripcion if ficha and ficha.descripcion else producto.descripcion) or ""
+        ).strip()
+        marca_publica = (ficha.marca if ficha and ficha.marca else producto.marca)
+        referencia_publica = (ficha.referencia if ficha and ficha.referencia else producto.referencia)
+        aplicacion_publica = (
+            ficha.aplicacion if ficha and ficha.aplicacion else producto.aplicacion_recomendada
+        )
+        garantia_publica_meses = producto.garantia_meses
+        ficha_url_publica = producto.ficha_url or (ficha.ficha_pdf_url if ficha else None)
         for valor in producto.campos_tecnicos_valores:
             campo = valor.campo_tecnico
             if not campo or not campo.activo:
@@ -148,8 +163,47 @@ def _register_routes(app):
                 }
             )
 
-        if producto.especificaciones_tecnicas and isinstance(producto.especificaciones_tecnicas, list):
-            for idx, spec in enumerate(producto.especificaciones_tecnicas):
+        specs_fuente = None
+        if ficha and isinstance(ficha.especificaciones, list) and ficha.especificaciones:
+            specs_fuente = []
+            for item in ficha.especificaciones:
+                if not isinstance(item, dict):
+                    continue
+                nombre_item = str(item.get("nombre") or "").strip()
+                tipo_item = str(item.get("tipo") or "").strip().lower()
+                if not nombre_item or tipo_item not in {"cuantitativa", "cualitativa"}:
+                    continue
+                if tipo_item == "cuantitativa":
+                    try:
+                        valor_numero = float(item.get("valor"))
+                    except (TypeError, ValueError):
+                        continue
+                    specs_fuente.append(
+                        {
+                            "nombre": nombre_item,
+                            "tipo": "cuantitativa",
+                            "valor_numero": valor_numero,
+                            "unidad": str(item.get("unidad") or "").strip(),
+                            "seccion": "Informacion tecnica",
+                        }
+                    )
+                else:
+                    valor_texto = str(item.get("valor") or "").strip()
+                    if not valor_texto:
+                        continue
+                    specs_fuente.append(
+                        {
+                            "nombre": nombre_item,
+                            "tipo": "cualitativa",
+                            "valor_texto": valor_texto,
+                            "seccion": "Informacion tecnica",
+                        }
+                    )
+        elif producto.especificaciones_tecnicas and isinstance(producto.especificaciones_tecnicas, list):
+            specs_fuente = producto.especificaciones_tecnicas
+
+        if specs_fuente:
+            for idx, spec in enumerate(specs_fuente):
                 if not isinstance(spec, dict):
                     continue
                 nombre = str(spec.get("nombre") or "").strip()
@@ -242,6 +296,20 @@ def _register_routes(app):
             secciones_especificaciones.append({"titulo": titulo, "items": mapa_secciones[titulo]})
 
         recomendados = [p for p in producto.recomendados if p.activo and p.id != producto.id][:8]
+        kit_componentes = [
+            {
+                "producto_id": rel.producto.id,
+                "nombre": rel.producto.nombre,
+                "slug": rel.producto.slug,
+                "imagen_url": rel.producto.imagen_url,
+                "cantidad": float(rel.cantidad or 0),
+                "cantidad_mostrar": str(int(float(rel.cantidad))) if float(rel.cantidad).is_integer() else str(float(rel.cantidad)),
+                "nota": rel.nota or "",
+                "referencia": rel.producto.referencia,
+            }
+            for rel in sorted(producto.kit_componentes, key=lambda x: (x.orden, x.id))
+            if rel.producto and rel.producto.activo
+        ]
         galeria = []
         if producto.imagen_url:
             galeria.append({"url": producto.imagen_url, "alt": producto.nombre})
@@ -252,11 +320,29 @@ def _register_routes(app):
             "producto-detalle.html",
             producto=producto,
             descripcion_publica=descripcion_publica,
+            marca_publica=marca_publica,
+            referencia_publica=referencia_publica,
+            aplicacion_publica=aplicacion_publica,
+            garantia_publica_meses=garantia_publica_meses,
+            ficha_url_publica=ficha_url_publica,
             galeria=galeria,
             especificaciones=especificaciones,
             secciones_especificaciones=secciones_especificaciones,
-            caracteristicas=[c.texto for c in sorted(producto.caracteristicas, key=lambda x: (x.orden, x.id))],
-            contenido_kit=[c.texto for c in sorted(producto.contenido_kit, key=lambda x: (x.orden, x.id))],
+            caracteristicas=(
+                [str(x).strip() for x in ficha.caracteristicas if str(x).strip()]
+                if ficha and isinstance(ficha.caracteristicas, list)
+                else [c.texto for c in sorted(producto.caracteristicas, key=lambda x: (x.orden, x.id))]
+            ),
+            contenido_kit=(
+                [
+                    str(x.get("nombre") or "").strip()
+                    for x in (ficha.componentes or [])
+                    if isinstance(x, dict) and str(x.get("nombre") or "").strip()
+                ]
+                if ficha and isinstance(ficha.componentes, list)
+                else [c.texto for c in sorted(producto.contenido_kit, key=lambda x: (x.orden, x.id))]
+            ),
+            kit_componentes=kit_componentes,
             recomendados=recomendados,
         )
 

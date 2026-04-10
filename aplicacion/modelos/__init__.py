@@ -15,6 +15,8 @@ from .producto_contenido_kit import ProductoContenidoKit
 from .producto_imagen_adicional import ProductoImagenAdicional
 from .producto_recomendado import ProductoRecomendado
 from .campo_tecnico import CampoTecnico
+from .kit_producto import KitProducto
+from .ficha_tecnica import FichaTecnica
 
 __all__ = [
 	"Categoria",
@@ -36,4 +38,6 @@ __all__ = [
 	"ProductoImagenAdicional",
 	"ProductoRecomendado",
 	"CampoTecnico",
+	"KitProducto",
+	"FichaTecnica",
 ]

@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         visibleProducts: [],
         categories: [],
         selectedCategory: 'all',
+        selectedOnlyKits: false,
         maxPrice: Number.MAX_SAFE_INTEGER,
         stockIn: true,
         stockOut: true,
@@ -56,10 +57,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const stockLabel = Number(product.stock || 0) > 0 ? 'En stock' : 'Sobre pedido';
         const stockClass = Number(product.stock || 0) > 0 ? 'in' : 'out';
         const categoryLabel = product.categoria_nombre || (line === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua');
+        const bundleType = product.tipo_producto || (product.es_kit ? 'kit' : 'estandar');
+        const kitBadge = bundleType !== 'estandar'
+            ? `<span class="catalog-card__badge catalog-card__badge--kit">${bundleType === 'combo' ? 'Combo' : 'Kit'}</span>`
+            : '';
 
         return `
             <div class="catalog-card" data-price="${price}" data-name="${product.nombre}" data-product-id="${product.id}">
                 ${showBadge ? `<span class="catalog-card__badge catalog-card__badge--sale">-${descuentoPercent}%</span>` : ''}
+            ${kitBadge}
                 <div class="catalog-card__actions">
                     <button class="catalog-card__action ${lineClass}-hover" data-action="wishlist" title="Favoritos"><i class="far fa-heart"></i></button>
                     <button class="catalog-card__action ${lineClass}-hover" data-action="quickview" title="Vista rápida"><i class="far fa-eye"></i></button>
@@ -197,8 +203,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 || (p.marca || '').toLowerCase().includes(term)
             );
         }
+        if (state.selectedOnlyKits) {
+            filtered = filtered.filter((p) => (p.tipo_producto || (p.es_kit ? 'kit' : 'estandar')) !== 'estandar');
+        }
         state.visibleProducts = sortProducts(filtered);
         renderCards(state.visibleProducts);
+    };
+
+    const renderTypeFilter = () => {
+        const root = qs('#catalogTypeFilter');
+        if (!root) return;
+        const kitsCount = state.allProducts.filter((p) => {
+            const tipo = p.tipo_producto || (p.es_kit ? 'kit' : 'estandar');
+            return p.linea === line && tipo !== 'estandar';
+        }).length;
+        root.innerHTML = `
+            <div class="filter-checks">
+                <label class="filter-check">
+                    <input type="checkbox" id="catalogOnlyKits">
+                    <span class="filter-check__label">Solo combos / kits</span>
+                    <span class="filter-check__num">(${kitsCount})</span>
+                </label>
+            </div>
+        `;
+        const onlyKits = qs('#catalogOnlyKits');
+        if (onlyKits) {
+            onlyKits.addEventListener('change', () => {
+                state.selectedOnlyKits = !!onlyKits.checked;
+                applyFilters();
+            });
+        }
     };
 
     const renderCategoryFilter = () => {
@@ -418,6 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
             state.allProducts = Array.isArray(products) ? products : [];
             state.categories = Array.isArray(categories) ? categories : [];
             renderCategoryFilter();
+            renderTypeFilter();
             applyFilters();
         } catch (_error) {
             grid.innerHTML = '<div class="catalog-empty is-visible"><div class="catalog-empty__icon"><i class="fas fa-triangle-exclamation"></i></div><h3 class="catalog-empty__title">No se pudieron cargar los productos</h3><p class="catalog-empty__text">Intenta recargar la pagina.</p></div>';

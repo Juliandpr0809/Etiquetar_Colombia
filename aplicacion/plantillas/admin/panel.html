@@ -39,6 +39,7 @@
                     <button class="admin-tab-btn active" data-tab="dashboard"><i class="fas fa-house"></i> Inicio</button>
                     <button class="admin-tab-btn" data-tab="categorias"><i class="fas fa-layer-group"></i> Categorías</button>
                     <button class="admin-tab-btn" data-tab="productos"><i class="fas fa-box-open"></i> Productos</button>
+                    <button class="admin-tab-btn" data-tab="fichas"><i class="fas fa-book-open"></i> Biblioteca fichas</button>
                     <button class="admin-tab-btn" data-tab="cotizaciones"><i class="fas fa-file-invoice-dollar"></i> Cotizaciones</button>
                     <button class="admin-tab-btn" data-tab="promociones"><i class="fas fa-tag"></i> Ofertas</button>
                     <button class="admin-tab-btn" data-tab="banners"><i class="fas fa-bullhorn"></i> Anuncios</button>
@@ -168,6 +169,7 @@
                         <div class="product-form-header__text">
                             <h3 class="product-form-title">Nuevo producto</h3>
                             <span class="product-form-steps-pill">3 pasos</span>
+                            <span class="product-form-type-pill" id="productTypePill">Estándar</span>
                         </div>
                         <p class="product-form-subtitle">Completa la información para publicar</p>
                     </div>
@@ -184,6 +186,8 @@
                     </nav>
                     <form id="formProducto" class="product-form admin-form-grid" enctype="multipart/form-data">
                         <input type="hidden" id="prod-linea" name="linea" value="piscina">
+                        <input type="hidden" id="prod-tipo" name="tipo_producto" value="estandar">
+                        <input type="hidden" id="prod-ficha-tecnica-id" name="ficha_tecnica_id" value="">
                         <div class="product-form-panel" data-step-panel="1">
                             <div class="product-form-section">
                                 <h4 class="product-form-section__title">Línea de producto</h4>
@@ -194,6 +198,73 @@
                                     <button type="button" class="product-form-linea-btn" data-linea="agua" aria-pressed="false">
                                         <i class="fas fa-droplet"></i> Tratamiento de Agua
                                     </button>
+                                </div>
+                            </div>
+                            <div class="product-form-section">
+                                <h4 class="product-form-section__title">Tipo de producto</h4>
+                                <div class="product-form-linea-toggles" role="group" aria-label="Tipo de producto">
+                                    <button type="button" class="product-form-type-btn" data-tipo="estandar" aria-pressed="true">
+                                        <i class="fas fa-box"></i> Estándar
+                                    </button>
+                                    <button type="button" class="product-form-type-btn" data-tipo="combo" aria-pressed="false">
+                                        <i class="fas fa-layer-group"></i> Combo
+                                    </button>
+                                    <button type="button" class="product-form-type-btn" data-tipo="kit" aria-pressed="false">
+                                        <i class="fas fa-toolbox"></i> Kit
+                                    </button>
+                                </div>
+                                <div class="product-form-type-banner" id="productTypeBanner">
+                                    <strong id="productTypeBannerTitle">Producto estándar</strong>
+                                    <span id="productTypeBannerText">Producto individual con su propia ficha técnica y precio.</span>
+                                </div>
+                            </div>
+                            <div class="product-form-section">
+                                <h4 class="product-form-section__title">Ficha técnica existente</h4>
+                                <div class="admin-form-group">
+                                    <label for="prod-ficha-search">Buscar por nombre o referencia</label>
+                                    <input id="prod-ficha-search" class="product-form-input" placeholder="Ej: PKUF-6UV o Ultrafiltración">
+                                </div>
+                                <div id="prodFichaSearchResults" class="product-reco-results"></div>
+                                <div id="prodFichaSeleccionadaPreview" class="admin-form-hint">Sin ficha seleccionada.</div>
+                                <button type="button" id="btnCrearFichaRapida" class="admin-mini-btn" style="margin-top:8px;"><i class="fas fa-plus"></i> Crear nueva ficha</button>
+                                <div id="prodFichaRapidaBox" style="display:none; margin-top:10px;">
+                                    <div class="product-form-2col">
+                                        <div class="admin-form-group">
+                                            <label for="ficha-rapida-nombre">Nombre ficha</label>
+                                            <input id="ficha-rapida-nombre" class="product-form-input" placeholder="Nombre técnico">
+                                        </div>
+                                        <div class="admin-form-group">
+                                            <label for="ficha-rapida-referencia">Referencia</label>
+                                            <input id="ficha-rapida-referencia" class="product-form-input" placeholder="PK-XXX">
+                                        </div>
+                                    </div>
+                                    <div class="product-form-2col">
+                                        <div class="admin-form-group">
+                                            <label for="ficha-rapida-marca">Marca</label>
+                                            <input id="ficha-rapida-marca" class="product-form-input" placeholder="Marca">
+                                        </div>
+                                        <div class="admin-form-group">
+                                            <label for="ficha-rapida-linea">Línea</label>
+                                            <select id="ficha-rapida-linea" class="product-form-input">
+                                                <option value="agua">Tratamiento de Agua</option>
+                                                <option value="piscina">Piscina &amp; Spa</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="admin-form-group">
+                                        <label for="ficha-rapida-categoria">Categoría</label>
+                                        <select id="ficha-rapida-categoria" class="product-form-input">
+                                            <option value="">Sin categoría</option>
+                                        </select>
+                                    </div>
+                                    <div class="admin-form-group">
+                                        <label for="ficha-rapida-descripcion">Descripción</label>
+                                        <textarea id="ficha-rapida-descripcion" class="product-form-input" placeholder="Descripción de ficha"></textarea>
+                                    </div>
+                                    <div class="product-inline-group">
+                                        <button type="button" id="btnGuardarFichaRapida" class="admin-mini-btn"><i class="fas fa-save"></i> Guardar ficha</button>
+                                        <button type="button" id="btnCancelarFichaRapida" class="admin-mini-btn admin-mini-btn--danger"><i class="fas fa-times"></i> Cancelar</button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="product-form-section">
@@ -256,6 +327,14 @@
                                             <button type="button" class="product-form-stock-btn" data-action="plus" aria-label="Aumentar stock"><i class="fas fa-plus"></i></button>
                                         </div>
                                     </div>
+                                    <div class="admin-form-group">
+                                        <label for="prod-estado-disponibilidad">Estado</label>
+                                        <select id="prod-estado-disponibilidad" name="estado_disponibilidad" class="product-form-input">
+                                            <option value="borrador">Borrador</option>
+                                            <option value="disponible_bajo_pedido">Disponible bajo pedido</option>
+                                            <option value="en_stock">En stock</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             <div class="product-form-footer">
@@ -287,6 +366,7 @@
                             </div>
                             <div class="product-form-section">
                                 <h4 class="product-form-section__title">Especificaciones técnicas</h4>
+                                <p class="product-form-hint" id="productTypeStep2Hint">Para combos y kits, usa componentes y precio propio; para estándar, completa la ficha individual.</p>
                                 <div class="admin-form-group">
                                     <label>Campos técnicos de la categoría</label>
                                     <div id="prodCamposTecnicosContainer" class="dynamic-fields-wrap">
@@ -304,8 +384,17 @@
                                 </div>
                                 <div id="prodCaracteristicasList" class="product-extra-chips"></div>
                             </div>
-                            <div class="product-form-section">
-                                <h4 class="product-form-section__title">Contenido del kit / combo</h4>
+                            <div class="product-form-section" data-only-bundle>
+                                <h4 class="product-form-section__title">Componentes del combo / kit</h4>
+                                <p class="admin-form-hint">Busca productos y agrégalos como componentes con cantidad y nota opcional.</p>
+                                <div class="product-inline-group">
+                                    <input id="prodKitComponenteSearch" class="product-form-input" placeholder="Buscar por nombre, slug o referencia...">
+                                </div>
+                                <div id="prodKitComponenteResultados" class="product-reco-results"></div>
+                                <div id="prodKitComponentesSeleccionados" class="product-extra-chips"></div>
+                            </div>
+                            <div class="product-form-section" data-only-bundle-summary>
+                                <h4 class="product-form-section__title">Contenido del combo / kit</h4>
                                 <div class="product-inline-group">
                                     <input id="prodKitInput" class="product-form-input" placeholder="Ej: 1 bomba, 1 filtro de arena, 2 válvulas">
                                     <button type="button" id="btnAddKit" class="admin-mini-btn"><i class="fas fa-plus"></i> Agregar</button>
@@ -319,6 +408,10 @@
                                 <div id="prodRecomendadoSeleccionados" class="product-extra-chips"></div>
                             </div>
                             <div class="product-form-section">
+                                <label for="prod-aplicacion-recomendada">Aplicación recomendada</label>
+                                <textarea id="prod-aplicacion-recomendada" name="aplicacion_recomendada" class="product-form-input" placeholder="Ej: Ideal para vivienda unifamiliar con 4-6 personas."></textarea>
+                            </div>
+                            <div class="product-form-section">
                                 <label for="prod-descripcion">Descripción</label>
                                 <textarea id="prod-descripcion" name="descripcion" class="product-form-input" placeholder="Describe el producto, sus características y beneficios..."></textarea>
                             </div>
@@ -330,7 +423,7 @@
                         </div>
                         <div class="product-form-panel" data-step-panel="3" hidden>
                             <div class="product-form-section product-form-summary">
-                                <p class="product-form-summary-text">Revisa los datos y guarda el producto.</p>
+                                <p class="product-form-summary-text" id="productTypePublishHint">Revisa los datos y guarda el producto.</p>
                             </div>
                             <div class="product-form-nav">
                                 <button type="button" class="product-form-btn product-form-btn--prev"><i class="fas fa-arrow-left"></i> Anterior</button>
@@ -343,6 +436,120 @@
                 <article class="admin-card" style="margin-top:12px;">
                     <h3><i class="fas fa-boxes-stacked"></i> Productos guardados</h3>
                     <div id="productosList" class="admin-list"></div>
+                </article>
+            </section>
+
+            <section class="admin-tab" id="tab-fichas">
+                <article class="admin-card">
+                    <h3><i class="fas fa-book-open"></i> Biblioteca de fichas técnicas</h3>
+                    <div class="admin-analytics-toolbar" style="margin-top:4px;">
+                        <div class="admin-form-group" style="min-width:250px;">
+                            <label for="fichasBusqueda">Buscar</label>
+                            <input id="fichasBusqueda" placeholder="Nombre o referencia">
+                        </div>
+                        <div class="admin-form-group" style="min-width:220px;">
+                            <label for="fichasCategoriaFiltro">Categoría</label>
+                            <select id="fichasCategoriaFiltro">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div class="admin-form-group" style="min-width:180px;">
+                            <label for="fichasLineaFiltro">Línea</label>
+                            <select id="fichasLineaFiltro">
+                                <option value="">Todas</option>
+                                <option value="agua">Tratamiento de Agua</option>
+                                <option value="piscina">Piscina &amp; Spa</option>
+                            </select>
+                        </div>
+                        <button type="button" id="btnBuscarFichas" class="admin-mini-btn">Filtrar</button>
+                    </div>
+                    <div class="admin-inline-actions" style="margin-top:8px;">
+                        <button type="button" id="btnNuevaFicha" class="admin-mini-btn"><i class="fas fa-plus"></i> Nueva ficha</button>
+                        <button type="button" id="btnImportarFichas" class="admin-mini-btn"><i class="fas fa-file-import"></i> Importar JSON</button>
+                    </div>
+                    <div id="fichasList" class="admin-list" style="margin-top:12px;"></div>
+                </article>
+
+                <article class="admin-card" style="margin-top:12px;" id="fichaEditorCard">
+                    <h3><i class="fas fa-pen"></i> Crear / editar ficha</h3>
+                    <form id="formFichaTecnica" class="admin-form-grid">
+                        <input type="hidden" id="ficha-id">
+                        <div class="product-form-2col">
+                            <div class="admin-form-group">
+                                <label for="ficha-nombre">Nombre</label>
+                                <input id="ficha-nombre" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="ficha-referencia">Referencia</label>
+                                <input id="ficha-referencia" required>
+                            </div>
+                        </div>
+                        <div class="product-form-2col">
+                            <div class="admin-form-group">
+                                <label for="ficha-marca">Marca</label>
+                                <input id="ficha-marca">
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="ficha-linea">Línea</label>
+                                <select id="ficha-linea" required>
+                                    <option value="agua">Tratamiento de Agua</option>
+                                    <option value="piscina">Piscina &amp; Spa</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="ficha-categoria">Categoría</label>
+                            <select id="ficha-categoria">
+                                <option value="">Sin categoría</option>
+                            </select>
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="ficha-garantia">Garantía (texto)</label>
+                            <input id="ficha-garantia" placeholder="Ej: 1 año">
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="ficha-aplicacion">Aplicación</label>
+                            <textarea id="ficha-aplicacion" rows="2"></textarea>
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="ficha-descripcion">Descripción</label>
+                            <textarea id="ficha-descripcion" rows="2"></textarea>
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="ficha-pdf-url">URL PDF de ficha</label>
+                            <input id="ficha-pdf-url" placeholder="https://...">
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="ficha-especificaciones-json">Especificaciones (JSON)</label>
+                            <textarea id="ficha-especificaciones-json" rows="5" placeholder='[{"nombre":"Capacidad","tipo":"cuantitativa","valor":"4","unidad":"litros"}]'></textarea>
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="ficha-caracteristicas-json">Características (JSON)</label>
+                            <textarea id="ficha-caracteristicas-json" rows="4" placeholder='["Fácil instalación", "Compacto"]'></textarea>
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="ficha-componentes-json">Componentes (JSON)</label>
+                            <textarea id="ficha-componentes-json" rows="4" placeholder='[{"nombre":"Manguera","cantidad":1}]'></textarea>
+                        </div>
+                        <div class="admin-inline-actions">
+                            <button class="admin-btn" type="submit"><i class="fas fa-save"></i> Guardar ficha</button>
+                            <button class="admin-mini-btn" type="button" id="btnLimpiarFichaForm"><i class="fas fa-rotate-left"></i> Limpiar</button>
+                        </div>
+                    </form>
+                </article>
+
+                <article class="admin-card" style="margin-top:12px;" id="fichaImportCard" hidden>
+                    <h3><i class="fas fa-file-import"></i> Importación masiva JSON</h3>
+                    <div class="admin-form-group">
+                        <label for="fichasImportJson">Pega el JSON de AI Studio</label>
+                        <textarea id="fichasImportJson" rows="12" placeholder="[{...}]"></textarea>
+                    </div>
+                    <div class="admin-inline-actions">
+                        <button type="button" id="btnPrepararCategoriasFichas" class="admin-mini-btn"><i class="fas fa-layer-group"></i> Preparar categorías</button>
+                        <button type="button" id="btnValidarImportFichas" class="admin-mini-btn"><i class="fas fa-list-check"></i> Validar</button>
+                        <button type="button" id="btnEjecutarImportFichas" class="admin-mini-btn"><i class="fas fa-download"></i> Importar</button>
+                    </div>
+                    <div id="fichasImportResumen" class="admin-form-hint" style="margin-top:10px;"></div>
                 </article>
             </section>
 

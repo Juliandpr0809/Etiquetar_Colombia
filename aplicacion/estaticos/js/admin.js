@@ -21,9 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
     products: [],
     categories: [],
     categoryFieldDrafts: [],
+    fichas: [],
+    editingFichaId: null,
+    selectedFichaId: null,
     productFormStep: 1,
+    productTipo: 'estandar',
     productCaracteristicas: [],
     productKit: [],
+    productKitComponentes: [],
     productRecomendados: [],
     productCamposTecnicos: {},
     productCategoriaPendiente: null,
@@ -43,6 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
   const fmtDateTime = (valor) => valor ? new Date(valor).toLocaleString('es-CO') : 'Sin fecha';
+  const parseJsonSafe = (raw, fallback) => {
+    try {
+      const parsed = JSON.parse(String(raw || '').trim() || 'null');
+      return parsed == null ? fallback : parsed;
+    } catch (_err) {
+      return fallback;
+    }
+  };
 
   const timeAgo = (dateString) => {
     if (!dateString) return 'Sin fecha';
@@ -98,22 +111,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!formProducto) return;
     formProducto.reset();
     state.editingProductId = null;
+    state.productTipo = 'estandar';
     state.productCaracteristicas = [];
     state.productKit = [];
+    state.productKitComponentes = [];
     state.productRecomendados = [];
     state.productCamposTecnicos = {};
     state.productCategoriaPendiente = null;
+    state.selectedFichaId = null;
     state.productEspecificacionesTecnicas = [];
     state.productImagenesAdicionalesEliminar = [];
     setProductFormMode(false);
     if (typeof window._goProductFormStep === 'function') window._goProductFormStep(1);
     if (typeof window._syncProductFormLinea === 'function') window._syncProductFormLinea('piscina');
+    if (typeof window._syncProductTipo === 'function') window._syncProductTipo('estandar');
     if (typeof window._renderProductCategorias === 'function') window._renderProductCategorias();
     if (typeof window._renderProductCamposTecnicos === 'function') window._renderProductCamposTecnicos();
     if (typeof window._renderProductCaracteristicas === 'function') window._renderProductCaracteristicas();
     if (typeof window._renderProductKit === 'function') window._renderProductKit();
+    if (typeof window._renderProductKitComponentes === 'function') window._renderProductKitComponentes();
     if (typeof window._renderProductRecomendados === 'function') window._renderProductRecomendados();
     if (typeof window._renderProductEspecificacionesTecnicas === 'function') window._renderProductEspecificacionesTecnicas();
+    if (typeof window._renderFichaSeleccionadaPreview === 'function') window._renderFichaSeleccionadaPreview();
     if (typeof window._renderProductImagenesActuales === 'function') window._renderProductImagenesActuales([]);
     if (typeof window._updateProductFormPreview === 'function') window._updateProductFormPreview();
   };
@@ -127,18 +146,47 @@ document.addEventListener('DOMContentLoaded', () => {
     formProducto.linea.value = lineaProducto;
     formProducto.marca.value = product.marca || '';
     formProducto.referencia.value = product.referencia || '';
+    const aplicacionRecomendadaEl = formProducto.querySelector('#prod-aplicacion-recomendada');
+    if (aplicacionRecomendadaEl) aplicacionRecomendadaEl.value = product.aplicacion_recomendada || '';
     formProducto.garantia_meses.value = product.garantia_meses || '';
     formProducto.precio.value = fmtCop(product.precio || 0);
     const precioAnteriorEl = formProducto.querySelector('input[name="precio_anterior"]');
     if (precioAnteriorEl) precioAnteriorEl.value = product.precio_anterior != null ? fmtCop(product.precio_anterior) : '';
     formProducto.stock.value = product.stock ?? 0;
     formProducto.descripcion.value = product.descripcion || '';
+    state.productTipo = product.tipo_producto || (product.es_kit ? 'kit' : 'estandar');
     state.productCaracteristicas = Array.isArray(product.caracteristicas) ? [...product.caracteristicas] : [];
     state.productKit = Array.isArray(product.contenido_kit) ? [...product.contenido_kit] : [];
+    state.productKitComponentes = Array.isArray(product.kit_componentes)
+      ? product.kit_componentes.map((item) => ({
+        producto_id: Number(item.producto_id),
+        nombre: item.nombre || '',
+        slug: item.slug || '',
+        cantidad: Number(item.cantidad || 1),
+        nota: item.nota || '',
+      }))
+      : [];
     state.productRecomendados = Array.isArray(product.recomendados_ids) ? [...product.recomendados_ids] : [];
     state.productEspecificacionesTecnicas = Array.isArray(product.especificaciones_tecnicas) ? [...product.especificaciones_tecnicas] : [];
     state.productCamposTecnicos = {};
     state.productCategoriaPendiente = product.categoria_id || null;
+    state.selectedFichaId = product.ficha_tecnica_id || null;
+    if (state.selectedFichaId && !getFichaById(state.selectedFichaId)) {
+      state.fichas.push({
+        id: state.selectedFichaId,
+        nombre: product.ficha_tecnica_nombre || product.nombre || '',
+        referencia: product.referencia || '',
+        marca: product.marca || '',
+        linea: product.linea || 'agua',
+        categoria_id: product.categoria_id || null,
+        categoria_nombre: product.categoria_nombre || null,
+        especificaciones: [],
+        caracteristicas: [],
+        componentes: [],
+        tiene_producto_asociado: true,
+        productos_asociados_count: 1,
+      });
+    }
     (product.campos_tecnicos || []).forEach((item) => {
       state.productCamposTecnicos[item.campo_id] = item.valor;
     });
@@ -147,15 +195,22 @@ document.addEventListener('DOMContentLoaded', () => {
     setProductFormMode(true);
     if (typeof window._goProductFormStep === 'function') window._goProductFormStep(1);
     if (typeof window._syncProductFormLinea === 'function') window._syncProductFormLinea(lineaProducto);
+    if (typeof window._syncProductTipo === 'function') window._syncProductTipo(state.productTipo);
     if (typeof window._renderProductCategorias === 'function') window._renderProductCategorias(product.categoria_id || '');
     const categoriaSelect = qs('#prod-categoria');
     if (categoriaSelect && product.categoria_id) categoriaSelect.value = String(product.categoria_id);
     if (typeof window._renderProductCamposTecnicos === 'function') window._renderProductCamposTecnicos();
     if (typeof window._renderProductCaracteristicas === 'function') window._renderProductCaracteristicas();
     if (typeof window._renderProductKit === 'function') window._renderProductKit();
+    if (typeof window._renderProductKitComponentes === 'function') window._renderProductKitComponentes();
     if (typeof window._renderProductRecomendados === 'function') window._renderProductRecomendados();
     if (typeof window._renderProductEspecificacionesTecnicas === 'function') window._renderProductEspecificacionesTecnicas();
+    if (typeof window._renderFichaSeleccionadaPreview === 'function') window._renderFichaSeleccionadaPreview();
     if (typeof window._renderProductImagenesActuales === 'function') window._renderProductImagenesActuales(product.imagenes_adicionales || []);
+    const estadoSelect = qs('#prod-estado-disponibilidad');
+    if (estadoSelect) estadoSelect.value = product.estado_disponibilidad || 'borrador';
+    const fichaInput = qs('#prod-ficha-tecnica-id');
+    if (fichaInput) fichaInput.value = state.selectedFichaId || '';
     if (typeof window._updateProductFormPreview === 'function') window._updateProductFormPreview();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -319,6 +374,113 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
   window._renderProductCategorias = renderProductCategorias;
+
+  const getFichaById = (id) => state.fichas.find((f) => Number(f.id) === Number(id)) || null;
+
+  const renderFichaSeleccionadaPreview = () => {
+    const box = qs('#prodFichaSeleccionadaPreview');
+    const hidden = qs('#prod-ficha-tecnica-id');
+    if (!box) return;
+    const ficha = state.selectedFichaId ? getFichaById(state.selectedFichaId) : null;
+    if (hidden) hidden.value = ficha ? ficha.id : '';
+    if (!ficha) {
+      box.className = 'admin-form-hint';
+      box.innerHTML = 'Sin ficha seleccionada.';
+      return;
+    }
+    box.className = 'admin-form-hint';
+    const asociados = Number(ficha.productos_asociados_count || 0);
+    box.innerHTML = `
+      <strong>Ficha seleccionada:</strong> ${escapeHtml(ficha.nombre)} (${escapeHtml(ficha.referencia || 'sin referencia')})<br>
+      <span>Marca: ${escapeHtml(ficha.marca || 'N/A')} · Línea: ${ficha.linea === 'agua' ? 'Tratamiento de Agua' : 'Piscina & Spa'}</span><br>
+      <span>${asociados > 0 ? `Asociada a ${asociados} producto(s)` : 'Disponible para crear producto'}</span>
+    `;
+  };
+  window._renderFichaSeleccionadaPreview = renderFichaSeleccionadaPreview;
+
+  const aplicarFichaEnFormularioProducto = (ficha) => {
+    if (!ficha || !formProducto) return;
+    state.selectedFichaId = ficha.id;
+    formProducto.nombre.value = ficha.nombre || '';
+    formProducto.referencia.value = ficha.referencia || '';
+    formProducto.marca.value = ficha.marca || '';
+    formProducto.descripcion.value = ficha.descripcion || '';
+    const aplicacionRecomendadaEl = formProducto.querySelector('#prod-aplicacion-recomendada');
+    if (aplicacionRecomendadaEl) aplicacionRecomendadaEl.value = ficha.aplicacion || '';
+    const garantiaEl = formProducto.querySelector('#prod-garantia');
+    if (garantiaEl && ficha.garantia) {
+      const match = String(ficha.garantia).match(/\d+/);
+      if (match) garantiaEl.value = match[0];
+    }
+    const hiddenLinea = qs('#prod-linea');
+    if (hiddenLinea) hiddenLinea.value = ficha.linea || hiddenLinea.value;
+    if (typeof window._syncProductFormLinea === 'function') window._syncProductFormLinea(ficha.linea || 'agua');
+
+    if (ficha.categoria_id) {
+      state.productCategoriaPendiente = ficha.categoria_id;
+      if (typeof window._renderProductCategorias === 'function') window._renderProductCategorias(ficha.categoria_id);
+      const categoriaSelect = qs('#prod-categoria');
+      if (categoriaSelect) categoriaSelect.value = String(ficha.categoria_id);
+    }
+
+    state.productEspecificacionesTecnicas = Array.isArray(ficha.especificaciones)
+      ? ficha.especificaciones.map((item) => {
+        const tipo = String(item.tipo || '').toLowerCase();
+        if (tipo === 'cuantitativa') {
+          return {
+            nombre: item.nombre,
+            tipo: 'cuantitativa',
+            valor_numero: item.valor,
+            unidad: item.unidad,
+            seccion: 'Informacion tecnica',
+          };
+        }
+        return {
+          nombre: item.nombre,
+          tipo: 'cualitativa',
+          valor_texto: item.valor,
+          seccion: 'Informacion tecnica',
+        };
+      })
+      : [];
+    state.productCaracteristicas = Array.isArray(ficha.caracteristicas) ? [...ficha.caracteristicas] : [];
+    state.productKit = Array.isArray(ficha.componentes)
+      ? ficha.componentes
+        .filter((c) => c && typeof c === 'object')
+        .map((c) => `${c.nombre || ''}${c.cantidad != null ? ` x${c.cantidad}` : ''}${c.notas ? ` (${c.notas})` : ''}`.trim())
+        .filter(Boolean)
+      : [];
+
+    if (typeof window._renderProductEspecificacionesTecnicas === 'function') window._renderProductEspecificacionesTecnicas();
+    if (typeof window._renderProductCaracteristicas === 'function') window._renderProductCaracteristicas();
+    if (typeof window._renderProductKit === 'function') window._renderProductKit();
+    renderFichaSeleccionadaPreview();
+    if (typeof window._updateProductFormPreview === 'function') window._updateProductFormPreview();
+  };
+
+  const renderFichaSearchResults = (items) => {
+    const root = qs('#prodFichaSearchResults');
+    if (!root) return;
+    if (!items.length) {
+      root.innerHTML = '';
+      return;
+    }
+    root.innerHTML = items.map((f) => `
+      <button type="button" class="product-reco-result" data-select-ficha="${f.id}">
+        <strong>${escapeHtml(f.nombre)}</strong>
+        <span>${escapeHtml(f.referencia || 'Sin referencia')} · ${escapeHtml(f.marca || 'Sin marca')}</span>
+      </button>
+    `).join('');
+
+    root.querySelectorAll('[data-select-ficha]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const ficha = getFichaById(Number(btn.dataset.selectFicha));
+        if (!ficha) return;
+        aplicarFichaEnFormularioProducto(ficha);
+        root.innerHTML = '';
+      });
+    });
+  };
 
   const getSelectedCategory = () => {
     const select = qs('#prod-categoria');
@@ -724,6 +886,119 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   window._renderProductKit = renderProductKit;
 
+  const renderProductKitComponentes = () => {
+    const root = qs('#prodKitComponentesSeleccionados');
+    if (!root) return;
+    if (!state.productKitComponentes.length) {
+      root.innerHTML = '<p class="admin-form-hint">Sin componentes seleccionados.</p>';
+      return;
+    }
+    root.innerHTML = state.productKitComponentes.map((item, idx) => `
+      <div class="kit-component-row" data-kit-comp-index="${idx}">
+        <strong>${escapeHtml(item.nombre || item.slug || 'Producto')}</strong>
+        <span class="kit-component-row__slug">${escapeHtml(item.slug || '')}</span>
+        <div class="kit-component-row__fields">
+          <label>Cant.</label>
+          <input type="number" min="0.01" step="0.01" value="${Number(item.cantidad || 1)}" data-kit-comp-cantidad="${idx}">
+          <label>Nota</label>
+          <input type="text" value="${escapeHtml(item.nota || '')}" maxlength="255" data-kit-comp-nota="${idx}">
+        </div>
+        <div class="kit-component-row__actions">
+          <button type="button" class="admin-mini-btn" data-kit-comp-up="${idx}" title="Subir"><i class="fas fa-arrow-up"></i></button>
+          <button type="button" class="admin-mini-btn" data-kit-comp-down="${idx}" title="Bajar"><i class="fas fa-arrow-down"></i></button>
+          <button type="button" class="admin-mini-btn admin-mini-btn--danger" data-kit-comp-del="${idx}" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    `).join('');
+
+    root.querySelectorAll('[data-kit-comp-cantidad]').forEach((input) => {
+      input.addEventListener('change', () => {
+        const idx = Number(input.dataset.kitCompCantidad);
+        const raw = Number(input.value);
+        state.productKitComponentes[idx].cantidad = Number.isFinite(raw) && raw > 0 ? raw : 1;
+        renderProductKitComponentes();
+      });
+    });
+    root.querySelectorAll('[data-kit-comp-nota]').forEach((input) => {
+      input.addEventListener('input', () => {
+        const idx = Number(input.dataset.kitCompNota);
+        state.productKitComponentes[idx].nota = (input.value || '').trim();
+      });
+    });
+    root.querySelectorAll('[data-kit-comp-del]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.kitCompDel);
+        state.productKitComponentes.splice(idx, 1);
+        renderProductKitComponentes();
+        renderKitComponenteResultados();
+      });
+    });
+    root.querySelectorAll('[data-kit-comp-up]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.kitCompUp);
+        if (idx <= 0) return;
+        const aux = state.productKitComponentes[idx - 1];
+        state.productKitComponentes[idx - 1] = state.productKitComponentes[idx];
+        state.productKitComponentes[idx] = aux;
+        renderProductKitComponentes();
+      });
+    });
+    root.querySelectorAll('[data-kit-comp-down]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.kitCompDown);
+        if (idx >= state.productKitComponentes.length - 1) return;
+        const aux = state.productKitComponentes[idx + 1];
+        state.productKitComponentes[idx + 1] = state.productKitComponentes[idx];
+        state.productKitComponentes[idx] = aux;
+        renderProductKitComponentes();
+      });
+    });
+  };
+  window._renderProductKitComponentes = renderProductKitComponentes;
+
+  const renderKitComponenteResultados = async () => {
+    const root = qs('#prodKitComponenteResultados');
+    const search = (qs('#prodKitComponenteSearch')?.value || '').trim();
+    if (!root) return;
+    try {
+      const data = await api(`/admin/api/productos/buscar?q=${encodeURIComponent(search)}&exclude_id=${encodeURIComponent(state.editingProductId || '')}&limit=25`);
+      const items = (data.data || []).filter((p) => !p.es_kit);
+      root.innerHTML = items.map((p) => {
+        const selected = state.productKitComponentes.some((x) => Number(x.producto_id) === Number(p.id));
+        return `
+          <button type="button" class="product-reco-item ${selected ? 'selected' : ''}" data-kit-producto-id="${p.id}">
+            <span>${escapeHtml(p.nombre)}</span>
+            <small>${escapeHtml((p.slug || '') + (p.referencia ? ` · ${p.referencia}` : ''))}</small>
+          </button>
+        `;
+      }).join('');
+      root.querySelectorAll('[data-kit-producto-id]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.dataset.kitProductoId);
+          const already = state.productKitComponentes.some((x) => Number(x.producto_id) === id);
+          if (already) {
+            state.productKitComponentes = state.productKitComponentes.filter((x) => Number(x.producto_id) !== id);
+          } else {
+            const p = items.find((item) => Number(item.id) === id);
+            if (!p) return;
+            state.productKitComponentes.push({
+              producto_id: id,
+              nombre: p.nombre,
+              slug: p.slug,
+              cantidad: 1,
+              nota: '',
+            });
+          }
+          renderProductKitComponentes();
+          renderKitComponenteResultados();
+        });
+      });
+    } catch (_err) {
+      root.innerHTML = '<p class="admin-form-hint">No se pudieron cargar productos para componentes.</p>';
+    }
+  };
+  window._renderKitComponenteResultados = renderKitComponenteResultados;
+
   const renderProductRecomendados = () => {
     const selected = state.products
       .filter((p) => state.productRecomendados.includes(p.id))
@@ -794,6 +1069,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = await api('/admin/api/categorias');
     state.categories = data.data || [];
     renderCategoriasList(state.categories);
+    refreshFichaCategorySelects();
     renderProductCategorias();
     renderProductCamposTecnicos();
   };
@@ -803,6 +1079,194 @@ document.addEventListener('DOMContentLoaded', () => {
       activateTab(btn.dataset.tab);
     });
   });
+
+  const fichaSearchInput = qs('#prod-ficha-search');
+  if (fichaSearchInput) {
+    fichaSearchInput.addEventListener('input', async () => {
+      const value = fichaSearchInput.value.trim();
+      if (value.length < 2) {
+        renderFichaSearchResults([]);
+        return;
+      }
+      try {
+        const data = await api(`/admin/api/fichas-tecnicas/buscar?q=${encodeURIComponent(value)}&limit=12`);
+        const items = data.data || [];
+        items.forEach((item) => {
+          if (!state.fichas.find((x) => Number(x.id) === Number(item.id))) {
+            state.fichas.push(item);
+          }
+        });
+        renderFichaSearchResults(items);
+      } catch (_err) {
+        renderFichaSearchResults([]);
+      }
+    });
+  }
+
+  const btnCrearFichaRapida = qs('#btnCrearFichaRapida');
+  const fichaRapidaBox = qs('#prodFichaRapidaBox');
+  if (btnCrearFichaRapida && fichaRapidaBox) {
+    btnCrearFichaRapida.addEventListener('click', () => {
+      fichaRapidaBox.style.display = fichaRapidaBox.style.display === 'none' || !fichaRapidaBox.style.display ? 'block' : 'none';
+    });
+  }
+  const btnCancelarFichaRapida = qs('#btnCancelarFichaRapida');
+  if (btnCancelarFichaRapida && fichaRapidaBox) {
+    btnCancelarFichaRapida.addEventListener('click', () => {
+      fichaRapidaBox.style.display = 'none';
+    });
+  }
+
+  const btnGuardarFichaRapida = qs('#btnGuardarFichaRapida');
+  if (btnGuardarFichaRapida) {
+    btnGuardarFichaRapida.addEventListener('click', async () => {
+      try {
+        const payload = {
+          nombre: qs('#ficha-rapida-nombre')?.value || '',
+          referencia: qs('#ficha-rapida-referencia')?.value || '',
+          marca: qs('#ficha-rapida-marca')?.value || '',
+          linea: qs('#ficha-rapida-linea')?.value || 'agua',
+          categoria_id: qs('#ficha-rapida-categoria')?.value || null,
+          descripcion: qs('#ficha-rapida-descripcion')?.value || '',
+          especificaciones: [],
+          caracteristicas: [],
+          componentes: [],
+        };
+        const res = await api('/admin/api/fichas-tecnicas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const ficha = res.data;
+        state.fichas.unshift(ficha);
+        aplicarFichaEnFormularioProducto(ficha);
+        if (fichaRapidaBox) fichaRapidaBox.style.display = 'none';
+        showMsg('success', 'Ficha creada y seleccionada para este producto.');
+      } catch (err) {
+        showMsg('error', err.message);
+      }
+    });
+  }
+
+  const btnBuscarFichas = qs('#btnBuscarFichas');
+  if (btnBuscarFichas) btnBuscarFichas.addEventListener('click', () => loadFichas().catch((err) => showMsg('error', err.message)));
+
+  const btnNuevaFicha = qs('#btnNuevaFicha');
+  if (btnNuevaFicha) btnNuevaFicha.addEventListener('click', () => { activateTab('fichas'); resetFichaForm(); });
+
+  const btnImportarFichas = qs('#btnImportarFichas');
+  if (btnImportarFichas) {
+    btnImportarFichas.addEventListener('click', () => {
+      const card = qs('#fichaImportCard');
+      if (card) card.hidden = !card.hidden;
+    });
+  }
+
+  const btnLimpiarFichaForm = qs('#btnLimpiarFichaForm');
+  if (btnLimpiarFichaForm) btnLimpiarFichaForm.addEventListener('click', resetFichaForm);
+
+  const formFicha = qs('#formFichaTecnica');
+  if (formFicha) {
+    formFicha.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const payload = {
+          nombre: qs('#ficha-nombre')?.value || '',
+          referencia: qs('#ficha-referencia')?.value || '',
+          marca: qs('#ficha-marca')?.value || '',
+          linea: qs('#ficha-linea')?.value || 'agua',
+          categoria_id: qs('#ficha-categoria')?.value || null,
+          garantia: qs('#ficha-garantia')?.value || '',
+          aplicacion: qs('#ficha-aplicacion')?.value || '',
+          descripcion: qs('#ficha-descripcion')?.value || '',
+          ficha_pdf_url: qs('#ficha-pdf-url')?.value || '',
+          especificaciones: parseJsonSafe(qs('#ficha-especificaciones-json')?.value, []),
+          caracteristicas: parseJsonSafe(qs('#ficha-caracteristicas-json')?.value, []),
+          componentes: parseJsonSafe(qs('#ficha-componentes-json')?.value, []),
+        };
+        if (!Array.isArray(payload.especificaciones) || !Array.isArray(payload.caracteristicas) || !Array.isArray(payload.componentes)) {
+          throw new Error('Los campos JSON deben ser arreglos válidos.');
+        }
+
+        if (state.editingFichaId) {
+          const res = await api(`/admin/api/fichas-tecnicas/${state.editingFichaId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (res.warning) showMsg('success', res.warning);
+          else showMsg('success', 'Ficha técnica actualizada.');
+        } else {
+          await api('/admin/api/fichas-tecnicas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          showMsg('success', 'Ficha técnica creada.');
+        }
+        resetFichaForm();
+        await loadFichas();
+      } catch (err) {
+        showMsg('error', err.message);
+      }
+    });
+  }
+
+  const runImportFichas = async (dryRun) => {
+    const raw = qs('#fichasImportJson')?.value || '';
+    const items = parseJsonSafe(raw, null);
+    if (!Array.isArray(items)) throw new Error('El JSON debe ser un arreglo.');
+    const res = await api('/admin/api/fichas-tecnicas/importar-json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, dry_run: dryRun }),
+    });
+    const r = res.data || {};
+    const resumen = qs('#fichasImportResumen');
+    if (resumen) {
+      resumen.innerHTML = `Total: ${r.total || 0} · Válidos: ${r.validos || 0} · Duplicados: ${r.duplicados || 0} · Creados: ${r.creados || 0} · Errores: ${r.errores || 0}`;
+    }
+    if (!dryRun) await loadFichas();
+    showMsg('success', dryRun ? 'Validación completada.' : 'Importación completada.');
+  };
+
+  const runPrepararCategoriasFichas = async (dryRun) => {
+    const raw = qs('#fichasImportJson')?.value || '';
+    const items = parseJsonSafe(raw, null);
+    if (!Array.isArray(items)) throw new Error('El JSON debe ser un arreglo.');
+    const res = await api('/admin/api/fichas-tecnicas/preparar-categorias', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, dry_run: dryRun }),
+    });
+    const r = res.data || {};
+    const resumen = qs('#fichasImportResumen');
+    if (resumen) {
+      resumen.innerHTML = `Categorías detectadas: ${(r.categorias_detectadas || []).length} · Existentes: ${r.existentes || 0} · Por crear: ${r.por_crear || 0} · Creadas: ${r.creadas || 0} · Errores: ${r.errores || 0}`;
+    }
+    if (!dryRun) await loadCategorias();
+    showMsg('success', dryRun ? 'Validación de categorías completada.' : 'Categorías preparadas correctamente.');
+  };
+
+  const btnPrepararCategoriasFichas = qs('#btnPrepararCategoriasFichas');
+  if (btnPrepararCategoriasFichas) {
+    btnPrepararCategoriasFichas.addEventListener('click', () => {
+      runPrepararCategoriasFichas(false).catch((err) => showMsg('error', err.message));
+    });
+  }
+
+  const btnValidarImportFichas = qs('#btnValidarImportFichas');
+  if (btnValidarImportFichas) {
+    btnValidarImportFichas.addEventListener('click', () => {
+      runImportFichas(true).catch((err) => showMsg('error', err.message));
+    });
+  }
+  const btnEjecutarImportFichas = qs('#btnEjecutarImportFichas');
+  if (btnEjecutarImportFichas) {
+    btnEjecutarImportFichas.addEventListener('click', () => {
+      runImportFichas(false).catch((err) => showMsg('error', err.message));
+    });
+  }
 
   if (inputPrecioProducto) {
     inputPrecioProducto.addEventListener('blur', () => {
@@ -824,7 +1288,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const stepButtons = qsa('.product-form-step');
     const panels = qsa('.product-form-panel');
     const lineaBtns = qsa('.product-form-linea-btn');
+    const tipoBtns = qsa('.product-form-type-btn');
     const hiddenLinea = formProducto.querySelector('#prod-linea');
+    const hiddenTipo = formProducto.querySelector('#prod-tipo');
     const inputNombre = formProducto.querySelector('#prod-nombre');
     const inputSlug = formProducto.querySelector('#prod-slug');
     const inputStock = formProducto.querySelector('#prod-stock');
@@ -914,6 +1380,62 @@ document.addEventListener('DOMContentLoaded', () => {
       renderProductCamposTecnicos();
     };
 
+    window._syncProductTipo = (value) => {
+      const finalValue = ['estandar', 'combo', 'kit'].includes(value) ? value : 'estandar';
+      state.productTipo = finalValue;
+      if (hiddenTipo) hiddenTipo.value = finalValue;
+      if (formProducto) formProducto.dataset.productType = finalValue;
+      tipoBtns.forEach((btn) => {
+        const isActive = (btn.dataset.tipo || 'estandar') === finalValue;
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+      formProducto.querySelectorAll('[data-only-bundle]').forEach((el) => {
+        el.hidden = finalValue === 'estandar';
+      });
+      formProducto.querySelectorAll('[data-only-bundle-summary]').forEach((el) => {
+        el.hidden = finalValue !== 'estandar';
+      });
+      if (finalValue === 'estandar') {
+        state.productKitComponentes = [];
+      }
+      const bannerTitle = qs('#productTypeBannerTitle');
+      const bannerText = qs('#productTypeBannerText');
+      const typePill = qs('#productTypePill');
+      const step2Hint = qs('#productTypeStep2Hint');
+      const publishHint = qs('#productTypePublishHint');
+      const copyByType = {
+        estandar: {
+          title: 'Producto estándar',
+          text: 'Producto individual con su propia ficha técnica y precio.',
+          pill: 'Estándar',
+          hint: 'Para estándar, completa la ficha individual y la descripción normal.',
+          publish: 'Revisa los datos y guarda el producto estándar.'
+        },
+        combo: {
+          title: 'Combo',
+          text: 'Agrupa productos existentes y define un precio único para venderlos juntos.',
+          pill: 'Combo',
+          hint: 'Para combos, selecciona componentes y define el precio del paquete.',
+          publish: 'Revisa los componentes, el precio y guarda el combo.'
+        },
+        kit: {
+          title: 'Kit',
+          text: 'Compón un kit con productos existentes, cantidad por componente y precio propio.',
+          pill: 'Kit',
+          hint: 'Para kits, selecciona componentes, cantidades y notas antes de guardar.',
+          publish: 'Revisa los componentes, cantidades y guarda el kit.'
+        },
+      };
+      const copy = copyByType[finalValue] || copyByType.estandar;
+      if (bannerTitle) bannerTitle.textContent = copy.title;
+      if (bannerText) bannerText.textContent = copy.text;
+      if (typePill) typePill.textContent = copy.pill;
+      if (step2Hint) step2Hint.textContent = copy.hint;
+      if (publishHint) publishHint.textContent = copy.publish;
+      if (typeof window._renderProductKitComponentes === 'function') window._renderProductKitComponentes();
+      if (typeof window._renderKitComponenteResultados === 'function') window._renderKitComponenteResultados();
+    };
+
     window._updateProductFormPreview = () => {
       if (!previewPriceEl) return;
       const raw = inputPrecioProducto ? parseCop(inputPrecioProducto.value) : '';
@@ -947,6 +1469,13 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    tipoBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const value = btn.dataset.tipo || 'estandar';
+        window._syncProductTipo(value);
+      });
+    });
+
     if (inputNombre && inputSlug) {
       inputNombre.addEventListener('input', () => {
         const slug = slugFromNombre(inputNombre.value);
@@ -959,6 +1488,7 @@ document.addEventListener('DOMContentLoaded', () => {
       inputPrecioProducto.addEventListener('change', () => window._updateProductFormPreview());
     }
     if (previewPriceEl) window._updateProductFormPreview();
+    window._syncProductTipo(state.productTipo || 'estandar');
 
     formProducto.querySelectorAll('.product-form-stock-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -1075,11 +1605,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderProductCaracteristicas();
   renderProductKit();
+  renderProductKitComponentes();
   renderProductRecomendados();
   renderProductEspecificacionesTecnicas();
 
   const recoSearch = qs('#prodRecomendadoSearch');
   if (recoSearch) recoSearch.addEventListener('input', () => renderProductRecomendadoResultados());
+  const kitComponenteSearch = qs('#prodKitComponenteSearch');
+  if (kitComponenteSearch) {
+    kitComponenteSearch.addEventListener('input', () => {
+      renderKitComponenteResultados();
+    });
+  }
 
   const renderList = (selector, items, renderItem) => {
     const root = qs(selector);
@@ -2083,6 +2620,95 @@ document.addEventListener('DOMContentLoaded', () => {
     `);
   };
 
+  function resetFichaForm() {
+    state.editingFichaId = null;
+    const idEl = qs('#ficha-id');
+    if (idEl) idEl.value = '';
+    ['#ficha-nombre', '#ficha-referencia', '#ficha-marca', '#ficha-garantia', '#ficha-aplicacion', '#ficha-descripcion', '#ficha-pdf-url', '#ficha-especificaciones-json', '#ficha-caracteristicas-json', '#ficha-componentes-json']
+      .forEach((sel) => {
+        const el = qs(sel);
+        if (el) el.value = '';
+      });
+    const linea = qs('#ficha-linea');
+    if (linea) linea.value = 'agua';
+    const categoria = qs('#ficha-categoria');
+    if (categoria) categoria.value = '';
+  }
+
+  const fillFichaForm = (ficha) => {
+    state.editingFichaId = ficha.id;
+    const idEl = qs('#ficha-id');
+    if (idEl) idEl.value = ficha.id;
+    const setVal = (sel, val) => { const el = qs(sel); if (el) el.value = val || ''; };
+    setVal('#ficha-nombre', ficha.nombre);
+    setVal('#ficha-referencia', ficha.referencia);
+    setVal('#ficha-marca', ficha.marca);
+    setVal('#ficha-linea', ficha.linea || 'agua');
+    setVal('#ficha-categoria', ficha.categoria_id ? String(ficha.categoria_id) : '');
+    setVal('#ficha-garantia', ficha.garantia);
+    setVal('#ficha-aplicacion', ficha.aplicacion);
+    setVal('#ficha-descripcion', ficha.descripcion);
+    setVal('#ficha-pdf-url', ficha.ficha_pdf_url);
+    setVal('#ficha-especificaciones-json', JSON.stringify(ficha.especificaciones || [], null, 2));
+    setVal('#ficha-caracteristicas-json', JSON.stringify(ficha.caracteristicas || [], null, 2));
+    setVal('#ficha-componentes-json', JSON.stringify(ficha.componentes || [], null, 2));
+    window.scrollTo({ top: qs('#fichaEditorCard')?.offsetTop || 0, behavior: 'smooth' });
+  };
+
+  const renderFichasList = (items) => {
+    renderList('#fichasList', items, (f) => `
+      <div class="admin-item__row">
+        <strong>${escapeHtml(f.nombre)}</strong>
+        <span class="admin-badge admin-badge--${Number(f.productos_asociados_count || 0) > 0 ? 'agua' : 'activo'}">${Number(f.productos_asociados_count || 0) > 0 ? `${Number(f.productos_asociados_count || 0)} asociados` : 'Disponible'}</span>
+      </div>
+      <div class="admin-meta-text">${escapeHtml(f.referencia || 'Sin referencia')} · ${escapeHtml(f.marca || 'Sin marca')} · ${escapeHtml(f.categoria_nombre || 'Sin categoría')}</div>
+      <div class="admin-inline-actions" style="margin-top:8px">
+        <button class="admin-mini-btn" data-edit-ficha="${f.id}"><i class="fas fa-pen"></i> Editar</button>
+      </div>
+    `);
+
+    qsa('[data-edit-ficha]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const ficha = state.fichas.find((x) => x.id === Number(btn.dataset.editFicha));
+        if (ficha) {
+          activateTab('fichas');
+          fillFichaForm(ficha);
+        }
+      });
+    });
+  };
+
+  const refreshFichaCategorySelects = () => {
+    const options = ['<option value="">Sin categoría</option>']
+      .concat(
+        state.categories.map((c) => `<option value="${c.id}">${escapeHtml(c.nombre)} (${c.linea === 'agua' ? 'Agua' : 'Piscina'})</option>`)
+      )
+      .join('');
+    const ids = ['#fichasCategoriaFiltro', '#ficha-categoria', '#ficha-rapida-categoria'];
+    ids.forEach((sel) => {
+      const el = qs(sel);
+      if (el) {
+        const current = el.value;
+        el.innerHTML = options;
+        if (current) el.value = current;
+      }
+    });
+  };
+
+  const loadFichas = async () => {
+    const q = (qs('#fichasBusqueda')?.value || '').trim();
+    const categoria = (qs('#fichasCategoriaFiltro')?.value || '').trim();
+    const linea = (qs('#fichasLineaFiltro')?.value || '').trim();
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (categoria) params.set('categoria_id', categoria);
+    if (linea) params.set('linea', linea);
+    const data = await api(`/admin/api/fichas-tecnicas${params.toString() ? `?${params.toString()}` : ''}`);
+    state.fichas = data.data || [];
+    renderFichasList(state.fichas);
+    renderFichaSeleccionadaPreview();
+  };
+
   const loadEnvios = async () => {
     const data = await api('/admin/api/envios');
     renderList('#enviosList', data.data, (e) => `
@@ -2132,6 +2758,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = await api('/admin/api/productos');
     state.products = data.data;
     renderProductRecomendadoResultados();
+    renderKitComponenteResultados();
     renderProductRecomendados();
 
     // Poblar select de productos para promociones
@@ -2243,6 +2870,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>
             <div class="ptable-name">${p.nombre}</div>
             <div class="ptable-slug">${p.slug || '—'}</div>
+            ${p.tipo_producto && p.tipo_producto !== 'estandar'
+              ? `<div class="ptable-badge" style="display:inline-flex; margin-top:6px; background:#0f766e; color:white; border-color:#0f766e;">${p.tipo_producto === 'combo' ? 'Combo' : 'Kit'}</div>`
+              : ''}
             ${p.ficha_url
               ? `<a href="${p.ficha_url}" target="_blank" rel="noopener" class="ptable-ficha">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2384,49 +3014,65 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  qs('#formProducto').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (typeof window._validateAllProductSteps === 'function' && !window._validateAllProductSteps()) {
-      return;
-    }
-    try {
-      const body = new FormData(e.target);
-      body.set('precio', parseCop(body.get('precio')) || '0');
-      const stockRaw = String(body.get('stock') || '').replace(/[^0-9-]/g, '');
-      const stockSafe = Number.isFinite(Number.parseInt(stockRaw, 10)) ? Math.max(Number.parseInt(stockRaw, 10), 0) : 0;
-      body.set('stock', String(stockSafe));
-      const pa = body.get('precio_anterior');
-      body.set('precio_anterior', (pa && parseCop(pa)) ? parseCop(pa) : '');
-      body.set('slug', slugify(body.get('slug') || body.get('nombre') || ''));
-      body.set('caracteristicas_json', JSON.stringify(state.productCaracteristicas));
-      body.set('contenido_kit_json', JSON.stringify(state.productKit));
-      body.set('recomendados_json', JSON.stringify(state.productRecomendados));
-      body.set('especificaciones_tecnicas_json', JSON.stringify(state.productEspecificacionesTecnicas));
-      body.set('eliminar_imagenes_adicionales_json', JSON.stringify(state.productImagenesAdicionalesEliminar));
-
-      const category = getSelectedCategory();
-      const fields = category && Array.isArray(category.campos_tecnicos) ? category.campos_tecnicos : [];
-      const camposPayload = fields.map((field) => ({
-        campo_id: field.id,
-        valor: state.productCamposTecnicos[field.id],
-      }));
-      body.set('campos_tecnicos_json', JSON.stringify(camposPayload));
-
-      if (state.editingProductId) {
-        await api(`/admin/api/productos/${state.editingProductId}`, { method: 'PATCH', body });
-        showMsg('success', 'Producto actualizado correctamente');
-      } else {
-        await api('/admin/api/productos', { method: 'POST', body });
-        showMsg('success', 'Producto creado correctamente');
+  const formProductoEl = qs('#formProducto');
+  if (formProductoEl) {
+    formProductoEl.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (typeof window._validateAllProductSteps === 'function' && !window._validateAllProductSteps()) {
+        return;
       }
-      resetProductForm();
-      loadProductos();
-    } catch (err) {
-      showMsg('error', err.message);
-    }
-  });
+      try {
+        const body = new FormData(e.target);
+        body.set('precio', parseCop(body.get('precio')) || '0');
+        const stockRaw = String(body.get('stock') || '').replace(/[^0-9-]/g, '');
+        const stockSafe = Number.isFinite(Number.parseInt(stockRaw, 10)) ? Math.max(Number.parseInt(stockRaw, 10), 0) : 0;
+        body.set('stock', String(stockSafe));
+        const pa = body.get('precio_anterior');
+        body.set('precio_anterior', (pa && parseCop(pa)) ? parseCop(pa) : '');
+        body.set('slug', slugify(body.get('slug') || body.get('nombre') || ''));
+        body.set('tipo_producto', state.productTipo || 'estandar');
+        body.set('ficha_tecnica_id', state.selectedFichaId ? String(state.selectedFichaId) : '');
+        body.set('caracteristicas_json', JSON.stringify(state.productCaracteristicas));
+        body.set('contenido_kit_json', JSON.stringify(state.productKit));
+        body.set('kit_componentes_json', JSON.stringify(state.productKitComponentes.map((item, idx) => ({
+          producto_id: Number(item.producto_id),
+          cantidad: Number(item.cantidad || 1),
+          nota: (item.nota || '').trim(),
+          orden: idx,
+        }))));
+        body.set('recomendados_json', JSON.stringify(state.productRecomendados));
+        body.set('especificaciones_tecnicas_json', JSON.stringify(state.productEspecificacionesTecnicas));
+        body.set('eliminar_imagenes_adicionales_json', JSON.stringify(state.productImagenesAdicionalesEliminar));
 
-  qs('#formPromocion').addEventListener('submit', async (e) => {
+        const category = getSelectedCategory();
+        const fields = category && Array.isArray(category.campos_tecnicos) ? category.campos_tecnicos : [];
+        const camposPayload = fields.map((field) => ({
+          campo_id: field.id,
+          valor: state.productCamposTecnicos[field.id],
+        }));
+        body.set('campos_tecnicos_json', JSON.stringify(camposPayload));
+
+        if ((state.productTipo || 'estandar') === 'kit' && !state.productKitComponentes.length) {
+          throw new Error('Un producto de tipo Kit debe tener al menos un componente.');
+        }
+
+        if (state.editingProductId) {
+          await api(`/admin/api/productos/${state.editingProductId}`, { method: 'PATCH', body });
+          showMsg('success', 'Producto actualizado correctamente');
+        } else {
+          await api('/admin/api/productos', { method: 'POST', body });
+          showMsg('success', 'Producto creado correctamente');
+        }
+        resetProductForm();
+        loadProductos();
+      } catch (err) {
+        showMsg('error', err.message);
+      }
+    });
+  }
+
+  const formPromocionEl = qs('#formPromocion');
+  if (formPromocionEl) formPromocionEl.addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
       const form = new FormData(e.target);
@@ -2454,7 +3100,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  qs('#formBanner').addEventListener('submit', async (e) => {
+  const formBannerEl = qs('#formBanner');
+  if (formBannerEl) formBannerEl.addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
       const form = new FormData(e.target);
@@ -2481,7 +3128,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  qs('#formEnvio').addEventListener('submit', async (e) => {
+  const formEnvioEl = qs('#formEnvio');
+  if (formEnvioEl) formEnvioEl.addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
       const form = new FormData(e.target);
@@ -2503,7 +3151,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  qs('#formNotificacion').addEventListener('submit', async (e) => {
+  const formNotificacionEl = qs('#formNotificacion');
+  if (formNotificacionEl) formNotificacionEl.addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
       const form = Object.fromEntries(new FormData(e.target).entries());
@@ -2569,18 +3218,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  Promise.all([
-    loadResumen(),
-    loadCategorias(),
-    loadProductos(),
-    loadCotizaciones(),
-    loadPromociones(),
-    loadBanners(),
-    loadPedidos(),
-    loadClientes(),
-    loadEnvios(),
-    loadNotificaciones()
-  ]).catch((err) => showMsg('error', err.message));
+  const bootLoaders = [
+    loadResumen,
+    loadCategorias,
+    loadProductos,
+    loadFichas,
+    loadCotizaciones,
+    loadPromociones,
+    loadBanners,
+    loadPedidos,
+    loadClientes,
+    loadEnvios,
+    loadNotificaciones,
+  ];
+  bootLoaders.forEach((fn) => {
+    Promise.resolve()
+      .then(() => fn())
+      .catch((err) => {
+        console.error('Error cargando módulo admin:', err);
+        showMsg('error', err.message || 'Error cargando un módulo del panel');
+      });
+  });
 
   if (analyticsDays) analyticsDays.addEventListener('change', () => loadResumen().catch((err) => showMsg('error', err.message)));
   if (analyticsGranularity) analyticsGranularity.addEventListener('change', () => loadResumen().catch((err) => showMsg('error', err.message)));

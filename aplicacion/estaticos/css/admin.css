@@ -848,6 +848,93 @@ body.theme-dark .admin-mini-btn:hover {
   opacity: 0.9;
 }
 
+.product-form-type-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border: 1.5px solid #ccd9e4;
+  border-radius: 10px;
+  background: #fafcfe;
+  color: #3a5a72;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.product-form-type-btn:hover {
+  border-color: var(--agua-primary);
+  color: var(--agua-primary);
+  background: #eef9fb;
+}
+
+.product-form-type-btn[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--agua-primary) 12%, #fff);
+  color: var(--agua-primary);
+  border-color: var(--agua-primary);
+}
+
+.product-form-type-btn i {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.product-form-type-pill {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e8f2f7;
+  color: #20506c;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.product-form-type-banner {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #d7e4ee;
+  background: linear-gradient(135deg, #f8fbfe 0%, #eef5fb 100%);
+  color: #25455d;
+  display: grid;
+  gap: 4px;
+}
+
+.product-form-type-banner strong {
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.product-form-type-banner span {
+  font-size: 0.88rem;
+  color: #4d6a80;
+}
+
+.product-form[data-product-type="combo"] .product-form-type-pill,
+.product-form[data-product-type="combo"] .product-form-type-banner {
+  background: linear-gradient(135deg, #effdf9 0%, #dff7f0 100%);
+  border-color: #a7e4d2;
+  color: #0f5d57;
+}
+
+.product-form[data-product-type="kit"] .product-form-type-pill,
+.product-form[data-product-type="kit"] .product-form-type-banner {
+  background: linear-gradient(135deg, #edf8ff 0%, #dcefff 100%);
+  border-color: #a9d2f3;
+  color: #15507f;
+}
+
+.product-form[data-product-type="combo"] .product-form-type-pill,
+.product-form[data-product-type="kit"] .product-form-type-pill {
+  color: inherit;
+}
+
 .product-form .admin-form-group label,
 .product-form-section > label {
   font-size: 0.78rem;

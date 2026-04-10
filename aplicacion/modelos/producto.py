@@ -16,6 +16,9 @@ class Producto(db.Model):
     marca = db.Column(db.String(120), nullable=True)
     referencia = db.Column(db.String(120), nullable=True)
     garantia_meses = db.Column(db.Integer, nullable=True)
+    tipo_producto = db.Column(db.String(20), nullable=False, default="estandar", index=True)
+    es_kit = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    aplicacion_recomendada = db.Column(db.Text, nullable=True)
     precio = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     precio_anterior = db.Column(db.Numeric(12, 2), nullable=True)  # Precio tachado (oferta)
     stock = db.Column(db.Integer, nullable=False, default=0)
@@ -23,6 +26,9 @@ class Producto(db.Model):
 
     categoria_id = db.Column(db.Integer, db.ForeignKey("categorias.id"), nullable=True)
     categoria = db.relationship("Categoria", back_populates="productos")
+    ficha_tecnica_id = db.Column(db.Integer, db.ForeignKey("fichas_tecnicas.id"), nullable=True, index=True)
+    ficha_tecnica = db.relationship("FichaTecnica", back_populates="productos")
+    estado_disponibilidad = db.Column(db.String(30), nullable=False, default="borrador", index=True)
 
     caracteristicas = db.relationship(
         "ProductoCaracteristica",
@@ -53,6 +59,20 @@ class Producto(db.Model):
         primaryjoin="Producto.id==ProductoRecomendado.producto_id",
         secondaryjoin="Producto.id==ProductoRecomendado.recomendado_id",
         lazy="select",
+    )
+    kit_componentes = db.relationship(
+        "KitProducto",
+        foreign_keys="KitProducto.kit_id",
+        cascade="all, delete-orphan",
+        lazy=True,
+        order_by="KitProducto.orden.asc()",
+        overlaps="kit,producto,kits_como_componente",
+    )
+    kits_como_componente = db.relationship(
+        "KitProducto",
+        foreign_keys="KitProducto.producto_id",
+        lazy=True,
+        overlaps="kit,producto,kit_componentes",
     )
 
     # Cloudinary (imagenes y ficha tecnica)
@@ -96,3 +116,7 @@ class Producto(db.Model):
             factor = Decimal("1") - (promo.porcentaje_descuento / Decimal("100"))
             return (self.precio * factor).quantize(Decimal("0.01"))
         return self.precio
+
+    @property
+    def es_bundle(self) -> bool:
+        return (self.tipo_producto or "estandar") in {"combo", "kit"}
