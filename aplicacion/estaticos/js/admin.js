@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     productEspecificacionesTecnicas: [], // Nuevas especificaciones dinámicas
     productImagenesAdicionalesEliminar: [],
     fichasCategoriasExpandidas: {},
+    fichasArchivadasVisual: {},
     fichaSpecsDraft: [],
     fichaCaracteristicasDraft: [],
     fichaComponentesDraft: [],
@@ -51,6 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+  const initialsFromText = (value) => {
+    const parts = String(value || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return 'PR';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
   const fmtDateTime = (valor) => valor ? new Date(valor).toLocaleString('es-CO') : 'Sin fecha';
   const parseJsonSafe = (raw, fallback) => {
     try {
@@ -80,6 +87,44 @@ document.addEventListener('DOMContentLoaded', () => {
     return `Hace ${Math.floor(seconds)} segundos`;
   };
 
+  const badgeClassByCotizacionEstado = (estado) => {
+    const map = {
+      pendiente: 'warn',
+      respondida: 'ok',
+      descartada: 'neutral',
+    };
+    return map[String(estado || '').toLowerCase()] || 'neutral';
+  };
+
+  const badgeClassByPedidoEstado = (estado) => {
+    const map = {
+      pendiente: 'warn',
+      enviado: 'info',
+      entregado: 'ok',
+    };
+    return map[String(estado || '').toLowerCase()] || 'neutral';
+  };
+
+  const promoLifecycle = (promo) => {
+    const now = Date.now();
+    const start = new Date(promo.fecha_inicio).getTime();
+    const end = new Date(promo.fecha_fin).getTime();
+    if (!promo.activa) return { label: 'Inactiva', className: 'neutral' };
+    if (Number.isFinite(start) && now < start) return { label: 'Programada', className: 'info' };
+    if (Number.isFinite(end) && now > end) return { label: 'Vencida', className: 'neutral' };
+    return { label: 'Vigente', className: 'ok' };
+  };
+
+  const bannerLifecycle = (banner) => {
+    const now = Date.now();
+    const start = banner.fecha_inicio ? new Date(banner.fecha_inicio).getTime() : null;
+    const end = banner.fecha_fin ? new Date(banner.fecha_fin).getTime() : null;
+    if (!banner.activo) return { label: 'Inactivo', className: 'neutral' };
+    if (Number.isFinite(start) && now < start) return { label: 'Programado', className: 'info' };
+    if (Number.isFinite(end) && now > end) return { label: 'Vencido', className: 'neutral' };
+    return { label: 'Activo', className: 'ok' };
+  };
+
   const showMsg = (type, text) => {
     successBox.classList.remove('visible');
     errorBox.classList.remove('visible');
@@ -87,6 +132,57 @@ document.addEventListener('DOMContentLoaded', () => {
     target.textContent = text;
     target.classList.add('visible');
   };
+
+  const confirmAction = ({
+    title = 'Confirmar acción',
+    message = '¿Deseas continuar?',
+    confirmText = 'Confirmar',
+    cancelText = 'Cancelar',
+    danger = false,
+  } = {}) => new Promise((resolve) => {
+    const existing = qs('#adminConfirmModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'adminConfirmModal';
+    modal.className = 'admin-confirm-modal';
+    modal.innerHTML = `
+      <div class="admin-confirm-modal__backdrop" data-confirm-cancel="1"></div>
+      <div class="admin-confirm-modal__panel" role="dialog" aria-modal="true" aria-labelledby="adminConfirmTitle">
+        <h4 id="adminConfirmTitle" class="admin-confirm-modal__title">${escapeHtml(title)}</h4>
+        <p class="admin-confirm-modal__message">${escapeHtml(message)}</p>
+        <div class="admin-confirm-modal__actions">
+          <button type="button" class="admin-mini-btn" data-confirm-cancel="1">${escapeHtml(cancelText)}</button>
+          <button type="button" class="admin-mini-btn ${danger ? 'admin-mini-btn--danger' : ''}" data-confirm-accept="1">${escapeHtml(confirmText)}</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+
+    const close = (accepted) => {
+      document.body.style.overflow = '';
+      modal.remove();
+      resolve(!!accepted);
+    };
+
+    modal.querySelectorAll('[data-confirm-cancel]').forEach((btn) => {
+      btn.addEventListener('click', () => close(false));
+    });
+    const acceptBtn = modal.querySelector('[data-confirm-accept]');
+    if (acceptBtn) {
+      acceptBtn.addEventListener('click', () => close(true));
+      acceptBtn.focus();
+    }
+
+    const onEsc = (event) => {
+      if (event.key === 'Escape') {
+        document.removeEventListener('keydown', onEsc);
+        close(false);
+      }
+    };
+    document.addEventListener('keydown', onEsc);
+  });
 
   const api = async (url, options = {}) => {
     const response = await fetch(url, options);
@@ -139,6 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof window._renderFichaSeleccionadaPreview === 'function') window._renderFichaSeleccionadaPreview();
     if (typeof window._renderProductImagenesActuales === 'function') window._renderProductImagenesActuales([]);
     if (typeof window._updateProductFormPreview === 'function') window._updateProductFormPreview();
+    if (typeof applyDefaultProductStep2SectionsState === 'function') applyDefaultProductStep2SectionsState();
+    if (typeof renderProductAdditionalImagesPreview === 'function') renderProductAdditionalImagesPreview();
   };
 
   const fillProductForm = (product) => {
@@ -216,6 +314,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const fichaInput = qs('#prod-ficha-tecnica-id');
     if (fichaInput) fichaInput.value = state.selectedFichaId || '';
     if (typeof window._updateProductFormPreview === 'function') window._updateProductFormPreview();
+    if (typeof applyDefaultProductStep2SectionsState === 'function') applyDefaultProductStep2SectionsState();
+    if (typeof renderProductAdditionalImagesPreview === 'function') renderProductAdditionalImagesPreview();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -350,6 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="admin-meta-text">${(c.campos_tecnicos || []).length} campo(s) técnico(s)</div>
       <div class="admin-inline-actions" style="margin-top:8px">
         <button class="admin-mini-btn" data-edit-categoria="${c.id}"><i class="fas fa-pen"></i> Editar</button>
+        <button class="admin-mini-btn admin-mini-btn--danger" data-delete-categoria="${c.id}"><i class="fas fa-trash"></i> Eliminar</button>
       </div>
     `);
 
@@ -358,6 +459,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = Number(btn.dataset.editCategoria);
         const item = state.categories.find((x) => x.id === id);
         if (item) fillCategoryForm(item);
+      });
+    });
+
+    qsa('[data-delete-categoria]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const ok = await confirmAction({
+          title: 'Eliminar categoría',
+          message: 'Esta accion eliminara la categoria seleccionada.',
+          confirmText: 'Eliminar',
+          danger: true,
+        });
+        if (!ok) return;
+        try {
+          await api(`/admin/api/categorias/${btn.dataset.deleteCategoria}`, { method: 'DELETE' });
+          showMsg('success', 'Categoria eliminada');
+          await loadCategorias();
+          await loadFichas();
+          await loadProductos();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
       });
     });
   };
@@ -1004,15 +1126,32 @@ document.addEventListener('DOMContentLoaded', () => {
   window._renderKitComponenteResultados = renderKitComponenteResultados;
 
   const renderProductRecomendados = () => {
-    const selected = state.products
-      .filter((p) => state.productRecomendados.includes(p.id))
-      .map((p) => `${p.nombre} (${p.slug})`);
-    renderChipList('#prodRecomendadoSeleccionados', selected, (idx) => {
-      const selectedProduct = state.products.filter((p) => state.productRecomendados.includes(p.id))[idx];
-      if (!selectedProduct) return;
-      state.productRecomendados = state.productRecomendados.filter((id) => id !== selectedProduct.id);
-      renderProductRecomendados();
-      renderProductRecomendadoResultados();
+    const root = qs('#prodRecomendadoSeleccionados');
+    if (!root) return;
+    const selectedProducts = state.products.filter((p) => state.productRecomendados.includes(p.id));
+    if (!selectedProducts.length) {
+      root.innerHTML = '<div class="admin-form-hint">Sin productos recomendados seleccionados.</div>';
+      return;
+    }
+    root.innerHTML = selectedProducts.map((p) => {
+      const thumb = p.imagen_url
+        ? `<img src="${escapeHtml(p.imagen_url)}" alt="${escapeHtml(p.nombre || 'Producto')}" class="product-chip-thumb">`
+        : `<span class="product-chip-thumb product-chip-thumb--ph">${escapeHtml(initialsFromText(p.nombre || 'Producto'))}</span>`;
+      return `
+        <span class="product-chip product-chip--rich">
+          ${thumb}
+          <span class="product-chip__text">${escapeHtml(p.nombre || 'Producto')}</span>
+          <button type="button" data-del-reco-id="${p.id}" aria-label="Quitar recomendado"><i class="fas fa-times"></i></button>
+        </span>
+      `;
+    }).join('');
+    root.querySelectorAll('[data-del-reco-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.delRecoId);
+        state.productRecomendados = state.productRecomendados.filter((x) => x !== id);
+        renderProductRecomendados();
+        renderProductRecomendadoResultados();
+      });
     });
   };
   window._renderProductRecomendados = renderProductRecomendados;
@@ -1021,6 +1160,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const root = qs('#prodRecomendadoResultados');
     const search = (qs('#prodRecomendadoSearch')?.value || '').toLowerCase().trim();
     if (!root) return;
+    if (search.length < 2) {
+      root.innerHTML = '<p class="admin-form-hint" style="padding:8px 10px;">Escribe al menos 2 caracteres para buscar productos.</p>';
+      return;
+    }
     const currentId = state.editingProductId;
     const items = state.products
       .filter((p) => !currentId || p.id !== currentId)
@@ -1068,6 +1211,94 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
   window._renderProductImagenesActuales = renderProductImagenesActuales;
+
+  function toggleProductStep2Section(sectionKey, forceOpen = null) {
+    const body = qs(`#prodSectionBody${sectionKey.charAt(0).toUpperCase()}${sectionKey.slice(1)}`);
+    const btn = qs(`[data-prod-toggle="${sectionKey}"]`);
+    if (!body || !btn) return;
+    const collapsed = forceOpen == null ? !body.hidden : !forceOpen;
+    body.hidden = collapsed;
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    btn.classList.toggle('is-collapsed', collapsed);
+    const icon = btn.querySelector('.fa-chevron-right, .fa-chevron-down');
+    if (icon) icon.className = `fas ${collapsed ? 'fa-chevron-right' : 'fa-chevron-down'}`;
+  }
+
+  function applyDefaultProductStep2SectionsState() {
+    toggleProductStep2Section('img', true);
+    ['spec', 'car', 'kit', 'reco', 'info'].forEach((key) => toggleProductStep2Section(key, false));
+  }
+
+  function initProductStep2SectionsToggle() {
+    qsa('[data-prod-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        toggleProductStep2Section(btn.dataset.prodToggle || 'img');
+      });
+    });
+    applyDefaultProductStep2SectionsState();
+  }
+
+  function renderProductAdditionalImagesPreview() {
+    const input = qs('#prod-imagenes-adicionales');
+    const preview = qs('#prodImagenesAdicionalesPreview');
+    if (!input || !preview) return;
+    const files = Array.from(input.files || []);
+    if (!files.length) {
+      preview.innerHTML = '';
+      return;
+    }
+    preview.innerHTML = files.map((file, idx) => {
+      const safeName = escapeHtml(file.name || `imagen-${idx + 1}`);
+      const url = URL.createObjectURL(file);
+      return `
+        <figure class="product-image-thumb">
+          <img src="${url}" alt="${safeName}" loading="lazy">
+          <figcaption title="${safeName}">${safeName}</figcaption>
+        </figure>
+      `;
+    }).join('');
+  }
+
+  function initProductImagesDropzone() {
+    const input = qs('#prod-imagenes-adicionales');
+    const dropzone = qs('#prodImagenesDropzone');
+    if (!input || !dropzone) return;
+
+    const openPicker = () => input.click();
+    dropzone.addEventListener('click', openPicker);
+    dropzone.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openPicker();
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach((evt) => {
+      dropzone.addEventListener(evt, (event) => {
+        event.preventDefault();
+        dropzone.classList.add('is-dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach((evt) => {
+      dropzone.addEventListener(evt, (event) => {
+        event.preventDefault();
+        dropzone.classList.remove('is-dragover');
+      });
+    });
+
+    dropzone.addEventListener('drop', (event) => {
+      const files = Array.from(event.dataTransfer?.files || []).filter((f) => /^image\//.test(f.type));
+      if (!files.length) return;
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      input.files = dt.files;
+      renderProductAdditionalImagesPreview();
+    });
+
+    input.addEventListener('change', () => {
+      renderProductAdditionalImagesPreview();
+    });
+  }
 
   const loadCategorias = async () => {
     const data = await api('/admin/api/categorias');
@@ -1168,6 +1399,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const fichasEstadoFiltro = qs('#fichasEstadoFiltro');
   if (fichasEstadoFiltro) {
     fichasEstadoFiltro.addEventListener('change', () => renderFichasList(state.fichas));
+  }
+
+  const fichasOcultarPrueba = qs('#fichasOcultarPrueba');
+  if (fichasOcultarPrueba) {
+    fichasOcultarPrueba.addEventListener('change', () => renderFichasList(state.fichas));
+  }
+
+  const fichasMostrarArchivadas = qs('#fichasMostrarArchivadas');
+  if (fichasMostrarArchivadas) {
+    fichasMostrarArchivadas.addEventListener('change', () => renderFichasList(state.fichas));
   }
 
   qsa('[data-close-ficha-detalle]').forEach((btn) => {
@@ -1675,6 +1916,9 @@ document.addEventListener('DOMContentLoaded', () => {
   bindAddChipInput('#prodCaracteristicaInput', '#btnAddCaracteristica', 'productCaracteristicas', renderProductCaracteristicas);
   bindAddChipInput('#prodKitInput', '#btnAddKit', 'productKit', renderProductKit);
 
+  initProductStep2SectionsToggle();
+  initProductImagesDropzone();
+
   // Event listener para agregar especificaciones técnicas
   const btnAddEspecificacion = qs('#btnAddEspecificacion');
   if (btnAddEspecificacion) {
@@ -1701,9 +1945,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const renderList = (selector, items, renderItem) => {
     const root = qs(selector);
+    if (!root) return;
     root.innerHTML = '';
     if (!items.length) {
-      root.innerHTML = '<div class="admin-item">Sin registros</div>';
+      root.innerHTML = '<div class="admin-item admin-item--empty">Sin registros</div>';
       return;
     }
     items.forEach((item) => {
@@ -2303,12 +2548,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const showPrice = !['consulta_tecnica', 'mantenimiento'].includes(finalData.tipo_solicitud);
       const tipoSolicitudFormatted = (finalData.tipo_solicitud || '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const estadoClass = badgeClassByCotizacionEstado(finalData.estado);
 
       return `
-        <div class="admin-item">
+        <div class="admin-item admin-item--cotizacion">
           <div class="admin-item__row">
             <strong>${finalData.nombre}</strong>
-            <span class="admin-badge admin-badge--${finalData.estado === 'respondida' ? 'activo' : (finalData.estado === 'descartada' ? 'inactivo' : 'piscina')}">${finalData.estado.toUpperCase()}</span>
+            <span class="admin-badge admin-badge--${estadoClass}">${finalData.estado.toUpperCase()}</span>
           </div>
           
           <div class="admin-meta-text" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 12px;">
@@ -2318,9 +2564,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ${finalData.empresa ? `<span><i class="fas fa-building"></i> ${finalData.empresa}</span>` : ''}
           </div>
 
-          <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <div class="admin-meta-chips" style="margin-top:4px;">
             ${finalData.linea ? `<span class="admin-badge admin-badge--${finalData.linea}">${finalData.linea === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua'}</span>` : ''}
-            ${tipoSolicitudFormatted ? `<span class="admin-badge admin-badge--inactivo" style="background:#e5e7eb; color:#4b5563;">${tipoSolicitudFormatted}</span>` : ''}
+            ${tipoSolicitudFormatted ? `<span class="admin-badge admin-badge--neutral">${tipoSolicitudFormatted}</span>` : ''}
           </div>
 
           <div class="admin-meta-text" style="margin-top: 8px;" title="${fmtDateTime(finalData.created_at)}">
@@ -2328,14 +2574,15 @@ document.addEventListener('DOMContentLoaded', () => {
             ${finalData.responded_at ? ` | <i class="fas fa-check-double"></i> Respondida: <span title="${fmtDateTime(finalData.responded_at)}">${timeAgo(finalData.responded_at)}</span>` : ''}
           </div>
           
-          <div style="margin: 12px 0; padding: 10px; background: #fff; border-left: 4px solid #0077B6; border-radius: 4px; font-size: 0.9rem; color: #333;">
-            <strong style="display:block; margin-bottom:4px; font-size:0.8rem; color: #666;">MENSAJE DEL CLIENTE:</strong>
+          <div class="admin-message-block" style="margin:12px 0;">
+            <strong class="admin-message-block__title">MENSAJE DEL CLIENTE:</strong>
             ${finalData.mensaje || 'Sin mensaje'}
-            ${(finalData.info_adicional || finalData.informacion_adicional) ? `<div style="margin-top:10px; padding-top:10px; border-top: 1px dashed #ccc;"><strong style="font-size:0.8rem; color: #666;">INFORMACIÓN ADICIONAL:</strong><br>${finalData.info_adicional || finalData.informacion_adicional}</div>` : ''}
+            ${(finalData.info_adicional || finalData.informacion_adicional) ? `<div class="admin-message-block__extra"><strong>INFORMACION ADICIONAL:</strong><br>${finalData.info_adicional || finalData.informacion_adicional}</div>` : ''}
           </div>
 
-          <div class="admin-inline-actions" style="justify-content: flex-end;">
+            <div class="admin-inline-actions" style="justify-content: flex-end;">
               <button class="admin-mini-btn" data-toggle-response="${finalData.id}">Responder ▼</button>
+              <button class="admin-mini-btn ${finalData.estado === 'descartada' ? '' : 'admin-mini-btn--danger'}" data-cotizacion-estado="${finalData.id}" data-estado="${finalData.estado === 'descartada' ? 'pendiente' : 'descartada'}">${finalData.estado === 'descartada' ? 'Reabrir' : 'Archivar'}</button>
           </div>
 
           <div id="response-area-${finalData.id}" class="quote-builder" style="display: none;">
@@ -2471,6 +2718,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     qsa('[data-cotizacion-estado]').forEach((btn) => {
       btn.addEventListener('click', async () => {
+        const targetEstado = String(btn.dataset.estado || '').toLowerCase();
+        if (targetEstado === 'descartada') {
+          const ok = await confirmAction({
+            title: 'Archivar cotización',
+            message: 'La cotizacion pasara a estado descartada (archivo lógico).',
+            confirmText: 'Archivar',
+            danger: true,
+          });
+          if (!ok) return;
+        }
         try {
           await api(`/admin/api/cotizaciones/${btn.dataset.cotizacionEstado}/estado`, {
             method: 'PATCH',
@@ -2509,22 +2766,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const loadPromociones = async () => {
     const data = await api('/admin/api/promociones');
-    renderList('#promocionesList', data.data, (p) => `
+    renderList('#promocionesList', data.data, (p) => {
+      const life = promoLifecycle(p);
+      return `
       <div class="admin-item__row">
         <strong>${p.producto}</strong>
-        <div style="display:flex;gap:6px">
-          <span class="admin-badge admin-badge--${p.activa ? 'activo' : 'inactivo'}">${p.activa ? 'Activa' : 'Inactiva'}</span>
-          ${p.vigente ? '<span class="admin-badge admin-badge--piscina">Vigente</span>' : '<span class="admin-badge admin-badge--inactivo">Fuera de fecha</span>'}
+        <div class="admin-meta-chips">
+          <span class="admin-badge admin-badge--${p.activa ? 'ok' : 'neutral'}">${p.activa ? 'Activa' : 'Inactiva'}</span>
+          <span class="admin-badge admin-badge--${life.className}">${life.label}</span>
         </div>
       </div>
-      <div class="admin-meta-text">${p.porcentaje_descuento}% de descuento</div>
+      <div class="admin-meta-text"><strong>${p.porcentaje_descuento}%</strong> de descuento</div>
       <div class="admin-meta-text"><i class="far fa-calendar-alt"></i> ${new Date(p.fecha_inicio).toLocaleString('es-CO')} - ${new Date(p.fecha_fin).toLocaleString('es-CO')}</div>
       <div class="admin-inline-actions" style="margin-top:8px">
         <button class="admin-mini-btn" data-edit-promocion="${p.id}"><i class="fas fa-edit"></i> Editar %</button>
         <button class="admin-mini-btn" data-toggle-promocion="${p.id}" data-active="${p.activa ? '1' : '0'}">${p.activa ? 'Inactivar' : 'Activar'}</button>
         <button class="admin-mini-btn admin-mini-btn--danger" data-delete-promocion="${p.id}"><i class="fas fa-trash"></i></button>
       </div>
-    `);
+    `;
+    });
 
     qsa('[data-edit-promocion]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -2552,7 +2812,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     qsa('[data-delete-promocion]').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        if (!confirm('Esta accion eliminara la promocion. ¿Continuar?')) return;
+        const ok = await confirmAction({
+          title: 'Eliminar oferta',
+          message: 'Esta accion eliminara la oferta seleccionada.',
+          confirmText: 'Eliminar',
+          danger: true,
+        });
+        if (!ok) return;
         try {
           await api(`/admin/api/promociones/${btn.dataset.deletePromocion}`, { method: 'DELETE' });
           showMsg('success', 'Promocion eliminada');
@@ -2566,19 +2832,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const loadBanners = async () => {
     const data = await api('/admin/api/banners');
-    renderList('#bannersList', data.data, (b) => `
-      <div class="admin-item" style="border-left: 5px solid ${b.color_fondo}">
+    renderList('#bannersList', data.data, (b) => {
+      const life = bannerLifecycle(b);
+      const thumb = b.imagen_url
+        ? `<img src="${b.imagen_url}" alt="${b.titulo}" class="admin-banner-thumb">`
+        : `<div class="admin-banner-thumb admin-banner-thumb--placeholder">${escapeHtml(initialsFromText(b.titulo || 'BN'))}</div>`;
+      return `
+      <div class="admin-item admin-item--banner" style="--banner-accent:${b.color_fondo || '#cbd5e1'};">
         <div class="admin-item__row">
-          <strong>${b.titulo} <span class="admin-badge admin-badge--piscina" style="font-size:0.65rem; margin-left:5px;">${b.tipo.toUpperCase()}</span></strong>
-          <div style="display:flex; gap:8px;">
-            <span class="admin-badge" style="background:${b.color_fondo}; color:#333; border:1px solid #ccc;">${b.color_fondo}</span>
-            <span class="admin-badge admin-badge--${b.activo ? 'activo' : 'inactivo'}">${b.activo ? 'Activo' : 'Inactivo'}</span>
+          <strong>${b.titulo} <span class="admin-badge admin-badge--info" style="font-size:0.65rem; margin-left:5px;">${b.tipo.toUpperCase()}</span></strong>
+          <div class="admin-meta-chips">
+            <span class="admin-badge admin-badge--${life.className}">${life.label}</span>
+            <span class="admin-badge admin-badge--neutral">${b.color_fondo || '#f8fbf8'}</span>
           </div>
         </div>
         <div class="admin-meta-text"><em>${b.subtitulo || 'Sin kicker'}</em> | Orden: ${b.orden}</div>
-        <div style="display:flex; gap:15px; margin-top:10px; align-items: center;">
-          <img src="${b.imagen_url}" alt="${b.titulo}" class="admin-banner-thumb" style="width:100px; height:60px; object-fit:contain; background:#eee; border-radius:8px;">
-          <div style="font-size:0.85rem; color:#666;">
+        <div class="admin-banner-line">
+          ${thumb}
+          <div class="admin-banner-text">
             <p>${b.descripcion || 'Sin descripción'}</p>
             <p style="margin-top:4px;"><i class="fas fa-link"></i> ${b.enlace_url || 'Sin enlace'}</p>
           </div>
@@ -2589,7 +2860,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="admin-mini-btn admin-mini-btn--danger" data-delete-banner="${b.id}"><i class="fas fa-trash"></i></button>
         </div>
       </div>
-    `);
+    `;
+    });
 
     qsa('[data-edit-banner]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -2651,7 +2923,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     qsa('[data-delete-banner]').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        if (!confirm('Esta accion eliminara el banner. ¿Continuar?')) return;
+        const ok = await confirmAction({
+          title: 'Eliminar anuncio',
+          message: 'Esta accion eliminara el anuncio seleccionado.',
+          confirmText: 'Eliminar',
+          danger: true,
+        });
+        if (!ok) return;
         try {
           await api(`/admin/api/banners/${btn.dataset.deleteBanner}`, { method: 'DELETE' });
           showMsg('success', 'Banner eliminado');
@@ -2666,13 +2944,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadPedidos = async () => {
     const data = await api('/admin/api/pedidos');
     renderList('#pedidosList', data.data, (p) => `
-      <div class="admin-item__row"><strong>Pedido #${p.id}</strong><span>${p.estado}</span></div>
-      <div>${p.cliente || 'Cliente'} - ${p.email || ''}</div>
-      <div class="admin-item__row"><span>$${p.total.toLocaleString('es-CO')}</span>
-      <div>
-        <button class="admin-mini-btn" data-pedido="${p.id}" data-estado="enviado">Marcar Enviado</button>
-        <button class="admin-mini-btn" data-pedido="${p.id}" data-estado="entregado">Marcar Entregado</button>
-      </div></div>
+      <div class="admin-item__row">
+        <strong>Pedido #${p.id}</strong>
+        <span class="admin-badge admin-badge--${badgeClassByPedidoEstado(p.estado)}">${String(p.estado || '').toUpperCase()}</span>
+      </div>
+      <div class="admin-meta-text">${p.cliente || 'Cliente'}${p.email ? ` · ${p.email}` : ''}</div>
+      <div class="admin-item__row" style="margin-top:8px;">
+        <span class="admin-price-strong">${fmtCop(p.total || 0)}</span>
+        <div class="admin-inline-actions" style="justify-content:flex-start;">
+          ${String(p.estado || '').toLowerCase() !== 'entregado'
+            ? `<button class="admin-mini-btn" data-pedido="${p.id}" data-estado="enviado">Marcar enviado</button>
+               <button class="admin-mini-btn" data-pedido="${p.id}" data-estado="entregado">Marcar entregado</button>`
+            : '<span class="admin-badge admin-badge--ok">Completado</span>'}
+        </div>
+      </div>
     `);
 
     qsa('[data-pedido]').forEach((btn) => {
@@ -2695,13 +2980,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadClientes = async () => {
     const data = await api('/admin/api/clientes');
     renderList('#clientesList', data.data, (c) => `
-      <div class="admin-item__row"><strong>${c.nombre}</strong><span>${c.email}</span></div>
-      <div class="admin-item__row"><span>Telefono: ${c.telefono || 'No registra'}</span><span>Ciudad: ${c.ciudad || 'No registra'}</span></div>
-      <div><small>Registro: ${new Date(c.created_at).toLocaleDateString('es-CO')}</small></div>
+      <div class="admin-person-row">
+        <div class="admin-person-avatar">${escapeHtml(initialsFromText(c.nombre || 'CL'))}</div>
+        <div class="admin-person-body">
+          <div class="admin-item__row"><strong>${c.nombre}</strong><span>${c.email}</span></div>
+          <div class="admin-item__row"><span>Telefono: ${c.telefono || 'No registra'}</span><span>Ciudad: ${c.ciudad || 'No registra'}</span></div>
+          <div class="admin-meta-text">Registro: ${new Date(c.created_at).toLocaleDateString('es-CO')}</div>
+        </div>
+      </div>
     `);
   };
 
   const FICHA_DRAFT_KEY = 'admin.ficha.draft.v2';
+  const FICHA_ARCHIVE_KEY = 'admin.ficha.archived.visual.v1';
 
   const UNIDADES_ESPECIFICACIONES = [
     { grupo: 'Volumen', opciones: ['litros', 'galones', 'pies cúbicos', 'm3'] },
@@ -2724,15 +3015,49 @@ document.addEventListener('DOMContentLoaded', () => {
     return 'ficha-chip--general';
   }
 
+  function loadFichaArchiveState() {
+    try {
+      const raw = localStorage.getItem(FICHA_ARCHIVE_KEY);
+      const parsed = JSON.parse(raw || '{}');
+      state.fichasArchivadasVisual = parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_err) {
+      state.fichasArchivadasVisual = {};
+    }
+  }
+
+  function persistFichaArchiveState() {
+    try {
+      localStorage.setItem(FICHA_ARCHIVE_KEY, JSON.stringify(state.fichasArchivadasVisual || {}));
+    } catch (_err) {
+      // Ignora fallos de storage.
+    }
+  }
+
+  function toggleFichaArchivedVisual(fichaId) {
+    const key = String(fichaId);
+    if (state.fichasArchivadasVisual[key]) {
+      delete state.fichasArchivadasVisual[key];
+    } else {
+      state.fichasArchivadasVisual[key] = true;
+    }
+    persistFichaArchiveState();
+  }
+
   function toggleFichaSection(sectionKey, forceOpen = null) {
     const body = qs(`#fichaSectionBody${sectionKey.charAt(0).toUpperCase()}${sectionKey.slice(1)}`);
     const btn = qs(`[data-ficha-toggle="${sectionKey}"]`);
     if (!body || !btn) return;
-    const open = forceOpen == null ? body.hidden : !forceOpen;
-    body.hidden = open;
-    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    const collapsed = forceOpen == null ? !body.hidden : !forceOpen;
+    body.hidden = collapsed;
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    btn.classList.toggle('is-collapsed', collapsed);
     const icon = btn.querySelector('.fa-chevron-right, .fa-chevron-down');
-    if (icon) icon.className = `fas ${open ? 'fa-chevron-right' : 'fa-chevron-down'}`;
+    if (icon) icon.className = `fas ${collapsed ? 'fa-chevron-right' : 'fa-chevron-down'}`;
+  }
+
+  function applyDefaultFichaSectionsState() {
+    toggleFichaSection('basic', true);
+    ['app', 'spec', 'car', 'comp', 'pdf'].forEach((k) => toggleFichaSection(k, false));
   }
 
   function initFichaSectionsToggle() {
@@ -2741,8 +3066,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleFichaSection(btn.dataset.fichaToggle || 'basic');
       });
     });
-    toggleFichaSection('basic', true);
-    ['app', 'spec', 'car', 'comp', 'pdf'].forEach((k) => toggleFichaSection(k, false));
+    applyDefaultFichaSectionsState();
   }
 
   function isFichaKitCombo() {
@@ -3200,6 +3524,17 @@ document.addEventListener('DOMContentLoaded', () => {
     setSection('#fichaSectionCountComp', '#fichaSectionProgressComp', (v) => `${compCount} componentes`, isFichaKitCombo() ? Math.min(compCount, 1) : 1, 1);
     setSection('#fichaSectionCountPdf', '#fichaSectionProgressPdf', () => (hasPdf ? 'PDF cargado' : 'Sin PDF'), hasPdf ? 1 : 0, 1);
 
+    const setSummary = (summaryId, text) => {
+      const el = qs(summaryId);
+      if (el) el.textContent = text;
+    };
+    setSummary('#fichaSectionSummaryBasic', `${basicCompleted}/6 completos · ${String(qs('#ficha-marca')?.value || '').trim() || 'sin marca'}`);
+    setSummary('#fichaSectionSummaryApp', appCompleted > 0 ? `${appCompleted}/2 campos llenos` : 'Sin aplicación ni descripción');
+    setSummary('#fichaSectionSummarySpec', specCount > 0 ? `${specCount} especificaciones cargadas` : 'Sin campos agregados');
+    setSummary('#fichaSectionSummaryCar', carCount > 0 ? `${carCount} características destacadas` : 'Sin características');
+    setSummary('#fichaSectionSummaryComp', isFichaKitCombo() ? (compCount > 0 ? `${compCount} componentes del kit` : 'Kit sin componentes') : 'No aplica para esta categoría');
+    setSummary('#fichaSectionSummaryPdf', hasPdf ? 'PDF listo para descarga' : 'Sin PDF cargado');
+
     const resumen = qs('#fichaSaveSummary');
     if (resumen) {
       const nombre = String(qs('#ficha-nombre')?.value || '').trim() || 'Sin nombre';
@@ -3353,6 +3688,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleFichaComponentesVisibility();
     const status = qs('#fichaPdfStatus');
     if (status) status.textContent = 'Sin archivo cargado.';
+    applyDefaultFichaSectionsState();
     updateFichaProgress();
     validarFichaForm(false);
   }
@@ -3395,12 +3731,14 @@ document.addEventListener('DOMContentLoaded', () => {
     renderFichaCaracteristicasBuilder();
     renderFichaComponentesBuilder();
     toggleFichaComponentesVisibility();
+    applyDefaultFichaSectionsState();
     updateFichaProgress();
     validarFichaForm(false);
     window.scrollTo({ top: qs('#fichaEditorCard')?.offsetTop || 0, behavior: 'smooth' });
   };
 
   wireFichaFieldListeners();
+  loadFichaArchiveState();
   initFichaSectionsToggle();
   renderFichaEspecificacionesBuilder();
   renderFichaCaracteristicasBuilder();
@@ -3410,6 +3748,20 @@ document.addEventListener('DOMContentLoaded', () => {
   restoreFichaDraftIfAny();
 
   const etiquetaLinea = (linea) => (linea === 'agua' ? 'Tratamiento de Agua' : 'Piscina & Spa');
+
+  const categoriaToneFicha = (nombreCategoria) => {
+    const n = String(nombreCategoria || '').trim().toLowerCase();
+    if (n.includes('bomba')) return 'azul';
+    if (n.includes('tanque')) return 'acero';
+    if (n.includes('uv') || n.includes('lampara') || n.includes('lámpara')) return 'violeta';
+    if (n.includes('osmosis') || n.includes('ósmosis')) return 'turquesa';
+    if (n.includes('filtro')) return 'verde';
+    if (n.includes('kit') || n.includes('combo')) return 'naranja';
+    if (n.includes('valvula') || n.includes('válvula')) return 'indigo';
+    if (n.includes('medicion') || n.includes('medición') || n.includes('instrument')) return 'rosa';
+    if (n.includes('resina') || n.includes('medio')) return 'ambar';
+    return 'gris';
+  };
 
   const iconoCategoriaFicha = (nombreCategoria) => {
     const n = String(nombreCategoria || '').trim().toLowerCase();
@@ -3531,6 +3883,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const query = (qs('#fichasBusqueda')?.value || '').trim().toLowerCase();
     const linea = (qs('#fichasLineaFiltro')?.value || '').trim();
     const estado = (qs('#fichasEstadoFiltro')?.value || '').trim();
+    const ocultarPruebas = !!qs('#fichasOcultarPrueba')?.checked;
+    const mostrarArchivadas = !!qs('#fichasMostrarArchivadas')?.checked;
+
+    const esFichaPruebaOSinMarca = (ficha) => {
+      const marca = String(ficha.marca || '').trim();
+      const nombre = String(ficha.nombre || '').toLowerCase();
+      const referencia = String(ficha.referencia || '').toLowerCase();
+      const esPrueba = ['prueba', 'test', 'demo', 'temporal'].some((tag) => nombre.includes(tag) || referencia.includes(tag));
+      return !marca || esPrueba;
+    };
+
+    const estaArchivadaVisual = (ficha) => !!state.fichasArchivadasVisual[String(ficha.id)];
 
     return items.filter((f) => {
       const nombre = String(f.nombre || '').toLowerCase();
@@ -3541,7 +3905,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const byEstado = !estado
         || (estado === 'con_producto' && asociados > 0)
         || (estado === 'disponibles' && asociados === 0);
-      return byQuery && byLinea && byEstado;
+      const byPrueba = !ocultarPruebas || !esFichaPruebaOSinMarca(f);
+      const byArchivado = mostrarArchivadas || !estaArchivadaVisual(f);
+      return byQuery && byLinea && byEstado && byPrueba && byArchivado;
     });
   };
 
@@ -3573,33 +3939,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const disponibles = total - conProducto;
         const expandida = !!state.fichasCategoriasExpandidas[categoria];
         const icono = iconoCategoriaFicha(categoria);
+        const tone = categoriaToneFicha(categoria);
 
         const wrap = document.createElement('div');
-        wrap.className = 'fichas-group';
+        wrap.className = `fichas-group fichas-group--tone-${tone}`;
         wrap.innerHTML = `
           <button type="button" class="fichas-group__trigger" data-toggle-ficha-cat="${escapeHtml(categoria)}" aria-expanded="${expandida ? 'true' : 'false'}">
             <span class="fichas-group__meta">
               <span class="fichas-group__icon"><i class="fas ${icono}"></i></span>
               <span class="fichas-group__title">${escapeHtml(categoria)}</span>
-              <span class="fichas-group__resume">${total} fichas · ${conProducto} con producto · ${disponibles} disponibles</span>
+              <span class="fichas-group__resume">
+                <span class="fichas-count fichas-count--total">${total} total</span>
+                <span class="fichas-count fichas-count--used">${conProducto} con producto</span>
+                <span class="fichas-count fichas-count--free">${disponibles} disponibles</span>
+              </span>
             </span>
             <span class="fichas-group__chevron"><i class="fas ${expandida ? 'fa-chevron-down' : 'fa-chevron-right'}"></i></span>
           </button>
           <div class="fichas-group__body" ${expandida ? '' : 'hidden'}>
             ${fichas.map((f) => {
               const asociados = Number(f.productos_asociados_count || 0);
+              const archivada = !!state.fichasArchivadasVisual[String(f.id)];
+              const marca = String(f.marca || '').trim() || 'Sin marca';
               return `
-                <article class="ficha-compact">
+                <article class="ficha-compact ficha-compact--tone-${tone} ${archivada ? 'ficha-compact--archived' : ''}">
                   <div class="ficha-compact__head">
-                    <h4 class="ficha-compact__name">${escapeHtml(f.nombre || 'Sin nombre')}</h4>
+                    <h4 class="ficha-compact__name">${escapeHtml(f.nombre || 'Sin nombre')}${archivada ? ' <span class="ficha-archived-tag">Archivada visual</span>' : ''}</h4>
                     <span class="ficha-ref-badge">${escapeHtml(f.referencia || 'Sin ref')}</span>
                   </div>
-                  <div class="ficha-compact__sub">${escapeHtml(f.marca || 'Sin marca')} · ${escapeHtml(etiquetaLinea(f.linea || 'piscina'))}</div>
+                  <div class="ficha-compact__sub">${escapeHtml(marca)} · ${escapeHtml(etiquetaLinea(f.linea || 'piscina'))}</div>
                   <div class="ficha-actions">
-                    <span class="ficha-status ${asociados > 0 ? 'ficha-status--ok' : 'ficha-status--free'}">${asociados > 0 ? `${asociados} con producto` : 'Disponible'}</span>
+                    <span class="ficha-status ${asociados > 0 ? 'ficha-status--used' : 'ficha-status--available'}">${asociados > 0 ? `${asociados} con producto` : 'Disponible'}</span>
                     <button class="admin-mini-btn" data-use-ficha="${f.id}"><i class="fas fa-arrow-right"></i> Usar</button>
                     <button class="admin-mini-btn" data-edit-ficha="${f.id}"><i class="fas fa-pen"></i> Editar</button>
                     <button class="admin-mini-btn" data-detail-ficha="${f.id}"><i class="fas fa-eye"></i> Ver detalle</button>
+                    <button class="admin-mini-btn admin-mini-btn--danger" data-delete-ficha="${f.id}"><i class="fas fa-trash"></i> Eliminar</button>
+                    <button class="admin-mini-btn" data-archive-ficha="${f.id}"><i class="fas ${archivada ? 'fa-box-open' : 'fa-box-archive'}"></i> ${archivada ? 'Desarchivar' : 'Archivar'}</button>
                   </div>
                 </article>
               `;
@@ -3646,6 +4021,33 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFichaDetalle(ficha);
       });
     });
+
+    qsa('[data-delete-ficha]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const ok = await confirmAction({
+          title: 'Eliminar ficha técnica',
+          message: 'Esta accion eliminara la ficha tecnica seleccionada.',
+          confirmText: 'Eliminar',
+          danger: true,
+        });
+        if (!ok) return;
+        try {
+          await api(`/admin/api/fichas-tecnicas/${btn.dataset.deleteFicha}`, { method: 'DELETE' });
+          showMsg('success', 'Ficha tecnica eliminada');
+          await loadFichas();
+          await loadProductos();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
+    qsa('[data-archive-ficha]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        toggleFichaArchivedVisual(Number(btn.dataset.archiveFicha));
+        renderFichasList(state.fichas);
+      });
+    });
   };
 
   const refreshFichaCategorySelects = () => {
@@ -3678,7 +4080,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadEnvios = async () => {
     const data = await api('/admin/api/envios');
     renderList('#enviosList', data.data, (e) => `
-      <div class="admin-item__row"><strong>${e.ciudad}</strong><span>${fmtCop(e.costo)} | Contra entrega: ${e.contra_entrega_habilitado ? 'si' : 'no'}</span></div>
+      <div class="admin-item__row">
+        <strong>${e.ciudad}</strong>
+        <div class="admin-meta-chips">
+          <span class="admin-badge admin-badge--${e.activo ? 'ok' : 'neutral'}">${e.activo ? 'Activo' : 'Inactivo'}</span>
+          <span class="admin-badge admin-badge--${e.contra_entrega_habilitado ? 'info' : 'neutral'}">Contra entrega ${e.contra_entrega_habilitado ? 'si' : 'no'}</span>
+        </div>
+      </div>
+      <div class="admin-meta-text">Costo: <strong>${fmtCop(e.costo)}</strong>${e.gratis_desde != null ? ` · Gratis desde ${fmtCop(e.gratis_desde)}` : ''}</div>
       <div class="admin-inline-actions" style="margin-top:8px">
         <button class="admin-mini-btn" data-edit-envio="${e.id}">Editar</button>
         <button class="admin-mini-btn admin-mini-btn--danger" data-delete-envio="${e.id}">Eliminar</button>
@@ -3708,7 +4117,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     qsa('[data-delete-envio]').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        if (!confirm('Esta accion eliminara esta configuracion de envio. ¿Continuar?')) return;
+        const ok = await confirmAction({
+          title: 'Eliminar configuración de envío',
+          message: 'Esta accion eliminara la configuracion de envio seleccionada.',
+          confirmText: 'Eliminar',
+          danger: true,
+        });
+        if (!ok) return;
         try {
           await api(`/admin/api/envios/${btn.dataset.deleteEnvio}`, { method: 'DELETE' });
           showMsg('success', 'Envio eliminado');
@@ -3770,6 +4185,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="inactivo">Inactivos</option>
           </select>
         </div>
+        <label class="admin-check ptable-check" for="ptableHideTest">
+          <input id="ptableHideTest" type="checkbox" checked>
+          <span>Ocultar productos de prueba</span>
+        </label>
         <span class="ptable-count" id="ptableCount">${data.data.length} productos</span>
       </div>
     `;
@@ -3788,7 +4207,8 @@ document.addEventListener('DOMContentLoaded', () => {
               <th style="width:150px">Categoría</th>
               <th style="width:70px">Stock</th>
               <th style="width:90px">Estado</th>
-              <th style="width:110px">Acciones</th>
+              <th style="width:110px">Ficha</th>
+              <th style="width:140px">Acciones</th>
             </tr>
           </thead>
           <tbody id="ptableBody"></tbody>
@@ -3804,7 +4224,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!products.length) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" class="ptable-empty">
+            <td colspan="10" class="ptable-empty">
               <div class="ptable-empty-inner">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
                   <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
@@ -3824,13 +4244,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>
             ${p.imagen_url
               ? `<img src="${p.imagen_url}" class="ptable-thumb" alt="${p.nombre}">`
-              : `<div class="ptable-thumb-ph">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <path d="M21 15l-5-5L5 21"/>
-                  </svg>
-                </div>`
+              : `<div class="ptable-thumb-ph ptable-thumb-ph--initials">${escapeHtml(initialsFromText(p.nombre || 'PR'))}</div>`
             }
           </td>
           <td>
@@ -3876,6 +4290,11 @@ document.addEventListener('DOMContentLoaded', () => {
             </span>
           </td>
           <td>
+            ${Number(p.ficha_tecnica_id || 0) > 0
+              ? '<span class="ptable-ficha-badge ptable-ficha-badge--ok"><i class="fas fa-check"></i> Con ficha</span>'
+              : '<span class="ptable-ficha-badge ptable-ficha-badge--none">Sin ficha</span>'}
+          </td>
+          <td>
             <div class="ptable-actions">
               <button class="ptable-btn" data-edit-product="${p.id}" title="Editar">
                 <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -3887,6 +4306,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 data-toggle-product="${p.id}" data-active="${p.activo ? '1' : '0'}"
                 title="${p.activo ? 'Inactivar' : 'Activar'}">
                 ${p.activo ? 'Inactivar' : 'Activar'}
+              </button>
+              <button class="ptable-btn ptable-btn--danger" data-delete-product="${p.id}" title="Eliminar">
+                Eliminar
               </button>
             </div>
           </td>
@@ -3917,6 +4339,26 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       });
+
+      qs('#ptableBody').querySelectorAll('[data-delete-product]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const ok = await confirmAction({
+            title: 'Eliminar producto',
+            message: 'Esta accion eliminara el producto seleccionado.',
+            confirmText: 'Eliminar',
+            danger: true,
+          });
+          if (!ok) return;
+          try {
+            await api(`/admin/api/productos/${btn.dataset.deleteProduct}`, { method: 'DELETE' });
+            showMsg('success', 'Producto eliminado');
+            await loadProductos();
+            await loadFichas();
+          } catch (err) {
+            showMsg('error', err.message);
+          }
+        });
+      });
     };
 
     // Render inicial
@@ -3929,13 +4371,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const linea = qs('#ptableLinea').value;
       const categoria = qs('#ptableCategoria').value;
       const estado = qs('#ptableEstado').value;
+      const hideTest = !!qs('#ptableHideTest')?.checked;
+
+      const isTestProduct = (prod) => {
+        const name = String(prod.nombre || '').toLowerCase();
+        return ['test', 'prueba', 'smoke', 'diag', 'demo'].some((tag) => name.includes(tag));
+      };
 
       const filtered = data.data.filter(p => {
         const matchQ = !q || p.nombre.toLowerCase().includes(q) || (p.slug || '').includes(q);
         const matchLinea = !linea || p.linea === linea;
         const matchCategoria = !categoria || (p.categoria_nombre || '') === categoria;
         const matchEstado = !estado || (estado === 'activo' ? p.activo : !p.activo);
-        return matchQ && matchLinea && matchCategoria && matchEstado;
+        const matchTest = !hideTest || !isTestProduct(p);
+        return matchQ && matchLinea && matchCategoria && matchEstado && matchTest;
       });
 
       renderRows(filtered);
@@ -3946,6 +4395,10 @@ document.addEventListener('DOMContentLoaded', () => {
     qs('#ptableLinea').addEventListener('change', applyFilters);
     qs('#ptableCategoria').addEventListener('change', applyFilters);
     qs('#ptableEstado').addEventListener('change', applyFilters);
+    const ptableHideTest = qs('#ptableHideTest');
+    if (ptableHideTest) ptableHideTest.addEventListener('change', applyFilters);
+
+    applyFilters();
   };
 
   if (formCategoria) {
@@ -4138,9 +4591,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadNotificaciones = async () => {
     const data = await api('/admin/api/notificaciones');
     renderList('#notificacionesList', data.data, (n) => `
-      <div class="admin-item__row"><strong>${n.titulo}</strong><span class="admin-badge admin-badge--${n.tipo === 'promocion' ? 'piscina' : 'agua'}">${n.tipo}</span></div>
-      <div class="admin-meta-text">${new Date(n.created_at).toLocaleString('es-CO')}</div>
-      <div>${n.mensaje}</div>
+      <div class="admin-item__row"><strong>${n.titulo}</strong><span class="admin-badge admin-badge--${n.tipo === 'promocion' ? 'info' : 'neutral'}">${n.tipo}</span></div>
+      <div class="admin-meta-text" title="${fmtDateTime(n.created_at)}">${timeAgo(n.created_at)}</div>
+      <div class="admin-message-block" style="margin-top:8px;">${n.mensaje}</div>
       <div class="admin-inline-actions" style="margin-top:8px">
         <button class="admin-mini-btn" data-edit-notificacion="${n.id}">Editar</button>
         <button class="admin-mini-btn admin-mini-btn--danger" data-delete-notificacion="${n.id}">Eliminar</button>
@@ -4172,7 +4625,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     qsa('[data-delete-notificacion]').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        if (!confirm('Esta accion eliminara la notificacion. ¿Continuar?')) return;
+        const ok = await confirmAction({
+          title: 'Eliminar mensaje',
+          message: 'Esta accion eliminara el mensaje seleccionado.',
+          confirmText: 'Eliminar',
+          danger: true,
+        });
+        if (!ok) return;
         try {
           await api(`/admin/api/notificaciones/${btn.dataset.deleteNotificacion}`, { method: 'DELETE' });
           showMsg('success', 'Notificacion eliminada');

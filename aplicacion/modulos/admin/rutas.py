@@ -1050,6 +1050,32 @@ def editar_categoria_api(categoria_id):
     return jsonify({"ok": True, "message": "Categoria actualizada.", "data": _serializar_categoria(categoria)})
 
 
+@admin_bp.delete("/api/categorias/<int:categoria_id>")
+def eliminar_categoria_api(categoria_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    categoria = Categoria.query.get_or_404(categoria_id)
+    productos_count = Producto.query.filter_by(categoria_id=categoria.id).count()
+    fichas_count = FichaTecnica.query.filter_by(categoria_id=categoria.id).count()
+
+    if productos_count > 0 or fichas_count > 0:
+        return jsonify(
+            {
+                "ok": False,
+                "message": (
+                    "No se puede eliminar la categoria porque tiene "
+                    f"{productos_count} producto(s) y {fichas_count} ficha(s) asociada(s)."
+                ),
+            }
+        ), 409
+
+    db.session.delete(categoria)
+    db.session.commit()
+    return jsonify({"ok": True, "message": "Categoria eliminada."})
+
+
 @admin_bp.get("/api/fichas-tecnicas")
 def listar_fichas_tecnicas_api():
     admin = _admin_requerido(api=True)
@@ -1236,6 +1262,30 @@ def editar_ficha_tecnica_api(ficha_id):
             "data": _serializar_ficha_tecnica(ficha),
         }
     )
+
+
+@admin_bp.delete("/api/fichas-tecnicas/<int:ficha_id>")
+def eliminar_ficha_tecnica_api(ficha_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    ficha = FichaTecnica.query.get_or_404(ficha_id)
+    productos_count = Producto.query.filter_by(ficha_tecnica_id=ficha.id).count()
+    if productos_count > 0:
+        return jsonify(
+            {
+                "ok": False,
+                "message": (
+                    "No se puede eliminar la ficha tecnica porque esta asociada a "
+                    f"{productos_count} producto(s)."
+                ),
+            }
+        ), 409
+
+    db.session.delete(ficha)
+    db.session.commit()
+    return jsonify({"ok": True, "message": "Ficha tecnica eliminada."})
 
 
 @admin_bp.post("/api/fichas-tecnicas/upload-pdf")
@@ -1934,6 +1984,38 @@ def editar_producto_api(producto_id):
     db.session.commit()
 
     return jsonify({"ok": True, "message": "Producto actualizado correctamente."})
+
+
+@admin_bp.delete("/api/productos/<int:producto_id>")
+def eliminar_producto_api(producto_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    producto = Producto.query.get_or_404(producto_id)
+
+    usado_en_kits = KitProducto.query.filter_by(producto_id=producto.id).count()
+    if usado_en_kits > 0:
+        return jsonify(
+            {
+                "ok": False,
+                "message": (
+                    "No se puede eliminar el producto porque esta siendo usado como componente en "
+                    f"{usado_en_kits} kit(s)."
+                ),
+            }
+        ), 409
+
+    ProductoRecomendado.query.filter(
+        (ProductoRecomendado.producto_id == producto.id)
+        | (ProductoRecomendado.recomendado_id == producto.id)
+    ).delete(synchronize_session=False)
+    KitProducto.query.filter_by(kit_id=producto.id).delete(synchronize_session=False)
+    Promocion.query.filter_by(producto_id=producto.id).delete(synchronize_session=False)
+
+    db.session.delete(producto)
+    db.session.commit()
+    return jsonify({"ok": True, "message": "Producto eliminado."})
 
 
 @admin_bp.get("/api/productos/buscar")
