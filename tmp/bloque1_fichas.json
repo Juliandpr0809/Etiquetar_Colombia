@@ -1,0 +1,263 @@
+[
+  {
+    "nombre": "Depósito para dispensador de agua",
+    "referencia": "PK-DEPOSITO4",
+    "marca": "Purikor",
+    "categoria": "Depósitos",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Capacidad", "valor": "4", "unidad": "litros", "tipo": "cuantitativa" },
+      { "nombre": "Conexión de alimentación", "valor": "1/4\" TUBING", "unidad": null, "tipo": "cualitativa" },
+      { "nombre": "Peso", "valor": "0.6", "unidad": "kg", "tipo": "cuantitativa" },
+      { "nombre": "Material del cuerpo", "valor": "Acrílico de alta resistencia", "tipo": "cualitativa" },
+      { "nombre": "Material de la tapa", "valor": "Plástico ABS", "tipo": "cualitativa" },
+      { "nombre": "Material de empaques", "valor": "Silicón", "tipo": "cualitativa" },
+      { "nombre": "Material de flotadores", "valor": "Polipropileno", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Fácil instalación",
+      "Tapa anti derrame con bloqueo de seguridad",
+      "Conexión con manguera tubing para mayor seguridad",
+      "Reutilice su dispensador de agua con su equipo purificador"
+    ],
+    "componentes": [
+      { "nombre": "Manguera tubing 1/4\"", "referencia": null, "cantidad": 2.5, "notas": "metros" },
+      { "nombre": "Pieza T de 1/4\" para conexión", "referencia": null, "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Sistema de Filtración Básica 1 Etapa",
+    "referencia": "PKF-1/T",
+    "marca": "Purikor",
+    "categoria": "Sistemas de Filtración POU",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Etapas", "valor": "1", "unidad": null, "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "0.5", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales", "valor": "5", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Luz UV", "valor": "N/A", "tipo": "cualitativa" },
+      { "nombre": "Conexiones", "valor": "1/2\" HEMBRA, 1/2\" MACHO Y 1/4\" TUBING", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Incluye filtros cartucho",
+      "Mejora la calidad de agua para beber",
+      "Equipo completamente ensamblado y listo para instalarse",
+      "Diseño elegante"
+    ],
+    "componentes": [
+      { "nombre": "Llave para portafiltros", "referencia": null, "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Sistema de Filtración Básica 2 Etapas",
+    "referencia": "PKF-2",
+    "marca": "Purikor",
+    "categoria": "Sistemas de Filtración POU",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Etapas", "valor": "2", "unidad": null, "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "0.5", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales", "valor": "5", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Luz UV", "valor": "N/A", "tipo": "cualitativa" },
+      { "nombre": "Conexiones", "valor": "1/2\" HEMBRA, 1/2\" MACHO Y 1/4\" TUBING", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Incluye filtros cartucho",
+      "Mejora la calidad de agua para beber",
+      "Equipo completamente ensamblado",
+      "Listo para instalarse"
+    ],
+    "componentes": [
+      { "nombre": "Conexión alimentación de agua", "referencia": null, "cantidad": 1, "notas": null },
+      { "nombre": "Llaves para portafiltros", "referencia": null, "cantidad": 1, "notas": null },
+      { "nombre": "Mangueras TUBING", "referencia": null, "cantidad": 1, "notas": null },
+      { "nombre": "Llave de ganso", "referencia": null, "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Sistema de Filtración Básica 3 Etapas con Lámpara UV",
+    "referencia": "PKF-3UV",
+    "marca": "Purikor",
+    "categoria": "Sistemas de Filtración POU",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Etapas", "valor": "3", "unidad": null, "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "0.5", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales", "valor": "5", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Potencia Luz UV", "valor": "6", "unidad": "Watts", "tipo": "cuantitativa" },
+      { "nombre": "Voltaje UV", "valor": "115", "unidad": "V", "tipo": "cuantitativa" },
+      { "nombre": "Fases UV", "valor": "1", "unidad": null, "tipo": "cuantitativa" },
+      { "nombre": "Conexiones", "valor": "1/2\" HEMBRA, 1/2\" MACHO Y 1/4\" TUBING", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Incluye lámpara UV PHILIPS para esterilizar bacterias, virus y microorganismos",
+      "Mejora la calidad de agua para beber",
+      "Listo para instalarse"
+    ],
+    "componentes": [
+      { "nombre": "Lámpara UV PHILIPS", "referencia": null, "cantidad": 1, "notas": "6 Watts" },
+      { "nombre": "Llave de ganso", "referencia": null, "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Sistema de Ultrafiltración POU 5 Etapas",
+    "referencia": "PKUF-5",
+    "marca": "Purikor",
+    "categoria": "Sistemas de Ultrafiltración",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Etapas", "valor": "5", "unidad": null, "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "0.66", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales filtros", "valor": "5", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Micras membrana ultrafiltración", "valor": "0.02", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Auto Flush", "valor": "Manual", "tipo": "cualitativa" },
+      { "nombre": "Conexiones", "valor": "1/2\" HEMBRA, 1/2\" MACHO Y 1/4\" TUBING", "tipo": "cualitativa" },
+      { "nombre": "Luz UV", "valor": "No incluye", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Incluye filtros cartucho y membrana de ultrafiltración",
+      "No produce agua de rechazo",
+      "No necesita tanque precargado",
+      "Compacto y ligero"
+    ],
+    "componentes": [
+      { "nombre": "Conexión agua desecho", "referencia": null, "cantidad": 1, "notas": null },
+      { "nombre": "Conexión alimentación agua", "referencia": null, "cantidad": 1, "notas": null },
+      { "nombre": "Llave de ganso", "referencia": null, "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Sistema de Ultrafiltración POU 6 Etapas con Lámpara UV",
+    "referencia": "PKUF-6UV",
+    "marca": "Purikor",
+    "categoria": "Sistemas de Ultrafiltración",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Etapas", "valor": "6", "unidad": null, "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "0.66", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales filtros", "valor": "5", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Micras membrana ultrafiltración", "valor": "0.02", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Auto Flush", "valor": "Manual", "tipo": "cualitativa" },
+      { "nombre": "Potencia Luz UV", "valor": "6", "unidad": "Watts", "tipo": "cuantitativa" },
+      { "nombre": "Voltaje UV", "valor": "115", "unidad": "V", "tipo": "cuantitativa" },
+      { "nombre": "Fases UV", "valor": "1", "unidad": null, "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Incluye lámpara UV PHILIPS",
+      "No produce agua de rechazo",
+      "Compacto y ligero",
+      "Listo para instalarse"
+    ],
+    "componentes": [
+      {"nombre": "Lámpara UV PHILIPS", "referencia": null, "cantidad": 1, "notas": "6 Watts"}
+    ]
+  },
+  {
+    "nombre": "Sistema de Ósmosis Inversa POU 5 Etapas con Bomba Booster",
+    "referencia": "PKRO100-5P",
+    "marca": "Purikor",
+    "categoria": "Sistemas de Ósmosis Inversa POU",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Etapas", "valor": "5", "unidad": null, "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "100", "unidad": "GPD", "tipo": "cuantitativa" },
+      { "nombre": "Micras nominales filtros", "valor": "5", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Micras membrana ósmosis", "valor": "0.001", "unidad": "micras", "tipo": "cuantitativa" },
+      { "nombre": "Bomba de presión", "valor": "Incluida", "tipo": "cualitativa" },
+      { "nombre": "Tanque de almacenamiento", "valor": "3.2 Galones", "tipo": "cualitativa" },
+      { "nombre": "Potencia bomba", "valor": "25-36", "unidad": "Watts", "tipo": "cuantitativa" },
+      { "nombre": "Voltaje bomba", "valor": "115", "unidad": "V", "tipo": "cuantitativa" }
+    ],
+    "caracteristicas": [
+      "Sistema con enjuague automático de membrana (autoflush)",
+      "Incluye filtros cartucho y membrana",
+      "Remueve bacterias, metales pesados, sal y sustancias químicas",
+      "Mejora la calidad de agua para beber"
+    ],
+    "componentes": [
+      { "nombre": "Tanque de almacenamiento", "referencia": null, "cantidad": 1, "notas": "3.2 Gal" },
+      { "nombre": "Bomba Booster", "referencia": null, "cantidad": 1, "notas": null },
+      { "nombre": "Llave de ganso de lujo", "referencia": null, "cantidad": 1, "notas": null }
+    ]
+  },
+  {
+    "nombre": "Sistema de Ósmosis Inversa POU 6 Etapas con Monitor y UV",
+    "referencia": "PKRO100-6UVPM",
+    "marca": "Purikor",
+    "categoria": "Sistemas de Ósmosis Inversa POU",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Etapas", "valor": "6", "unidad": null, "tipo": "cuantitativa" },
+      { "nombre": "Flujo nominal", "valor": "100", "unidad": "GPD", "tipo": "cuantitativa" },
+      { "nombre": "Medidor TDS", "valor": "Incluido (ppm)", "tipo": "cualitativa" },
+      { "nombre": "Potencia Luz UV", "valor": "6", "unidad": "Watts", "tipo": "cuantitativa" },
+      { "nombre": "Monitor de estado", "valor": "Temperatura y tiempo de vida de filtros", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Lámpara UV PHILIPS incluida",
+      "Monitor inteligente integrado",
+      "Compacto y ligero",
+      "Equipo completamente ensamblado"
+    ],
+    "componentes": [
+      { "nombre": "Lámpara UV PHILIPS", "referencia": null, "cantidad": 1, "notas": "6W" }
+    ]
+  },
+  {
+    "nombre": "Sistema de Ósmosis Inversa Industrial 1 Membrana",
+    "referencia": "PK-ROI-1M-A-DM",
+    "marca": "Purikor",
+    "categoria": "Ósmosis Inversa Industrial",
+    "linea": "Tratamiento de Agua",
+    "precio_cop": null,
+    "es_kit": false,
+    "garantia": "1 año",
+    "especificaciones": [
+      { "nombre": "Voltaje alimentación", "valor": "230", "unidad": "V", "tipo": "cuantitativa" },
+      { "nombre": "Número de membranas", "valor": "1", "unidad": null, "tipo": "cuantitativa" },
+      { "nombre": "Producción nominal GPM", "valor": "1.2", "unidad": "GPM", "tipo": "cuantitativa" },
+      { "nombre": "Producción nominal GPD", "valor": "1728", "unidad": "GPD", "tipo": "cuantitativa" },
+      { "nombre": "Bomba serie", "valor": "LOTUS", "tipo": "cualitativa" },
+      { "nombre": "Potencia bomba", "valor": "1.2", "unidad": "HP", "tipo": "cuantitativa" },
+      { "nombre": "Amperaje bomba", "valor": "6.3", "unidad": "A", "tipo": "cuantitativa" },
+      { "nombre": "Peso", "valor": "105", "unidad": "kg", "tipo": "cuantitativa" },
+      { "nombre": "Modo de enjuague", "valor": "Automático", "tipo": "cualitativa" }
+    ],
+    "caracteristicas": [
+      "Estructura envolvente para mayor protección",
+      "Controlador automático con pantalla iluminada",
+      "Medición de TDS en entrada y producto",
+      "Manómetros para medición de presión",
+      "Paro de emergencia incluido"
+    ],
+    "componentes": [
+      { "nombre": "Controlador automático", "referencia": null, "cantidad": 1, "notas": "Pantalla iluminada" },
+      { "nombre": "Filtro de sedimentos", "referencia": null, "cantidad": 1, "notas": "Entrada bomba" },
+      { "nombre": "Filtro carbón activado", "referencia": null, "cantidad": 1, "notas": "Entrada bomba" }
+    ]
+  }
+]
