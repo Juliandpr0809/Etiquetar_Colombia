@@ -1608,7 +1608,7 @@ body.theme-dark .admin-mini-btn:hover {
 
 .product-basic-block {
   margin-bottom: 22px;
-  border: 1px solid var(--ficha-border);
+  border: 1px solid var(--block-border, var(--ficha-border));
   border-left: 4px solid var(--block-color, var(--ficha-basic-header));
   border-radius: 14px;
   background: var(--block-bg, var(--ficha-panel-bg));
@@ -1618,7 +1618,7 @@ body.theme-dark .admin-mini-btn:hover {
 .product-basic-block__header {
   padding: 10px 12px;
   background: var(--block-color, var(--ficha-basic-header));
-  color: #fff;
+  color: #ffffff;
 }
 
 .product-basic-block__header h4 {
@@ -1627,10 +1627,35 @@ body.theme-dark .admin-mini-btn:hover {
   font-weight: 800;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  color: #ffffff !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
 }
 
 .product-basic-block__body {
   padding: 14px;
+}
+
+.product-basic-block__body label {
+  color: var(--block-label, #1f3f56);
+}
+
+.product-basic-block__body .product-form-input,
+.product-basic-block__body select,
+.product-basic-block__body textarea,
+.product-basic-block__body input[type='number'],
+.product-basic-block__body input[type='text'] {
+  background: #ffffff;
+  border-color: var(--block-input-border, #a9bfd1) !important;
+  color: #0f172a;
+}
+
+.product-basic-block__body .product-form-input:focus,
+.product-basic-block__body select:focus,
+.product-basic-block__body textarea:focus,
+.product-basic-block__body input[type='number']:focus,
+.product-basic-block__body input[type='text']:focus {
+  border-color: var(--block-color, var(--ficha-basic-header)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--block-color, #0b3c5d) 20%, #ffffff);
 }
 
 .product-basic-block__body .product-form-section:last-child {
@@ -1638,18 +1663,46 @@ body.theme-dark .admin-mini-btn:hover {
 }
 
 .product-basic-block--identificacion {
-  --block-color: var(--ficha-basic-header);
-  --block-bg: var(--ficha-basic-bg);
+  --block-color: #083a5d;
+  --block-bg: #ffffff;
+  --block-border: #5f94bd;
+  --block-label: #0f3551;
+  --block-input-border: #5f94bd;
 }
 
 .product-basic-block--clasificacion {
-  --block-color: var(--ficha-app-header);
-  --block-bg: var(--ficha-app-bg);
+  --block-color: #0e625a;
+  --block-bg: #ffffff;
+  --block-border: #5baea4;
+  --block-label: #114a44;
+  --block-input-border: #5baea4;
 }
 
 .product-basic-block--precio {
-  --block-color: var(--ficha-car-header);
-  --block-bg: var(--ficha-car-bg);
+  --block-color: #135128;
+  --block-bg: #ffffff;
+  --block-border: #63a679;
+  --block-label: #1b4628;
+  --block-input-border: #63a679;
+}
+
+@media (prefers-contrast: more) {
+  .product-basic-block {
+    border-width: 2px;
+    border-left-width: 6px;
+  }
+
+  .product-basic-block__header {
+    box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .product-basic-block__body .product-form-input,
+  .product-basic-block__body select,
+  .product-basic-block__body textarea,
+  .product-basic-block__body input[type='number'],
+  .product-basic-block__body input[type='text'] {
+    border-width: 2px !important;
+  }
 }
 
 @keyframes productFormFadeIn {
