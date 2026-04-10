@@ -1,8 +1,31 @@
+from datetime import datetime
+
 from flask import Blueprint, render_template, request, redirect, url_for
 from aplicacion.extensiones import db
 from aplicacion.modelos import Cotizacion
 
 cotizaciones_bp = Blueprint("cotizaciones", __name__)
+
+
+def _sincronizar_cotizaciones_vencidas_publico():
+    ahora = datetime.utcnow()
+    estados_expirables = {"respondida", "vista_cliente", "en_negociacion"}
+    actualizadas = (
+        Cotizacion.query.filter(
+            Cotizacion.fecha_vencimiento.isnot(None),
+            Cotizacion.fecha_vencimiento < ahora,
+            Cotizacion.estado.in_(estados_expirables),
+        )
+        .update(
+            {
+                Cotizacion.estado: "vencida",
+                Cotizacion.updated_at: ahora,
+            },
+            synchronize_session=False,
+        )
+    )
+    if actualizadas:
+        db.session.commit()
 
 @cotizaciones_bp.get("/cotizar")
 @cotizaciones_bp.get("/pages/cotizar.html")
@@ -23,14 +46,34 @@ def cotizar_submit():
     empresa = (payload.get("empresa") or payload.get("q-empresa") or "").strip()
     linea = (payload.get("linea") or "").strip()
     tipo_solicitud = (payload.get("tipo") or payload.get("q-type") or "").strip()
-    productos = (payload.get("productos") or payload.get("q-products") or "").strip()
+    productos_raw = payload.get("productos") or payload.get("q-products") or ""
+    if isinstance(productos_raw, list):
+        productos = "\n".join(str(item).strip() for item in productos_raw if str(item).strip())
+    else:
+        productos = str(productos_raw or "").strip()
+
+    selected_items = payload.get("selected_items")
+    if not productos and isinstance(selected_items, list):
+        lineas = []
+        for item in selected_items:
+            if not isinstance(item, dict):
+                continue
+            nombre_item = (item.get("nombre") or "Producto").strip()
+            ref_item = (item.get("referencia") or "").strip()
+            cantidad_item = item.get("cantidad") or 1
+            ref_txt = f" ({ref_item})" if ref_item else ""
+            lineas.append(f"- {nombre_item}{ref_txt} x{cantidad_item}")
+        productos = "\n".join(lineas).strip()
     mensaje = (
         payload.get("mensaje")
         or payload.get("q-message")
         or payload.get("q-mensaje")
         or ""
     ).strip()
-    info_adicional = (payload.get("info_adicional") or payload.get("q-notes") or "").strip()
+    info_adicional = (payload.get("info_adicional") or payload.get("q-notes") or payload.get("notas") or "").strip()
+
+    if not mensaje and productos:
+        mensaje = "Productos solicitados:\n" + productos
 
     if not nombre or not email:
         return {
@@ -49,6 +92,7 @@ def cotizar_submit():
         productos=productos or None,
         mensaje=mensaje or info_adicional or "Sin mensaje",
         info_adicional=info_adicional or None,
+        tipo_origen="cliente",
         estado="pendiente",
     )
     
@@ -65,6 +109,7 @@ def cotizar_submit():
                 "id": cotizacion.id,
                 "numero": cotizacion.numero,
                 "token": cotizacion.token_consulta,
+                "selected_items": selected_items if isinstance(selected_items, list) else None,
                 "redirect": url_for('cotizaciones.confirmacion_cotizacion', token=cotizacion.token_consulta)
             },
         }, 201
@@ -73,11 +118,13 @@ def cotizar_submit():
 
 @cotizaciones_bp.route('/cotizar/confirmacion/<token>') 
 def confirmacion_cotizacion(token): 
+    _sincronizar_cotizaciones_vencidas_publico()
     cotizacion = Cotizacion.query.filter_by(token_consulta=token).first_or_404() 
     return render_template('cotizar/confirmacion.html', cotizacion=cotizacion) 
 
 @cotizaciones_bp.route('/cotizar/consultar', methods=['GET', 'POST']) 
 def consultar_cotizacion(): 
+    _sincronizar_cotizaciones_vencidas_publico()
     cotizacion = None 
     error = None 
     if request.method == 'POST': 
@@ -95,5 +142,6 @@ def consultar_cotizacion():
 
 @cotizaciones_bp.route('/cotizar/ver/<token>') 
 def ver_cotizacion(token): 
+    _sincronizar_cotizaciones_vencidas_publico()
     cotizacion = Cotizacion.query.filter_by(token_consulta=token).first_or_404() 
     return render_template('cotizar/ver_cotizacion.html', cotizacion=cotizacion)

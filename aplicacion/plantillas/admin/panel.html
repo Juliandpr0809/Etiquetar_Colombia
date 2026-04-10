@@ -760,6 +760,42 @@
             <section class="admin-tab" id="tab-cotizaciones">
                 <article class="admin-card">
                     <h3><i class="fas fa-file-invoice-dollar"></i> Cotizaciones recibidas</h3>
+                    <div class="admin-inline-actions" style="margin: 8px 0 10px;">
+                        <button class="admin-mini-btn" id="btnNuevaCotizacion" type="button"><i class="fas fa-plus"></i> Nueva cotización</button>
+                    </div>
+                    <div id="nuevaCotizacionPanel" class="admin-card" style="display:none; margin-bottom: 10px;">
+                        <h4 style="margin:0 0 8px;">Crear cotización generada</h4>
+                        <div class="admin-form-group">
+                            <label for="buscarClienteCot">Buscar cliente existente</label>
+                            <input id="buscarClienteCot" placeholder="Nombre, correo o teléfono">
+                            <div id="buscarClienteCotResultados" class="admin-list" style="margin-top:6px;"></div>
+                        </div>
+                        <form id="formNuevaCotizacion" class="admin-form-grid">
+                            <div class="admin-form-2col">
+                                <div class="admin-form-group"><label>Nombre</label><input id="newCotNombre" required></div>
+                                <div class="admin-form-group"><label>Correo</label><input id="newCotEmail" type="email" required></div>
+                            </div>
+                            <div class="admin-form-2col">
+                                <div class="admin-form-group"><label>Teléfono</label><input id="newCotTelefono"></div>
+                                <div class="admin-form-group"><label>Ciudad</label><input id="newCotCiudad"></div>
+                            </div>
+                            <div class="admin-form-2col">
+                                <div class="admin-form-group"><label>Empresa</label><input id="newCotEmpresa"></div>
+                                <div class="admin-form-group">
+                                    <label>Línea</label>
+                                    <select id="newCotLinea">
+                                        <option value="">Sin definir</option>
+                                        <option value="agua">Tratamiento de Agua</option>
+                                        <option value="piscina">Piscina & Spa</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="admin-inline-actions">
+                                <button class="admin-btn" type="submit"><i class="fas fa-file-circle-plus"></i> Crear</button>
+                                <button class="admin-mini-btn" type="button" id="cancelNuevaCotizacion">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
                     <div class="admin-analytics-toolbar" style="margin-top:4px">
                         <div class="admin-form-group" style="min-width:210px">
                             <label for="cotizacionesEstado">Estado</label>
@@ -767,6 +803,11 @@
                                 <option value="todas">Todas</option>
                                 <option value="pendiente" selected>Pendientes</option>
                                 <option value="respondida">Respondidas</option>
+                                <option value="vista_cliente">Vista cliente</option>
+                                <option value="en_negociacion">En negociacion</option>
+                                <option value="aprobada">Aprobadas</option>
+                                <option value="rechazada">Rechazadas</option>
+                                <option value="vencida">Vencidas</option>
                                 <option value="descartada">Descartadas</option>
                             </select>
                         </div>
@@ -776,6 +817,7 @@
                         </div>
                         <button class="admin-mini-btn" id="cotizacionesBuscarBtn" type="button" style="margin-bottom:1px">Aplicar</button>
                     </div>
+                    <div id="cotizacionesRiskSummary" class="admin-risk-summary"></div>
                     <div id="cotizacionesList" class="admin-list"></div>
                 </article>
             </section>

@@ -12,6 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const cotizacionesEstado = qs('#cotizacionesEstado');
   const cotizacionesBusqueda = qs('#cotizacionesBusqueda');
   const cotizacionesBuscarBtn = qs('#cotizacionesBuscarBtn');
+  const btnNuevaCotizacion = qs('#btnNuevaCotizacion');
+  const nuevaCotizacionPanel = qs('#nuevaCotizacionPanel');
+  const formNuevaCotizacion = qs('#formNuevaCotizacion');
+  const cancelNuevaCotizacion = qs('#cancelNuevaCotizacion');
+  const buscarClienteCot = qs('#buscarClienteCot');
+  const buscarClienteCotResultados = qs('#buscarClienteCotResultados');
   const productSubmitBtn = formProducto ? formProducto.querySelector('.admin-btn') : null;
   const state = {
     editingCategoryId: null,
@@ -39,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fichaSpecsDraft: [],
     fichaCaracteristicasDraft: [],
     fichaComponentesDraft: [],
+    cotizacionesRiskFilter: 'all',
   };
 
   const fmtCop = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(valor || 0));
@@ -71,25 +78,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const timeAgo = (dateString) => {
     if (!dateString) return 'Sin fecha';
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return 'Sin fecha';
     const now = new Date();
-    const seconds = Math.floor((now - date) / 1000);
+    const seconds = Math.max(0, Math.floor((now - date) / 1000));
 
-    let interval = seconds / 31536000;
-    if (interval > 1) return `Hace ${Math.floor(interval)} años`;
-    interval = seconds / 2592000;
-    if (interval > 1) return `Hace ${Math.floor(interval)} meses`;
-    interval = seconds / 86400;
-    if (interval > 1) return `Hace ${Math.floor(interval)} días`;
-    interval = seconds / 3600;
-    if (interval > 1) return `Hace ${Math.floor(interval)} horas`;
-    interval = seconds / 60;
-    if (interval > 1) return `Hace ${Math.floor(interval)} minutos`;
-    return `Hace ${Math.floor(seconds)} segundos`;
+    const sameDay = date.toDateString() === now.toDateString();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    if (sameDay && seconds < 60) return 'Hace unos segundos';
+    if (sameDay && seconds < 3600) return `Hace ${Math.max(1, Math.floor(seconds / 60))} minutos`;
+    if (sameDay && seconds < 86400) return `Hace ${Math.max(1, Math.floor(seconds / 3600))} horas`;
+    if (isYesterday) {
+      return `Ayer a las ${date.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' })}`;
+    }
+
+    if (date.getFullYear() === now.getFullYear()) {
+      return date.toLocaleDateString('es-CO', { day: 'numeric', month: 'long' });
+    }
+    return date.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
   const badgeClassByCotizacionEstado = (estado) => {
     const map = {
       pendiente: 'warn',
+      vista_cliente: 'agua',
+      en_negociacion: 'info',
+      aprobada: 'ok',
+      rechazada: 'inactivo',
+      vencida: 'neutral',
       respondida: 'ok',
       descartada: 'neutral',
     };
@@ -2222,6 +2240,70 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cotizacionesBusqueda && cotizacionesBusqueda.value.trim()) params.set('q', cotizacionesBusqueda.value.trim());
 
     const data = await api(`/admin/api/cotizaciones?${params.toString()}`);
+    const riskSummaryEl = qs('#cotizacionesRiskSummary');
+    const rankCotizacionRiesgo = (c) => {
+      const dias = typeof c?.dias_restantes === 'number' ? c.dias_restantes : null;
+      const estado = String(c?.estado || '').toLowerCase();
+      if (estado === 'vencida' || (dias != null && dias <= 0)) return 0;
+      if (dias != null && dias <= 3) return 1;
+      if (dias != null && dias <= 7) return 2;
+      return 3;
+    };
+
+    const cotizacionesOrdenadas = (Array.isArray(data.data) ? [...data.data] : []).sort((a, b) => {
+      const ra = rankCotizacionRiesgo(a);
+      const rb = rankCotizacionRiesgo(b);
+      if (ra !== rb) return ra - rb;
+      const ta = Date.parse(a?.created_at || '') || 0;
+      const tb = Date.parse(b?.created_at || '') || 0;
+      return tb - ta;
+    });
+
+    const matchesRiskFilter = (c) => {
+      const dias = typeof c?.dias_restantes === 'number' ? c.dias_restantes : null;
+      const estado = String(c?.estado || '').toLowerCase();
+      const filter = String(state.cotizacionesRiskFilter || 'all').toLowerCase();
+      if (filter === 'all') return true;
+      if (filter === 'overdue') return estado === 'vencida' || (dias != null && dias <= 0);
+      if (filter === 'critical') return dias != null && dias > 0 && dias <= 3;
+      if (filter === 'warning') return dias != null && dias > 3 && dias <= 7;
+      if (filter === 'normal') return dias == null || dias > 7;
+      return true;
+    };
+
+    const cotizacionesFiltradas = cotizacionesOrdenadas.filter(matchesRiskFilter);
+
+    if (riskSummaryEl) {
+      const totals = cotizacionesOrdenadas.reduce((acc, c) => {
+        const dias = typeof c?.dias_restantes === 'number' ? c.dias_restantes : null;
+        const estado = String(c?.estado || '').toLowerCase();
+        if (estado === 'vencida' || (dias != null && dias <= 0)) {
+          acc.overdue += 1;
+        } else if (dias != null && dias <= 3) {
+          acc.critical += 1;
+        } else if (dias != null && dias <= 7) {
+          acc.warning += 1;
+        } else {
+          acc.normal += 1;
+        }
+        return acc;
+      }, { overdue: 0, critical: 0, warning: 0, normal: 0 });
+
+      riskSummaryEl.innerHTML = `
+        <button type="button" class="admin-risk-pill admin-risk-pill--normal ${state.cotizacionesRiskFilter === 'all' ? 'is-active' : ''}" data-risk-filter="all"><i class="fas fa-layer-group"></i> Todas: ${cotizacionesOrdenadas.length}</button>
+        <button type="button" class="admin-risk-pill admin-risk-pill--overdue ${state.cotizacionesRiskFilter === 'overdue' ? 'is-active' : ''}" data-risk-filter="overdue"><i class="fas fa-triangle-exclamation"></i> Vencidas: ${totals.overdue}</button>
+        <button type="button" class="admin-risk-pill admin-risk-pill--critical ${state.cotizacionesRiskFilter === 'critical' ? 'is-active' : ''}" data-risk-filter="critical"><i class="fas fa-fire-flame-curved"></i> Criticas (<=3 dias): ${totals.critical}</button>
+        <button type="button" class="admin-risk-pill admin-risk-pill--warning ${state.cotizacionesRiskFilter === 'warning' ? 'is-active' : ''}" data-risk-filter="warning"><i class="fas fa-hourglass-half"></i> Por vencer (4-7 dias): ${totals.warning}</button>
+        <button type="button" class="admin-risk-pill admin-risk-pill--normal ${state.cotizacionesRiskFilter === 'normal' ? 'is-active' : ''}" data-risk-filter="normal"><i class="fas fa-circle-check"></i> Sin riesgo inmediato: ${totals.normal}</button>
+      `;
+
+      qsa('[data-risk-filter]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.cotizacionesRiskFilter = btn.dataset.riskFilter || 'all';
+          loadCotizaciones();
+        });
+      });
+    }
     
     const initQuoteBuilder = (id, c) => {
       const qb = qs(`#response-area-${id}`);
@@ -2229,27 +2311,105 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const linesBody = qs(`#qb-body-${id}`);
       const btnAdd = qs(`.qb-btn-add[data-id="${id}"]`);
+      const btnAddManual = qs(`.qb-btn-add-manual[data-id="${id}"]`);
       const subtotalEl = qs(`#qb-subtotal-${id}`);
+      const subtotalBrutoEl = qs(`#qb-subtotal-bruto-${id}`);
+      const descuentoGlobalValEl = qs(`#qb-desc-global-val-${id}`);
+      const subtotalNetoEl = qs(`#qb-subtotal-neto-${id}`);
       const ivaTypeEl = qs(`#qb-iva-type-${id}`);
       const ivaValEl = qs(`#qb-iva-val-${id}`);
       const totalEl = qs(`#qb-total-${id}`);
       const previewSheet = qs(`#qb-preview-sheet-${id}`);
+      const descuentoGlobalTipoEl = qs(`#qb-desc-global-type-${id}`);
+      const descuentoGlobalInputEl = qs(`#qb-desc-global-${id}`);
+      const entregaEl = qs(`#qb-entrega-${id}`);
+      const asesorEl = qs(`#qb-asesor-${id}`);
+
+      const parseNumber = (raw) => {
+        const v = Number.parseFloat(String(raw ?? '').replace(',', '.'));
+        return Number.isFinite(v) ? v : 0;
+      };
+
+      const fetchAsesores = async () => {
+        if (!asesorEl) return;
+        try {
+          const data = await api('/admin/api/asesores');
+          const items = Array.isArray(data.data) ? data.data : [];
+          asesorEl.innerHTML = '<option value="">Administrador</option>' + items
+            .map((u) => `<option value="${escapeHtml(u.nombre || '')}">${escapeHtml(u.nombre || '')}</option>`)
+            .join('');
+        } catch (_err) {
+          asesorEl.innerHTML = '<option value="">Administrador</option>';
+        }
+      };
+      fetchAsesores();
+
+      let catalogoProductos = [];
+      const fetchCatalogoProductos = async () => {
+        try {
+          const data = await api('/admin/api/productos/buscar?limit=80');
+          const items = Array.isArray(data.data) ? data.data : [];
+          const lineaCliente = String(c.linea || '').toLowerCase();
+          catalogoProductos = lineaCliente
+            ? items.filter((p) => String(p.linea || '').toLowerCase() === lineaCliente)
+            : items;
+        } catch (_err) {
+          catalogoProductos = [];
+        }
+      };
+      fetchCatalogoProductos();
+
+      const buscarProductosTiempoReal = async (term) => {
+        const linea = String(c.linea || '').toLowerCase();
+        if (!term || term.trim().length < 2) {
+          return catalogoProductos.slice(0, 8);
+        }
+        try {
+          const data = await api(`/admin/api/productos/buscar?q=${encodeURIComponent(term)}&limit=12`);
+          const items = Array.isArray(data.data) ? data.data : [];
+          return linea ? items.filter((p) => String(p.linea || '').toLowerCase() === linea) : items;
+        } catch (_err) {
+          return [];
+        }
+      };
       
       let state = {
         lineas: [],
+        subtotal_bruto: 0,
         subtotal: 0,
+        descuento_global_tipo: 'none',
+        descuento_global_valor: 0,
         iva_porcentaje: 0,
         iva_valor: 0,
-        total: 0
+        total: 0,
+        entrega_estimada: '',
+        asesor: ''
       };
 
       const calculate = () => {
-        state.subtotal = state.lineas.reduce((acc, l) => acc + l.subtotal, 0);
-        state.iva_porcentaje = parseFloat(ivaTypeEl.value);
-        state.iva_valor = state.subtotal * state.iva_porcentaje;
-        state.total = state.subtotal + state.iva_valor;
+        state.subtotal_bruto = state.lineas.reduce((acc, l) => acc + (Number(l.subtotal_bruto || 0)), 0);
+        state.subtotal = state.lineas.reduce((acc, l) => acc + (Number(l.subtotal || 0)), 0);
+        state.descuento_global_tipo = (descuentoGlobalTipoEl?.value || 'none');
+        const rawDescGlobal = parseNumber(descuentoGlobalInputEl?.value || 0);
+        const descGlobal = state.descuento_global_tipo === 'percent'
+          ? Math.max(0, Math.min(state.subtotal, state.subtotal * (rawDescGlobal / 100)))
+          : state.descuento_global_tipo === 'fixed'
+            ? Math.max(0, Math.min(state.subtotal, rawDescGlobal))
+            : 0;
+        state.descuento_global_valor = descGlobal;
 
-        subtotalEl.textContent = fmtCop(state.subtotal);
+        const subtotalNeto = Math.max(0, state.subtotal - state.descuento_global_valor);
+        const iva = parseNumber(ivaTypeEl?.value || '0');
+        state.iva_porcentaje = Number.isFinite(iva) ? iva : 0;
+        state.iva_valor = subtotalNeto * state.iva_porcentaje;
+        state.total = subtotalNeto + state.iva_valor;
+        state.entrega_estimada = (entregaEl?.value || '').trim();
+        state.asesor = (asesorEl?.value || '').trim() || 'Administrador';
+
+        if (subtotalBrutoEl) subtotalBrutoEl.textContent = fmtCop(state.subtotal_bruto);
+        if (subtotalEl) subtotalEl.textContent = fmtCop(state.subtotal);
+        if (descuentoGlobalValEl) descuentoGlobalValEl.textContent = fmtCop(state.descuento_global_valor);
+        if (subtotalNetoEl) subtotalNetoEl.textContent = fmtCop(subtotalNeto);
         ivaValEl.textContent = fmtCop(state.iva_valor);
         totalEl.textContent = fmtCop(state.total);
 
@@ -2274,6 +2434,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <!-- Header -->
                 <div style="display:flex; justify-content:space-between; border-bottom: 3px solid #0F5A5F; padding-bottom: 16px; margin-bottom: 24px;">
                   <div>
+                    <div style="margin-bottom:8px;"><img src="/estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar Colombia" style="height:42px; width:auto;"></div>
                     <div style="font-size:20px; font-weight:700; color:#0F5A5F;">Etiquetar Colombia S.A.S.</div>
                     <div style="font-size:12px; color:#647d8e;">NIT: 900.XXX.XXX-X · Barranquilla, Colombia</div>
                     <div style="font-size:12px; color:#647d8e;">comercial@etiquetar.com</div>
@@ -2298,11 +2459,12 @@ document.addEventListener('DOMContentLoaded', () => {
                   </div>
                   <div style="text-align: right;">
                     <h4 style="margin: 0 0 8px; font-size: 11px; text-transform: uppercase; color: #0F5A5F; letter-spacing: 0.5px;">Detalles</h4>
-                    <div style="font-size: 13px; color: #4a5568;"><strong>Línea:</strong> ${finalData.linea === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua'}</div>
-                    <div style="font-size: 13px; color: #4a5568;"><strong>Solicitud:</strong> ${tipoSolicitudFormatted || 'Cotización de productos'}</div>
+                    <div style="font-size: 13px; color: #4a5568;"><strong>Línea:</strong> ${c.linea === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua'}</div>
+                    <div style="font-size: 13px; color: #4a5568;"><strong>Solicitud:</strong> ${String(c.tipo_solicitud || '').replace(/_/g, ' ') || 'Cotización de productos'}</div>
                     <div style="font-size: 13px; color: #4a5568;"><strong>Forma de pago:</strong> ${pago}</div>
+                    <div style="font-size: 13px; color: #4a5568;"><strong>Entrega estimada:</strong> ${state.entrega_estimada || 'Por definir'}</div>
+                    <div style="font-size: 13px; color: #4a5568;"><strong>Asesor:</strong> ${state.asesor || 'Administrador'}</div>
                     <div style="font-size: 13px; color: #4a5568;"><strong>Moneda:</strong> ${moneda}</div>
-                    <div style="font-size: 13px; color: #4a5568;"><strong>Asesor:</strong> Administrador</div>
                   </div>
                 </div>
 
@@ -2312,8 +2474,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr style="background: #E6F1FB; color: #0C447C;">
                       <th style="padding: 10px; text-align: left; border-bottom: 2px solid #0F5A5F; width: 40px;">#</th>
                       <th style="padding: 10px; text-align: left; border-bottom: 2px solid #0F5A5F;">Descripción</th>
+                      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #0F5A5F; width: 100px;">Ref.</th>
                       <th style="padding: 10px; text-align: center; border-bottom: 2px solid #0F5A5F; width: 60px;">Cant.</th>
                       <th style="padding: 10px; text-align: right; border-bottom: 2px solid #0F5A5F; width: 100px;">Unitario</th>
+                      <th style="padding: 10px; text-align: right; border-bottom: 2px solid #0F5A5F; width: 100px;">Desc.</th>
                       <th style="padding: 10px; text-align: right; border-bottom: 2px solid #0F5A5F; width: 110px;">Subtotal</th>
                     </tr>
                   </thead>
@@ -2322,8 +2486,10 @@ document.addEventListener('DOMContentLoaded', () => {
                       <tr style="background: ${idx % 2 === 0 ? '#fff' : '#F8FBFE'};">
                         <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">${idx + 1}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">${l.descripcion || '—'}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">${l.referencia || '—'}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: center;">${l.cantidad}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: right;">${fmtCop(l.precio_unitario)}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: right;">${Number(l.descuento_porcentaje || 0).toFixed(1)}%</td>
                         <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: right; font-weight: 600;">${fmtCop(l.subtotal)}</td>
                       </tr>
                     `).join('')}
@@ -2334,9 +2500,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="display: flex; justify-content: flex-end; margin-bottom: 30px;">
                   <div style="width: 220px; font-size: 14px;">
                     <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #647d8e;">
-                      <span>Subtotal:</span>
-                      <span>${fmtCop(state.subtotal)}</span>
+                      <span>Subtotal bruto:</span>
+                      <span>${fmtCop(state.subtotal_bruto || 0)}</span>
                     </div>
+                    <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #647d8e;">
+                      <span>Subtotal con descuentos de línea:</span>
+                      <span>${fmtCop(state.subtotal || 0)}</span>
+                    </div>
+                    ${(state.descuento_global_valor || 0) > 0 ? `
+                    <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #647d8e;">
+                      <span>Descuento global:</span>
+                      <span>- ${fmtCop(state.descuento_global_valor || 0)}</span>
+                    </div>
+                    ` : ''}
                     ${state.iva_valor > 0 ? `
                       <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #647d8e;">
                         <span>IVA (${state.iva_porcentaje * 100}%):</span>
@@ -2370,44 +2546,135 @@ document.addEventListener('DOMContentLoaded', () => {
         };
       })();
 
-      const addLine = (descripcion = '', cantidad = 1, precio = 0) => {
+      const addLine = (descripcion = '', cantidad = 1, precio = 0, referencia = '', descuentoPct = 0, manual = false) => {
         const lineId = Date.now() + Math.random();
         const tr = document.createElement('tr');
         tr.dataset.lineId = lineId;
         tr.innerHTML = `
-          <td><input type="text" class="qb-input qb-desc" value="${descripcion}" placeholder="Nombre del producto..."></td>
-          <td><input type="number" class="qb-input qb-cant" value="${cantidad}" min="1"></td>
+          <td style="position:relative;">
+            <input type="text" class="qb-input qb-product-search" placeholder="Buscar producto por nombre o referencia" ${manual ? 'disabled' : ''}>
+            <div class="qb-product-results" style="position:absolute; z-index:20; left:0; right:0; top:38px; background:#fff; border:1px solid #d7e3ee; border-radius:8px; display:none; max-height:220px; overflow:auto;"></div>
+          </td>
+          <td><input type="text" class="qb-input qb-desc" value="${descripcion}" placeholder="Descripcion del producto..."></td>
+          <td><input type="text" class="qb-input qb-ref" value="${referencia}" placeholder="REF-000"></td>
+          <td>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <button type="button" class="admin-mini-btn qb-qty-minus" style="padding:2px 8px;">-</button>
+              <input type="number" class="qb-input qb-cant" value="${cantidad}" min="1" step="1" style="max-width:70px; text-align:center;">
+              <button type="button" class="admin-mini-btn qb-qty-plus" style="padding:2px 8px;">+</button>
+            </div>
+          </td>
           <td><input type="text" class="qb-input qb-price" value="${precio ? fmtCop(precio) : ''}" placeholder="$ 0"></td>
+          <td><input type="number" class="qb-input qb-discount" value="${descuentoPct || 0}" min="0" max="100" step="0.1" placeholder="0"></td>
           <td class="qb-subtotal-row">$ 0</td>
           <td style="text-align:center;"><button class="qb-btn-remove"><i class="fas fa-trash"></i></button></td>
         `;
 
-        const lineObj = { id: lineId, descripcion, cantidad, precio_unitario: precio, subtotal: cantidad * precio };
+        const lineObj = {
+          id: lineId,
+          manual,
+          producto_id: null,
+          descripcion,
+          referencia,
+          cantidad,
+          precio_unitario: precio,
+          descuento_porcentaje: Number(descuentoPct || 0),
+          descuento_valor: 0,
+          subtotal_bruto: cantidad * precio,
+          subtotal: cantidad * precio,
+        };
         state.lineas.push(lineObj);
 
+        const inputProductSearch = tr.querySelector('.qb-product-search');
+        const resultsBox = tr.querySelector('.qb-product-results');
         const inputDesc = tr.querySelector('.qb-desc');
+        const inputRef = tr.querySelector('.qb-ref');
         const inputCant = tr.querySelector('.qb-cant');
+        const btnQtyMinus = tr.querySelector('.qb-qty-minus');
+        const btnQtyPlus = tr.querySelector('.qb-qty-plus');
         const inputPrice = tr.querySelector('.qb-price');
+        const inputDiscount = tr.querySelector('.qb-discount');
         const subtotalCell = tr.querySelector('.qb-subtotal-row');
         const btnRemove = tr.querySelector('.qb-btn-remove');
 
+        const applyProducto = (producto) => {
+          if (!producto) return;
+          lineObj.producto_id = producto.id;
+          inputProductSearch.value = producto.nombre || '';
+          inputDesc.value = producto.nombre || inputDesc.value;
+          inputRef.value = producto.referencia || '';
+          if (!parseCop(inputPrice.value)) {
+            inputPrice.value = (producto.precio_final || producto.precio) ? fmtCop(producto.precio_final || producto.precio) : '';
+          }
+        };
+
         const updateRow = () => {
+          lineObj.referencia = inputRef.value.trim();
           lineObj.descripcion = inputDesc.value;
           lineObj.cantidad = parseInt(inputCant.value) || 0;
           lineObj.precio_unitario = parseFloat(parseCop(inputPrice.value)) || 0;
-          lineObj.subtotal = lineObj.cantidad * lineObj.precio_unitario;
+          lineObj.descuento_porcentaje = Math.max(0, Math.min(100, parseNumber(inputDiscount.value) || 0));
+          lineObj.subtotal_bruto = lineObj.cantidad * lineObj.precio_unitario;
+          lineObj.descuento_valor = lineObj.subtotal_bruto * (lineObj.descuento_porcentaje / 100);
+          lineObj.subtotal = Math.max(0, lineObj.subtotal_bruto - lineObj.descuento_valor);
           subtotalCell.textContent = fmtCop(lineObj.subtotal);
           calculate();
         };
 
+        if (!manual) {
+          let t;
+          inputProductSearch.addEventListener('input', () => {
+            clearTimeout(t);
+            t = setTimeout(async () => {
+              const items = await buscarProductosTiempoReal(inputProductSearch.value);
+              if (!items.length) {
+                resultsBox.style.display = 'none';
+                resultsBox.innerHTML = '';
+                return;
+              }
+              resultsBox.innerHTML = items.map((p) => `
+                <button type="button" class="qb-product-item" data-product-item='${escapeHtml(JSON.stringify(p))}' style="display:flex; align-items:center; gap:8px; width:100%; border:0; border-bottom:1px solid #edf2f7; background:#fff; padding:8px; text-align:left;">
+                  <img src="${escapeHtml(p.imagen_url || '/placeholder/80x80/e2e8f0/0f172a?text=PR')}" alt="" style="width:32px;height:32px;object-fit:cover;border-radius:6px;">
+                  <span style="font-size:12px;line-height:1.2;"><strong>${escapeHtml(p.nombre || '')}</strong><br>Ref: ${escapeHtml(p.referencia || '-')} · ${fmtCop(p.precio_final || p.precio || 0)} · Stock ${Number(p.stock || 0)}</span>
+                </button>
+              `).join('');
+              resultsBox.style.display = 'block';
+              qsa('.qb-product-item').forEach((btn) => {
+                btn.onclick = () => {
+                  const prod = parseJsonSafe(btn.dataset.productItem, null);
+                  applyProducto(prod);
+                  resultsBox.style.display = 'none';
+                  updateRow();
+                };
+              });
+            }, 220);
+          });
+          inputProductSearch.addEventListener('blur', () => {
+            setTimeout(() => { resultsBox.style.display = 'none'; }, 180);
+          });
+        }
+
         inputDesc.addEventListener('input', updateRow);
+        inputRef.addEventListener('input', updateRow);
         inputCant.addEventListener('input', updateRow);
+        btnQtyMinus.addEventListener('click', () => {
+          const next = Math.max(1, (parseInt(inputCant.value, 10) || 1) - 1);
+          inputCant.value = String(next);
+          updateRow();
+        });
+        btnQtyPlus.addEventListener('click', () => {
+          const next = Math.max(1, (parseInt(inputCant.value, 10) || 1) + 1);
+          inputCant.value = String(next);
+          updateRow();
+        });
         inputPrice.addEventListener('input', updateRow);
+        inputDiscount.addEventListener('input', updateRow);
         inputPrice.addEventListener('blur', () => {
           const val = parseCop(inputPrice.value);
           inputPrice.value = val ? fmtCop(val) : '';
           updateRow();
         });
+        inputDiscount.addEventListener('blur', updateRow);
 
         btnRemove.addEventListener('click', () => {
           tr.remove();
@@ -2420,7 +2687,12 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       btnAdd.addEventListener('click', () => addLine());
+      if (btnAddManual) btnAddManual.addEventListener('click', () => addLine('', 1, 0, '', 0, true));
       ivaTypeEl.addEventListener('change', calculate);
+      if (descuentoGlobalTipoEl) descuentoGlobalTipoEl.addEventListener('change', calculate);
+      if (descuentoGlobalInputEl) descuentoGlobalInputEl.addEventListener('input', calculate);
+      if (entregaEl) entregaEl.addEventListener('input', calculate);
+      if (asesorEl) asesorEl.addEventListener('change', calculate);
       
       // Selects listeners for preview
       ['validez', 'pago', 'moneda', 'notas'].forEach(field => {
@@ -2441,11 +2713,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Submit Actions
       const getPayload = () => ({
-        lineas: state.lineas.map(({descripcion, cantidad, precio_unitario, subtotal}) => ({descripcion, cantidad, precio_unitario, subtotal})),
+        lineas: state.lineas.map(({producto_id, manual, descripcion, referencia, cantidad, precio_unitario, descuento_porcentaje, descuento_valor, subtotal_bruto, subtotal}) => ({
+          producto_id,
+          manual,
+          descripcion,
+          referencia,
+          cantidad,
+          precio_unitario,
+          descuento_porcentaje,
+          descuento: descuento_valor,
+          subtotal_bruto,
+          subtotal
+        })),
+        subtotal_bruto: state.subtotal_bruto,
         subtotal: state.subtotal,
+        descuento_global_tipo: state.descuento_global_tipo,
+        descuento_global_valor: state.descuento_global_valor,
         iva_porcentaje: state.iva_porcentaje,
         iva_valor: state.iva_valor,
         total: state.total,
+        entrega_estimada: state.entrega_estimada,
+        asesor: state.asesor,
         validez_dias: parseInt(qs(`#qb-validez-${id}`).value),
         forma_pago: qs(`#qb-pago-${id}`).value,
         moneda: qs(`#qb-moneda-${id}`).value,
@@ -2466,20 +2754,25 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) { showMsg('error', err.message); }
       });
 
-      qs(`[data-qb-wa="${id}"]`).addEventListener('click', () => {
+      qs(`[data-qb-wa="${id}"]`).addEventListener('click', async () => {
         if (!c.telefono) return alert('El cliente no tiene teléfono registrado. Ingrésalo manualmente.');
         if (!state.lineas.length) return alert('Agrega al menos una línea');
-        
-        const payload = getPayload();
-        const year = new Date().getFullYear();
-        const msg = `Hola ${c.nombre}, le enviamos la cotización #COT-${year}-${id} de Etiquetar Colombia.\n\n` +
-                    `Resumen:\n` +
-                    state.lineas.map(l => `• ${l.descripcion} x${l.cantidad}: ${fmtCop(l.subtotal)}`).join('\n') +
-                    `\n\nTotal: ${fmtCop(state.total)}\n` +
-                    `Válida por ${payload.validez_dias} días.\n\n` +
-                    `Para más información: comercial@etiquetar.com`;
-        
-        window.open(`https://wa.me/57${c.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+
+        try {
+          const payload = { ...getPayload(), enviar_correo: false, enviar_whatsapp: true };
+          const r = await api(`/admin/api/cotizaciones/${id}/cotizar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const numero = r?.data?.numero || `COT-${new Date().getFullYear()}-${String(id).padStart(3, '0')}`;
+          const link = r?.pdf_url ? `${window.location.origin}${r.pdf_url}` : `${window.location.origin}/admin`;
+          const msg = `Hola ${c.nombre}, le compartimos la cotización ${numero} por valor de ${fmtCop(state.total)}. Puede descargarla aquí: ${link}`;
+          window.open(`https://wa.me/57${c.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+        } catch (err) {
+          showMsg('error', err.message || 'No se pudo preparar el mensaje de WhatsApp');
+        }
       });
 
       qs(`[data-qb-draft="${id}"]`).addEventListener('click', async () => {
@@ -2539,7 +2832,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return result;
     };
 
-    renderList('#cotizacionesList', data.data, (c) => {
+    renderList('#cotizacionesList', cotizacionesFiltradas, (c) => {
       let parsedData = parseOldMessage(c.mensaje || '');
       let finalData = { ...c };
       if (parsedData) {
@@ -2549,12 +2842,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const showPrice = !['consulta_tecnica', 'mantenimiento'].includes(finalData.tipo_solicitud);
       const tipoSolicitudFormatted = (finalData.tipo_solicitud || '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
       const estadoClass = badgeClassByCotizacionEstado(finalData.estado);
+      const origen = String(finalData.tipo_origen || 'cliente').toLowerCase();
+      const origenLabel = origen === 'generada' ? 'Generada' : 'Del cliente';
+      const origenClass = origen === 'generada' ? 'generada' : 'cliente';
+      const diasRestantes = typeof finalData.dias_restantes === 'number' ? finalData.dias_restantes : null;
+      const vencida = String(finalData.estado || '').toLowerCase() === 'vencida' || (diasRestantes != null && diasRestantes <= 0);
+      const porVencer = !vencida && diasRestantes != null && diasRestantes <= 3;
+      const aviso = !vencida && diasRestantes != null && diasRestantes <= 7;
+      const riesgoClass = vencida ? 'is-overdue' : porVencer ? 'is-critical' : aviso ? 'is-warning' : '';
 
       return `
-        <div class="admin-item admin-item--cotizacion">
+        <div class="admin-item admin-item--cotizacion ${riesgoClass}">
           <div class="admin-item__row">
             <strong>${finalData.nombre}</strong>
-            <span class="admin-badge admin-badge--${estadoClass}">${finalData.estado.toUpperCase()}</span>
+            <div class="admin-meta-chips">
+              <span class="admin-badge admin-badge--${origenClass}">${origenLabel}</span>
+              <span class="admin-badge admin-badge--${estadoClass}">${finalData.estado.toUpperCase()}</span>
+            </div>
           </div>
           
           <div class="admin-meta-text" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 12px;">
@@ -2573,11 +2877,34 @@ document.addEventListener('DOMContentLoaded', () => {
             <i class="fas fa-calendar-alt"></i> Recibida: ${timeAgo(finalData.created_at)}
             ${finalData.responded_at ? ` | <i class="fas fa-check-double"></i> Respondida: <span title="${fmtDateTime(finalData.responded_at)}">${timeAgo(finalData.responded_at)}</span>` : ''}
           </div>
+          ${finalData.fecha_vencimiento ? `
+            <div class="admin-meta-text ${riesgoClass ? 'admin-meta-text--risk' : ''}" style="margin-top: 4px;" title="${fmtDateTime(finalData.fecha_vencimiento)}">
+              <i class="fas ${vencida ? 'fa-triangle-exclamation' : porVencer ? 'fa-fire-flame-curved' : 'fa-hourglass-half'}"></i>
+              ${vencida ? 'Vencida:' : 'Vence:'} ${timeAgo(finalData.fecha_vencimiento)}
+              ${typeof finalData.dias_restantes === 'number' ? ` | ${finalData.dias_restantes} día(s)` : ''}
+            </div>
+          ` : ''}
           
-          <div class="admin-message-block" style="margin:12px 0;">
-            <strong class="admin-message-block__title">MENSAJE DEL CLIENTE:</strong>
-            ${finalData.mensaje || 'Sin mensaje'}
-            ${(finalData.info_adicional || finalData.informacion_adicional) ? `<div class="admin-message-block__extra"><strong>INFORMACION ADICIONAL:</strong><br>${finalData.info_adicional || finalData.informacion_adicional}</div>` : ''}
+          ${origen !== 'generada' ? `
+            <div class="admin-message-block" style="margin:12px 0;">
+              <strong class="admin-message-block__title">MENSAJE DEL CLIENTE:</strong>
+              ${finalData.mensaje || 'Sin mensaje'}
+              ${(finalData.info_adicional || finalData.informacion_adicional) ? `<div class="admin-message-block__extra"><strong>INFORMACION ADICIONAL:</strong><br>${finalData.info_adicional || finalData.informacion_adicional}</div>` : ''}
+            </div>
+          ` : ''}
+
+          <div class="admin-inline-actions" style="gap:8px; align-items:center; margin-bottom:8px;">
+            <select class="admin-mini-select" data-cotizacion-estado-select="${finalData.id}" style="min-width: 180px;">
+              <option value="pendiente" ${finalData.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+              <option value="respondida" ${finalData.estado === 'respondida' ? 'selected' : ''}>Respondida</option>
+              <option value="vista_cliente" ${finalData.estado === 'vista_cliente' ? 'selected' : ''}>Vista cliente</option>
+              <option value="en_negociacion" ${finalData.estado === 'en_negociacion' ? 'selected' : ''}>En negociacion</option>
+              <option value="aprobada" ${finalData.estado === 'aprobada' ? 'selected' : ''}>Aprobada</option>
+              <option value="rechazada" ${finalData.estado === 'rechazada' ? 'selected' : ''}>Rechazada</option>
+              <option value="vencida" ${finalData.estado === 'vencida' ? 'selected' : ''}>Vencida</option>
+              <option value="descartada" ${finalData.estado === 'descartada' ? 'selected' : ''}>Descartada</option>
+            </select>
+            <button class="admin-mini-btn" data-cotizacion-estado-apply="${finalData.id}">Aplicar estado</button>
           </div>
 
             <div class="admin-inline-actions" style="justify-content: flex-end;">
@@ -2598,11 +2925,14 @@ document.addEventListener('DOMContentLoaded', () => {
                   <table class="qb-table" id="qb-table-${finalData.id}">
                     <thead>
                       <tr>
-                        <th style="width:40%">Descripción</th>
-                        <th style="width:10%">Cant.</th>
-                        <th style="width:20%">P. Unitario</th>
-                        <th style="width:20%">Subtotal</th>
-                        <th style="width:10%"></th>
+                        <th style="width:17%">Catalogo</th>
+                        <th style="width:26%">Descripcion</th>
+                        <th style="width:11%">Ref.</th>
+                        <th style="width:8%">Cant.</th>
+                        <th style="width:12%">P. Unitario</th>
+                        <th style="width:12%">Desc. %</th>
+                        <th style="width:10%">Subtotal</th>
+                        <th style="width:4%"></th>
                       </tr>
                     </thead>
                     <tbody id="qb-body-${finalData.id}">
@@ -2611,13 +2941,36 @@ document.addEventListener('DOMContentLoaded', () => {
                   </table>
                 </div>
                 
-                <button class="qb-btn-add" data-id="${finalData.id}">＋ Agregar línea</button>
+                <div class="admin-inline-actions" style="margin-top:8px;">
+                  <button class="qb-btn-add" data-id="${finalData.id}">＋ Agregar producto</button>
+                  <button class="admin-mini-btn qb-btn-add-manual" data-id="${finalData.id}" type="button"><i class="fas fa-screwdriver-wrench"></i> Agregar servicio manual</button>
+                </div>
 
                 <div class="qb-footer">
                   <div class="qb-totals">
                     <div class="qb-total-item">
-                      <span>Subtotal:</span>
+                      <span>Subtotal bruto:</span>
+                      <span id="qb-subtotal-bruto-${finalData.id}">$ 0</span>
+                    </div>
+                    <div class="qb-total-item">
+                      <span>Subtotal lineas:</span>
                       <span id="qb-subtotal-${finalData.id}">$ 0</span>
+                    </div>
+                    <div class="qb-total-item qb-total-item--inline">
+                      <select id="qb-desc-global-type-${finalData.id}" class="qb-input" style="width:auto; height:32px; padding:2px 8px !important;">
+                        <option value="none">Sin desc. global</option>
+                        <option value="percent">Desc. %</option>
+                        <option value="fixed">Desc. valor</option>
+                      </select>
+                      <input id="qb-desc-global-${finalData.id}" type="text" class="qb-input" style="max-width: 120px;" placeholder="0">
+                    </div>
+                    <div class="qb-total-item">
+                      <span>Desc. global:</span>
+                      <span id="qb-desc-global-val-${finalData.id}">$ 0</span>
+                    </div>
+                    <div class="qb-total-item">
+                      <span>Subtotal neto:</span>
+                      <span id="qb-subtotal-neto-${finalData.id}">$ 0</span>
                     </div>
                     <div class="qb-total-item">
                       <select id="qb-iva-type-${finalData.id}" class="qb-input" style="width:auto; height:32px; padding:2px 8px !important;">
@@ -2657,6 +3010,16 @@ document.addEventListener('DOMContentLoaded', () => {
                       <select id="qb-moneda-${finalData.id}" class="qb-input">
                         <option value="COP" selected>COP</option>
                         <option value="USD">USD</option>
+                      </select>
+                    </div>
+                    <div class="admin-form-group">
+                      <label>Entrega estimada</label>
+                      <input id="qb-entrega-${finalData.id}" class="qb-input" placeholder="3 a 5 dias habiles">
+                    </div>
+                    <div class="admin-form-group">
+                      <label>Asesor</label>
+                      <select id="qb-asesor-${finalData.id}" class="qb-input">
+                        <option value="">Administrador</option>
                       </select>
                     </div>
                   </div>
@@ -2742,6 +3105,27 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    qsa('[data-cotizacion-estado-apply]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.cotizacionEstadoApply;
+        const select = qs(`[data-cotizacion-estado-select="${id}"]`);
+        const targetEstado = String(select?.value || '').toLowerCase();
+        if (!targetEstado) return;
+
+        try {
+          await api(`/admin/api/cotizaciones/${id}/estado`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: targetEstado })
+          });
+          showMsg('success', 'Estado de cotizacion actualizado');
+          loadCotizaciones();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
     qsa('[data-toggle-response]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.toggleResponse;
@@ -2755,13 +3139,87 @@ document.addEventListener('DOMContentLoaded', () => {
           
           // Inicializar constructor si se abre y no ha sido inicializado
           if (!isVisible && !area.dataset.initialized) {
-            const cotizacion = data.data.find(item => item.id == id);
+            const cotizacion = cotizacionesFiltradas.find(item => item.id == id);
             initQuoteBuilder(id, cotizacion);
             area.dataset.initialized = 'true';
           }
         }
       });
     });
+
+    if (btnNuevaCotizacion && nuevaCotizacionPanel) {
+      btnNuevaCotizacion.onclick = () => {
+        nuevaCotizacionPanel.style.display = nuevaCotizacionPanel.style.display === 'none' ? 'block' : 'none';
+      };
+    }
+
+    if (cancelNuevaCotizacion && nuevaCotizacionPanel) {
+      cancelNuevaCotizacion.onclick = () => {
+        nuevaCotizacionPanel.style.display = 'none';
+      };
+    }
+
+    if (buscarClienteCot && buscarClienteCotResultados) {
+      let t;
+      let clientesResultados = [];
+      buscarClienteCot.oninput = () => {
+        clearTimeout(t);
+        const q = buscarClienteCot.value.trim();
+        if (q.length < 2) {
+          buscarClienteCotResultados.innerHTML = '';
+          return;
+        }
+        t = setTimeout(async () => {
+          try {
+            const r = await api(`/admin/api/clientes/buscar?q=${encodeURIComponent(q)}&limit=8`);
+            const rows = Array.isArray(r.data) ? r.data : [];
+            clientesResultados = rows;
+            buscarClienteCotResultados.innerHTML = rows.map((x, idx) => `
+              <button type="button" class="admin-mini-btn" data-pick-cliente-index="${idx}" style="text-align:left; justify-content:flex-start; width:100%;">
+                <strong>${escapeHtml(x.nombre || '')}</strong> · ${escapeHtml(x.email || '')}${x.telefono ? ` · ${escapeHtml(x.telefono)}` : ''}
+              </button>
+            `).join('');
+            qsa('[data-pick-cliente-index]').forEach((b) => {
+              b.onclick = () => {
+                const data = clientesResultados[Number(b.dataset.pickClienteIndex)] || {};
+                qs('#newCotNombre').value = data.nombre || '';
+                qs('#newCotEmail').value = data.email || '';
+                qs('#newCotTelefono').value = data.telefono || '';
+                qs('#newCotCiudad').value = data.ciudad || '';
+              };
+            });
+          } catch (_err) {
+            buscarClienteCotResultados.innerHTML = '';
+          }
+        }, 250);
+      };
+    }
+
+    if (formNuevaCotizacion) {
+      formNuevaCotizacion.onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+          await api('/admin/api/cotizaciones', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              nombre: qs('#newCotNombre').value,
+              email: qs('#newCotEmail').value,
+              telefono: qs('#newCotTelefono').value,
+              ciudad: qs('#newCotCiudad').value,
+              empresa: qs('#newCotEmpresa').value,
+              linea: qs('#newCotLinea').value,
+            })
+          });
+          showMsg('success', 'Cotización generada creada');
+          formNuevaCotizacion.reset();
+          if (nuevaCotizacionPanel) nuevaCotizacionPanel.style.display = 'none';
+          loadCotizaciones();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      };
+    }
   };
 
   const loadPromociones = async () => {

@@ -56,6 +56,38 @@ from aplicacion.servicios import cloudinary_habilitado, subir_imagen_banner, sub
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
+def _normalizar_validez_dias(valor, predeterminado=30):
+    try:
+        dias = int(valor)
+    except (TypeError, ValueError):
+        dias = int(predeterminado or 30)
+    return max(1, min(365, dias))
+
+
+def _sincronizar_cotizaciones_vencidas(commit=True):
+    ahora = datetime.utcnow()
+    estados_expirables = {"respondida", "vista_cliente", "en_negociacion"}
+
+    actualizadas = (
+        Cotizacion.query.filter(
+            Cotizacion.fecha_vencimiento.isnot(None),
+            Cotizacion.fecha_vencimiento < ahora,
+            Cotizacion.estado.in_(estados_expirables),
+        )
+        .update(
+            {
+                Cotizacion.estado: "vencida",
+                Cotizacion.updated_at: ahora,
+            },
+            synchronize_session=False,
+        )
+    )
+
+    if actualizadas and commit:
+        db.session.commit()
+    return int(actualizadas or 0)
+
+
 def _ip_cliente() -> str:
     forwarded_for = request.headers.get("X-Forwarded-For", "")
     if forwarded_for:
@@ -2054,8 +2086,10 @@ def buscar_productos_api():
                     "linea": p.linea,
                     "tipo_producto": p.tipo_producto or ("kit" if p.es_kit else "estandar"),
                     "precio": float(p.precio or 0),
+                    "precio_final": float(p.precio_final or p.precio or 0),
                     "stock": int(p.stock or 0),
                     "es_kit": bool(p.es_kit),
+                    "imagen_url": p.imagen_url,
                 }
                 for p in items
             ],
@@ -2099,6 +2133,8 @@ def listar_cotizaciones_api():
     if not isinstance(admin, Usuario):
         return admin
 
+    _sincronizar_cotizaciones_vencidas(commit=True)
+
     estado = (request.args.get("estado") or "").strip().lower()
     busqueda = (request.args.get("q") or "").strip().lower()
 
@@ -2117,6 +2153,7 @@ def listar_cotizaciones_api():
         )
 
     items = query.order_by(Cotizacion.created_at.desc()).limit(300).all()
+    ahora = datetime.utcnow()
     return jsonify(
         {
             "ok": True,
@@ -2126,16 +2163,164 @@ def listar_cotizaciones_api():
                     "nombre": c.nombre,
                     "email": c.email,
                     "telefono": c.telefono,
+                    "empresa": c.empresa,
                     "ciudad": c.ciudad,
+                    "linea": c.linea,
+                    "tipo_solicitud": c.tipo_solicitud,
+                    "productos": c.productos,
                     "mensaje": c.mensaje,
+                    "info_adicional": c.info_adicional,
                     "estado": c.estado,
+                    "tipo_origen": c.tipo_origen or "cliente",
+                    "generado_por_admin_id": c.generado_por_admin_id,
                     "precio_ofertado": float(c.precio_ofertado) if c.precio_ofertado is not None else None,
                     "respuesta": c.respuesta,
+                    "validez_dias": int(c.validez_dias or 30),
+                    "fecha_vencimiento": c.fecha_vencimiento.isoformat() if c.fecha_vencimiento else None,
+                    "dias_restantes": (
+                        int((c.fecha_vencimiento - ahora).total_seconds() // 86400) + 1
+                        if c.fecha_vencimiento
+                        else None
+                    ),
                     "created_at": c.created_at.isoformat(),
                     "responded_at": c.responded_at.isoformat() if c.responded_at else None,
                 }
                 for c in items
             ],
+        }
+    )
+
+
+@admin_bp.get("/api/clientes/buscar")
+def buscar_clientes_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    q = (request.args.get("q") or "").strip().lower()
+    limite = min(max(int(request.args.get("limit") or 15), 1), 50)
+
+    items = []
+    if q:
+        patron = f"%{q}%"
+        usuarios = (
+            Usuario.query.filter(
+                func.lower(func.concat(Usuario.nombre, " ", Usuario.apellido)).like(patron)
+                | func.lower(Usuario.email).like(patron)
+                | func.lower(func.coalesce(Usuario.telefono, "")).like(patron)
+            )
+            .order_by(Usuario.updated_at.desc())
+            .limit(limite)
+            .all()
+        )
+        for u in usuarios:
+            items.append(
+                {
+                    "source": "usuario",
+                    "id": u.id,
+                    "nombre": f"{u.nombre} {u.apellido}".strip(),
+                    "email": u.email,
+                    "telefono": u.telefono,
+                    "ciudad": u.ciudad,
+                }
+            )
+
+        if len(items) < limite:
+            cotizaciones = (
+                Cotizacion.query.filter(
+                    func.lower(Cotizacion.nombre).like(patron)
+                    | func.lower(Cotizacion.email).like(patron)
+                    | func.lower(func.coalesce(Cotizacion.telefono, "")).like(patron)
+                )
+                .order_by(Cotizacion.created_at.desc())
+                .limit(limite)
+                .all()
+            )
+            existentes = {str(i.get("email") or "").lower() for i in items}
+            for c in cotizaciones:
+                email_key = str(c.email or "").lower()
+                if email_key in existentes:
+                    continue
+                items.append(
+                    {
+                        "source": "cotizacion",
+                        "id": c.id,
+                        "nombre": c.nombre,
+                        "email": c.email,
+                        "telefono": c.telefono,
+                        "ciudad": c.ciudad,
+                    }
+                )
+                existentes.add(email_key)
+                if len(items) >= limite:
+                    break
+
+    return jsonify({"ok": True, "data": items})
+
+
+@admin_bp.post("/api/cotizaciones")
+def crear_cotizacion_generada_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    nombre = (payload.get("nombre") or "").strip()
+    email = (payload.get("email") or "").strip().lower()
+    telefono = (payload.get("telefono") or "").strip() or None
+    ciudad = (payload.get("ciudad") or "").strip() or None
+    empresa = (payload.get("empresa") or "").strip() or None
+    linea = (payload.get("linea") or "").strip().lower() or None
+    tipo_solicitud = (payload.get("tipo_solicitud") or "propuesta_comercial").strip().lower()
+
+    if not nombre or not email:
+        return jsonify({"ok": False, "message": "Nombre y correo son obligatorios."}), 400
+
+    cotizacion = Cotizacion(
+        nombre=nombre,
+        email=email,
+        telefono=telefono,
+        ciudad=ciudad,
+        empresa=empresa,
+        linea=linea,
+        tipo_solicitud=tipo_solicitud,
+        mensaje=None,
+        info_adicional=None,
+        tipo_origen="generada",
+        generado_por_admin_id=admin.id,
+        estado="pendiente",
+    )
+    db.session.add(cotizacion)
+    db.session.flush()
+    cotizacion.generar_numero_y_token()
+    db.session.commit()
+
+    return jsonify(
+        {
+            "ok": True,
+            "message": "Cotizacion generada creada.",
+            "data": {
+                "id": cotizacion.id,
+                "numero": cotizacion.numero,
+                "estado": cotizacion.estado,
+                "tipo_origen": cotizacion.tipo_origen,
+            },
+        }
+    ), 201
+
+
+@admin_bp.post("/api/cotizaciones/sincronizar-vencimientos")
+def sincronizar_vencimientos_cotizaciones_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    total = _sincronizar_cotizaciones_vencidas(commit=True)
+    return jsonify(
+        {
+            "ok": True,
+            "message": "Sincronizacion de vencimientos ejecutada.",
+            "data": {"actualizadas": total},
         }
     )
 
@@ -2156,6 +2341,8 @@ def responder_cotizacion_api(cotizacion_id):
     cotizacion = Cotizacion.query.get_or_404(cotizacion_id)
     cotizacion.respuesta = respuesta
     cotizacion.precio_ofertado = _decimal(precio_ofertado, "0") if precio_ofertado is not None else None
+    cotizacion.validez_dias = cotizacion.validez_dias or 30
+    cotizacion.fecha_vencimiento = datetime.utcnow() + timedelta(days=int(cotizacion.validez_dias or 30))
     cotizacion.estado = "respondida"
     cotizacion.responded_at = datetime.utcnow()
     db.session.commit()
@@ -2171,9 +2358,12 @@ def cotizar_profesional_api(cotizacion_id):
 
     payload = request.get_json(silent=True) or {}
     cotizacion = Cotizacion.query.get_or_404(cotizacion_id)
+    validez_dias = _normalizar_validez_dias(payload.get("validez_dias"), predeterminado=cotizacion.validez_dias or 30)
 
     # Actualizar datos principales de la cotizacion
     cotizacion.precio_ofertado = str(payload.get("total", "0"))
+    cotizacion.validez_dias = validez_dias
+    cotizacion.fecha_vencimiento = datetime.utcnow() + timedelta(days=validez_dias)
     cotizacion.estado = "respondida"
     cotizacion.responded_at = datetime.utcnow()
     
@@ -2210,9 +2400,11 @@ def cotizar_profesional_api(cotizacion_id):
             </div>
             <div style="float: right; width: 48%; text-align: right;">
                 <h4 style="margin: 0 0 8px; font-size: 11px; text-transform: uppercase; color: #0F5A5F;">Detalles</h4>
-                <div style="font-size: 13px; color: #4a5568;"><strong>Línea:</strong> {{ p.moneda }}</div>
+                <div style="font-size: 13px; color: #4a5568;"><strong>Línea:</strong> {{ c.linea or 'agua' }}</div>
                 <div style="font-size: 13px; color: #4a5568;"><strong>Forma de pago:</strong> {{ p.forma_pago }}</div>
-                <div style="font-size: 13px; color: #4a5568;"><strong>Asesor:</strong> Administrador</div>
+                <div style="font-size: 13px; color: #4a5568;"><strong>Entrega estimada:</strong> {{ p.entrega_estimada or 'Por definir' }}</div>
+                <div style="font-size: 13px; color: #4a5568;"><strong>Asesor:</strong> {{ p.asesor or 'Administrador' }}</div>
+                <div style="font-size: 13px; color: #4a5568;"><strong>Moneda:</strong> {{ p.moneda }}</div>
             </div>
             <div style="clear: both;"></div>
         </div>
@@ -2222,8 +2414,10 @@ def cotizar_profesional_api(cotizacion_id):
                 <tr style="background: #E6F1FB; color: #0C447C;">
                     <th style="padding: 10px; text-align: left; border-bottom: 2px solid #0F5A5F;">#</th>
                     <th style="padding: 10px; text-align: left; border-bottom: 2px solid #0F5A5F;">Descripción</th>
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #0F5A5F;">Ref.</th>
                     <th style="padding: 10px; text-align: center; border-bottom: 2px solid #0F5A5F;">Cant.</th>
                     <th style="padding: 10px; text-align: right; border-bottom: 2px solid #0F5A5F;">Unitario</th>
+                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #0F5A5F;">Desc.</th>
                     <th style="padding: 10px; text-align: right; border-bottom: 2px solid #0F5A5F;">Subtotal</th>
                 </tr>
             </thead>
@@ -2232,8 +2426,10 @@ def cotizar_profesional_api(cotizacion_id):
                 <tr style="background: {{ loop.cycle('#fff', '#F8FBFE') }};">
                     <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">{{ loop.index }}</td>
                     <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">{{ l.descripcion }}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">{{ l.referencia or '-' }}</td>
                     <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: center;">{{ l.cantidad }}</td>
                     <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: right;">${{ "{:,.0f}".format(l.precio_unitario) }}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: right;">${{ "{:,.0f}".format(l.descuento or 0) }}</td>
                     <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: right; font-weight: 600;">${{ "{:,.0f}".format(l.subtotal) }}</td>
                 </tr>
                 {% endfor %}
@@ -2243,9 +2439,19 @@ def cotizar_profesional_api(cotizacion_id):
         <div style="text-align: right; margin-bottom: 30px;">
             <div style="display: inline-block; width: 220px; font-size: 14px;">
                 <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #647d8e;">
-                    <span>Subtotal:</span>
+                    <span>Subtotal bruto:</span>
+                    <span>${{ "{:,.0f}".format(p.subtotal_bruto or p.subtotal) }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #647d8e;">
+                    <span>Subtotal con desc. linea:</span>
                     <span>${{ "{:,.0f}".format(p.subtotal) }}</span>
                 </div>
+                {% if (p.descuento_global_valor or 0) > 0 %}
+                <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #647d8e;">
+                    <span>Descuento global:</span>
+                    <span>- ${{ "{:,.0f}".format(p.descuento_global_valor or 0) }}</span>
+                </div>
+                {% endif %}
                 {% if p.iva_valor > 0 %}
                 <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #647d8e;">
                     <span>IVA ({{ (p.iva_porcentaje * 100)|int }}%):</span>
@@ -2271,7 +2477,7 @@ def cotizar_profesional_api(cotizacion_id):
             <p style="font-weight: 600; color: #647d8e;">Etiquetar Colombia S.A.S. — Soluciones Integrales en Agua y Piscinas</p>
         </div>
     </div>
-    """, c=cotizacion, p=payload, num=cot_num, fecha=fecha_emision, validez=payload.get('validez_dias', 30))
+    """, c=cotizacion, p=payload, num=cot_num, fecha=fecha_emision, validez=validez_dias)
 
     # Guardar PDF
     pdf_filename = f"cotizacion_{cotizacion.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
@@ -2321,17 +2527,57 @@ def actualizar_estado_cotizacion_api(cotizacion_id):
 
     payload = request.get_json(silent=True) or {}
     estado = (payload.get("estado") or "").strip().lower()
-    estados_validos = {"pendiente", "respondida", "descartada"}
+    estados_validos = {
+        "pendiente",
+        "respondida",
+        "vista_cliente",
+        "en_negociacion",
+        "aprobada",
+        "rechazada",
+        "vencida",
+        "descartada",
+    }
+
+    transiciones = {
+        "pendiente": {"respondida", "vista_cliente", "en_negociacion", "aprobada", "rechazada", "vencida", "descartada"},
+        "respondida": {"vista_cliente", "en_negociacion", "aprobada", "rechazada", "vencida", "descartada", "pendiente"},
+        "vista_cliente": {"en_negociacion", "aprobada", "rechazada", "vencida", "descartada", "pendiente"},
+        "en_negociacion": {"aprobada", "rechazada", "vencida", "descartada", "pendiente"},
+        "aprobada": {"en_negociacion", "pendiente"},
+        "rechazada": {"en_negociacion", "pendiente"},
+        "vencida": {"en_negociacion", "pendiente"},
+        "descartada": {"pendiente", "en_negociacion"},
+    }
 
     if estado not in estados_validos:
         return jsonify({"ok": False, "message": "Estado de cotizacion invalido."}), 400
 
     cotizacion = Cotizacion.query.get_or_404(cotizacion_id)
+    _sincronizar_cotizaciones_vencidas(commit=True)
+    cotizacion = Cotizacion.query.get_or_404(cotizacion_id)
+    estado_actual = (cotizacion.estado or "pendiente").strip().lower()
+    if estado_actual == estado:
+        return jsonify({"ok": True, "message": "La cotizacion ya esta en ese estado."})
+
+    permitidos = transiciones.get(estado_actual, estados_validos)
+    if estado not in permitidos:
+        return jsonify(
+            {
+                "ok": False,
+                "message": f"Transicion no permitida: {estado_actual} -> {estado}.",
+            }
+        ), 409
+
     cotizacion.estado = estado
-    if estado == "respondida":
+    if estado in {"respondida", "vista_cliente", "en_negociacion", "aprobada", "rechazada", "vencida"}:
         cotizacion.responded_at = cotizacion.responded_at or datetime.utcnow()
-    elif estado != "respondida":
-        cotizacion.responded_at = None
+
+    if estado in {"respondida", "vista_cliente", "en_negociacion"}:
+        cotizacion.validez_dias = cotizacion.validez_dias or 30
+        cotizacion.fecha_vencimiento = cotizacion.fecha_vencimiento or (
+            datetime.utcnow() + timedelta(days=int(cotizacion.validez_dias or 30))
+        )
+
     db.session.commit()
 
     return jsonify({"ok": True, "message": "Estado de cotizacion actualizado."})

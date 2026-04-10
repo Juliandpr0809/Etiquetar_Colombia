@@ -268,6 +268,114 @@
             text-align: right;
         }
 
+        .catalog-search-wrap {
+            border: 1px solid #d9e6ee;
+            border-radius: var(--radius-md);
+            background: #fff;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .catalog-search-input {
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid #edf3f7;
+            padding: 12px 14px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .catalog-options {
+            max-height: 220px;
+            overflow: auto;
+        }
+
+        .catalog-option {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f4f7;
+            cursor: pointer;
+            transition: background .2s ease;
+        }
+
+        .catalog-option:hover {
+            background: #f7fbff;
+        }
+
+        .catalog-option__name {
+            font-weight: 700;
+            color: #1f3643;
+            font-size: 0.9rem;
+        }
+
+        .catalog-option__meta {
+            font-size: 0.78rem;
+            color: #607682;
+            margin-top: 2px;
+        }
+
+        .selected-products {
+            border: 1px solid #e3ebf1;
+            border-radius: var(--radius-md);
+            background: #fff;
+            margin-bottom: 12px;
+        }
+
+        .selected-products__row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid #eff4f7;
+        }
+
+        .selected-products__row:last-child {
+            border-bottom: 0;
+        }
+
+        .selected-products__name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #1f3643;
+        }
+
+        .selected-products__meta {
+            font-size: 0.75rem;
+            color: #718491;
+            margin-top: 2px;
+        }
+
+        .selected-products__qty {
+            width: 74px;
+            text-align: center;
+            border: 1px solid #d7e2ea;
+            border-radius: 8px;
+            padding: 7px 6px;
+            font-size: 0.85rem;
+        }
+
+        .selected-products__remove {
+            background: #fff5f5;
+            border: 1px solid #ffd8d8;
+            color: #cc3e3e;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .selected-products__empty {
+            padding: 14px;
+            color: #78909d;
+            font-size: 0.86rem;
+        }
+
+        .summary-products {
+            white-space: pre-line;
+            text-align: right;
+            max-width: 360px;
+        }
+
         /* ── Success Screen ── */
         #successScreen {
             display: none;
@@ -518,13 +626,22 @@
                             </div>
                             <div id="type-error" class="error-msg" style="margin-bottom:16px;">Selecciona un tipo de solicitud</div>
 
-                            <!-- Products of interest -->
                             <div class="checkout-form__field field-wrap">
-                                <label class="checkout-form__label" for="q-products">Productos de interés *</label>
-                                <textarea id="q-products" name="mensaje" class="checkout-form__input" rows="4"
-                                    placeholder="Describe los productos, cantidades y especificaciones que necesitas..."
-                                    required style="resize:vertical;"></textarea>
-                                <div class="error-msg">Describe lo que necesitas</div>
+                                <label class="checkout-form__label" for="q-product-search">Selecciona productos del catálogo *</label>
+                                <div class="catalog-search-wrap">
+                                    <input id="q-product-search" class="catalog-search-input" placeholder="Buscar por nombre o referencia...">
+                                    <div id="catalog-options" class="catalog-options"></div>
+                                </div>
+                                <div id="selected-products" class="selected-products"></div>
+                                <input type="hidden" id="q-products" name="productos" required>
+                                <div class="error-msg" id="products-error">Selecciona al menos un producto o describe tu requerimiento</div>
+                            </div>
+
+                            <div class="checkout-form__field field-wrap">
+                                <label class="checkout-form__label" for="q-message">Descripción del requerimiento</label>
+                                <textarea id="q-message" name="mensaje" class="checkout-form__input" rows="3"
+                                    placeholder="Cuéntanos detalles técnicos, medidas, contexto de uso, etc."
+                                    style="resize:vertical;"></textarea>
                             </div>
 
                             <!-- Additional notes -->
@@ -570,6 +687,10 @@
                                     <span class="summary-label">Solicitud:</span>
                                     <span class="summary-value" id="sum-type">-</span>
                                 </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Productos:</span>
+                                    <span class="summary-value summary-products" id="sum-products">-</span>
+                                </div>
                             </div>
 
                             <div class="form-nav">
@@ -590,6 +711,7 @@
                 </div>
                 <h2 class="success-title">¡Cotización recibida!</h2>
                 <p class="success-subtitle">Hola <strong id="successUser">Usuario</strong>, te contactaremos en menos de 24 horas hábiles.</p>
+                <p class="success-subtitle" style="font-size:0.95rem;margin-top:-18px;">Número de solicitud: <strong id="successQuoteNumber">-</strong></p>
                 
                 <a href="#" id="whatsappBtn" target="_blank" class="whatsapp-cta">
                     <i class="fab fa-whatsapp"></i> Hablar por WhatsApp
@@ -625,12 +747,151 @@
     <script>
         let currentLine = 'piscina';
         let currentStep = 1;
+        let catalogProducts = [];
+        let selectedProducts = [];
         const WHATSAPP_NUMBER = '573001234567'; // Cambiar por el número real
+
+        function productLineName(line) {
+            return line === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua';
+        }
+
+        function formatCurrency(value) {
+            const num = Number(value || 0);
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(num);
+        }
+
+        function escapeHtml(text) {
+            return String(text || '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function productsSummaryText() {
+            if (!selectedProducts.length) return '';
+            return selectedProducts
+                .map((p) => `- ${p.nombre}${p.referencia ? ` (${p.referencia})` : ''} x${p.cantidad}`)
+                .join('\n');
+        }
+
+        function syncProductsInput() {
+            const hidden = document.getElementById('q-products');
+            hidden.value = productsSummaryText();
+        }
+
+        function renderSelectedProducts() {
+            const wrap = document.getElementById('selected-products');
+            if (!selectedProducts.length) {
+                wrap.innerHTML = '<div class="selected-products__empty">Aún no agregas productos. Usa el buscador para añadirlos.</div>';
+                syncProductsInput();
+                return;
+            }
+
+            wrap.innerHTML = selectedProducts.map((p) => `
+                <div class="selected-products__row">
+                    <div>
+                        <div class="selected-products__name">${escapeHtml(p.nombre)}</div>
+                        <div class="selected-products__meta">${p.referencia ? `Ref. ${escapeHtml(p.referencia)} · ` : ''}${formatCurrency(p.precio)}</div>
+                    </div>
+                    <input class="selected-products__qty" type="number" min="1" value="${p.cantidad}" data-selected-qty="${p.id}">
+                    <button type="button" class="selected-products__remove" data-selected-remove="${p.id}"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+
+            wrap.querySelectorAll('[data-selected-qty]').forEach((el) => {
+                el.addEventListener('input', () => {
+                    const id = Number(el.dataset.selectedQty);
+                    const item = selectedProducts.find((it) => it.id === id);
+                    if (!item) return;
+                    item.cantidad = Math.max(1, Number(el.value) || 1);
+                    syncProductsInput();
+                });
+            });
+
+            wrap.querySelectorAll('[data-selected-remove]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const id = Number(btn.dataset.selectedRemove);
+                    selectedProducts = selectedProducts.filter((it) => it.id !== id);
+                    renderSelectedProducts();
+                });
+            });
+
+            syncProductsInput();
+        }
+
+        function filteredProducts(term = '') {
+            const t = String(term || '').trim().toLowerCase();
+            return catalogProducts.filter((p) => {
+                if (p.linea !== currentLine) return false;
+                if (!t) return true;
+                return String(p.nombre || '').toLowerCase().includes(t)
+                    || String(p.referencia || '').toLowerCase().includes(t);
+            });
+        }
+
+        function renderCatalogOptions(term = '') {
+            const container = document.getElementById('catalog-options');
+            const items = filteredProducts(term).slice(0, 20);
+            if (!items.length) {
+                container.innerHTML = '<div class="catalog-option"><div class="catalog-option__meta">No hay productos para este filtro.</div></div>';
+                return;
+            }
+
+            container.innerHTML = items.map((p) => `
+                <div class="catalog-option" data-add-product="${p.id}">
+                    <div class="catalog-option__name">${escapeHtml(p.nombre)}</div>
+                    <div class="catalog-option__meta">${p.referencia ? `Ref. ${escapeHtml(p.referencia)} · ` : ''}${formatCurrency(p.precio_final || p.precio || 0)}</div>
+                </div>
+            `).join('');
+
+            container.querySelectorAll('[data-add-product]').forEach((el) => {
+                el.addEventListener('click', () => {
+                    const id = Number(el.dataset.addProduct);
+                    const base = catalogProducts.find((p) => p.id === id);
+                    if (!base) return;
+                    const existing = selectedProducts.find((p) => p.id === id);
+                    if (existing) {
+                        existing.cantidad += 1;
+                    } else {
+                        selectedProducts.push({
+                            id: base.id,
+                            nombre: base.nombre,
+                            referencia: base.referencia,
+                            precio: Number(base.precio_final || base.precio || 0),
+                            cantidad: 1,
+                        });
+                    }
+                    document.getElementById('products-error').style.display = 'none';
+                    renderSelectedProducts();
+                });
+            });
+        }
+
+        async function loadCatalogProducts() {
+            try {
+                const response = await fetch('/catalogo/api/productos');
+                catalogProducts = await response.json();
+                renderCatalogOptions();
+            } catch (_err) {
+                catalogProducts = [];
+                document.getElementById('catalog-options').innerHTML = '<div class="catalog-option"><div class="catalog-option__meta">No fue posible cargar el catálogo ahora.</div></div>';
+            }
+        }
+
+        function setupProductPicker() {
+            const searchInput = document.getElementById('q-product-search');
+            searchInput.addEventListener('input', () => renderCatalogOptions(searchInput.value));
+            renderSelectedProducts();
+            loadCatalogProducts();
+        }
 
         function selectLine(el, line) {
             currentLine = line;
             document.querySelectorAll('.quote-line-option').forEach(o => o.classList.remove('selected--piscina', 'selected--agua'));
             el.classList.add(`selected--${line}`);
+            renderCatalogOptions(document.getElementById('q-product-search')?.value || '');
         }
 
         function selectRequestType(el, type) {
@@ -700,6 +961,14 @@
                     document.getElementById('type-error').style.display = 'block';
                     isValid = false;
                 }
+                const hiddenProducts = document.getElementById('q-products').value.trim();
+                const freeMessage = document.getElementById('q-message').value.trim();
+                if (!hiddenProducts && !freeMessage) {
+                    document.getElementById('products-error').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('products-error').style.display = 'none';
+                }
             }
 
             return isValid;
@@ -755,8 +1024,9 @@
             document.getElementById('sum-email').textContent = document.getElementById('q-email').value;
             document.getElementById('sum-tel').textContent = document.getElementById('q-tel').value;
             document.getElementById('sum-city').textContent = document.getElementById('q-city').value;
-            document.getElementById('sum-linea').textContent = currentLine === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua';
+            document.getElementById('sum-linea').textContent = productLineName(currentLine);
             document.getElementById('sum-type').textContent = document.getElementById('q-type').value;
+            document.getElementById('sum-products').textContent = productsSummaryText() || document.getElementById('q-message').value || 'Sin detalle';
         }
 
         // Real-time validation
@@ -793,6 +1063,8 @@
             e.preventDefault();
             const btn = e.target.querySelector('.quote-submit');
             const originalHTML = btn.innerHTML;
+            const qMessage = document.getElementById('q-message').value;
+            const productosResumen = productsSummaryText();
             
             const payload = {
                 'linea': currentLine,
@@ -802,8 +1074,15 @@
                 'telefono': document.getElementById('q-tel').value,
                 'ciudad': document.getElementById('q-city').value,
                 'tipo': document.getElementById('q-type').value,
-                'mensaje': document.getElementById('q-products').value,
+                'productos': productosResumen,
+                'mensaje': qMessage,
                 'notas': document.getElementById('q-notes').value,
+                'selected_items': selectedProducts.map((p) => ({
+                    id: p.id,
+                    nombre: p.nombre,
+                    referencia: p.referencia,
+                    cantidad: p.cantidad,
+                })),
             };
 
             btn.disabled = true;
@@ -823,9 +1102,10 @@
                     document.getElementById('consultarLink').style.display = 'none';
                     document.getElementById('successScreen').style.display = 'block';
                     document.getElementById('successUser').textContent = payload.nombre;
+                    document.getElementById('successQuoteNumber').textContent = data?.data?.numero || '-';
                     
-                    const lineText = currentLine === 'piscina' ? 'Piscina & Spa' : 'Tratamiento de Agua';
-                    const waMsg = encodeURIComponent(`Hola, acabo de enviar una cotización por ${lineText}. Mi nombre es ${payload.nombre}.`);
+                    const lineText = productLineName(currentLine);
+                    const waMsg = encodeURIComponent(`Hola, acabo de enviar la cotización ${data?.data?.numero || ''} por ${lineText}. Mi nombre es ${payload.nombre}.`);
                     document.getElementById('whatsappBtn').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMsg}`;
                     
                     window.scrollTo({ top: document.querySelector('.quote-form').offsetTop - 100, behavior: 'smooth' });
@@ -841,6 +1121,8 @@
                 btn.innerHTML = originalHTML;
             }
         });
+
+        setupProductPicker();
     </script>
 </body>
 

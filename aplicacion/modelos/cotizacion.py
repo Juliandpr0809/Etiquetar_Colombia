@@ -20,6 +20,10 @@ class Cotizacion(db.Model):
     
     estado = db.Column(db.String(20), nullable=False, default="pendiente", index=True)
     # 'pendiente', 'en_revision', 'respondida', 'descartada' 
+    tipo_origen = db.Column(db.String(20), nullable=False, default="cliente", index=True)
+    generado_por_admin_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True, index=True)
+    validez_dias = db.Column(db.Integer, nullable=False, default=30)
+    fecha_vencimiento = db.Column(db.DateTime, nullable=True, index=True)
     precio_ofertado = db.Column(db.String(50), nullable=True) 
     respuesta = db.Column(db.Text, nullable=True)  # Mapea a columna "respuesta" en BD
     
