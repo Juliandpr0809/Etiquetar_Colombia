@@ -1628,6 +1628,21 @@ body.theme-dark .catalog-card__cart-btn:hover {
 .product-detail-page {
     padding: 10px 0 50px;
 }
+.product-detail-page .catalog-header__breadcrumb {
+    color: #111111;
+}
+.product-detail-page .catalog-header__breadcrumb a {
+    color: #111111;
+}
+.product-detail-page .catalog-header__breadcrumb a:hover {
+    color: #000000;
+}
+.product-detail-page .catalog-header__breadcrumb .active {
+    color: #000000;
+}
+.product-detail-page .catalog-header__breadcrumb i {
+    color: #111111;
+}
 
 .product-detail-layout {
     display: grid;

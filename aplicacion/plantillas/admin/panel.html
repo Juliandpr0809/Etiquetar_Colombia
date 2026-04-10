@@ -926,6 +926,33 @@
                     </form>
                     <div id="bannersList" class="admin-list"></div>
                 </article>
+
+                <article class="admin-card" style="margin-top:12px;">
+                    <h3><i class="fas fa-fire"></i> Mas Vendidos (Homepage)</h3>
+                    <p class="admin-form-hint" style="margin-bottom:10px;">Administra hasta 12 productos para la seccion "Los Mas Vendidos" en las landings de agua y piscina.</p>
+
+                    <div class="admin-form-2col">
+                        <div class="admin-form-group">
+                            <label for="destacadosBusqueda">Buscar producto</label>
+                            <input id="destacadosBusqueda" placeholder="Nombre o referencia">
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="destacadosTabNombre">Tab asignado</label>
+                            <input id="destacadosTabNombre" placeholder="Ej: Filtros de Carbono">
+                        </div>
+                    </div>
+                    <div class="admin-inline-actions" style="margin-top:8px;">
+                        <button type="button" id="btnBuscarDestacados" class="admin-mini-btn"><i class="fas fa-search"></i> Buscar</button>
+                    </div>
+                    <div id="destacadosResultados" class="admin-list" style="margin-top:10px;"></div>
+
+                    <div class="admin-item__row" style="margin-top:16px;">
+                        <strong>Lista actual</strong>
+                        <span id="destacadosCounter" class="admin-badge admin-badge--neutral">0/12</span>
+                    </div>
+                    <div class="admin-form-hint">Arrastra los items para cambiar el orden de aparicion.</div>
+                    <div id="destacadosHomeList" class="admin-list" style="margin-top:10px;"></div>
+                </article>
             </section>
 
             <section class="admin-tab" id="tab-pedidos">

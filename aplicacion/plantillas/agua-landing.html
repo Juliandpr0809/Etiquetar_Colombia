@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="../estaticos/css/landing.css">
 </head>
 
-<body class="lp-theme--agua">
+<body class="lp-theme--agua" data-home-line="agua">
 
   <!-- ══ PROMO BAR (solo si hay oferta activa) ══ -->
   {% if oferta_activa %}
@@ -109,78 +109,12 @@ Agua Sin Dudas</div>
       <p class="lp-section__sub">Los sistemas de tratamiento de agua con mayor demanda para hogares, oficinas y uso comercial.</p>
     </div>
 
-    <div class="lp-products__tabs" role="tablist">
-      <button class="lp-products__tab is-active" data-lp-cat="osmosis" role="tab">Ósmosis Inversa</button>
-      <button class="lp-products__tab" data-lp-cat="uv" role="tab">Equipos UV</button>
-      <button class="lp-products__tab" data-lp-cat="carbon" role="tab">Filtros de Carbono</button>
-      <button class="lp-products__tab" data-lp-cat="todos" role="tab">Ver Todos</button>
-    </div>
+    <div class="lp-products__tabs" role="tablist" id="lpBestSellerTabs"></div>
 
-    <div class="lp-products__grid" id="lpAguaGrid">
-
-      <!-- Producto 1 — Ósmosis -->
-      <div class="lp-prod-card" data-lp-cat="osmosis">
-        <span class="lp-prod-card__badge">-20% OFF</span>
-        <div class="lp-prod-card__img-wrap">
-          <img src="../estaticos/img/producto-osmosis-ecommerce-removebg-preview.png" alt="Sistema Ósmosis Inversa 5 Etapas Premium">
-        </div>
-        <div class="lp-prod-card__body">
-          <div class="lp-prod-card__cat">Ósmosis Inversa</div>
-          <div class="lp-prod-card__name">Sistema Ósmosis Inversa 5 Etapas Premium</div>
-          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
-          <div class="lp-prod-card__price">$980.000</div>
-          <div class="lp-prod-card__price-old">$1.225.000</div>
-          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
-        </div>
-      </div>
-
-      <!-- Producto 2 — UV -->
-      <div class="lp-prod-card" data-lp-cat="uv">
-        <div class="lp-prod-card__img-wrap">
-          <img src="../estaticos/img/producto-osmosis-ecommerce.jpg" alt="Purificador UV Residencial VIQUA 12 GPM">
-        </div>
-        <div class="lp-prod-card__body">
-          <div class="lp-prod-card__cat">Equipos UV</div>
-          <div class="lp-prod-card__name">Purificador UV Residencial 12 GPM VIQUA</div>
-          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
-          <div class="lp-prod-card__price">$1.850.000</div>
-          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
-        </div>
-      </div>
-
-      <!-- Producto 3 — Carbono -->
-      <div class="lp-prod-card" data-lp-cat="carbon">
-        <div class="lp-prod-card__img-wrap">
-          <img src="../estaticos/img/producto-osmosis-ecommerce.jpg" alt="Filtro Carbón Activado Big Blue 20">
-        </div>
-        <div class="lp-prod-card__body">
-          <div class="lp-prod-card__cat">Filtros de Carbono</div>
-          <div class="lp-prod-card__name">Filtro Carbón Activado Big Blue 20"</div>
-          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
-          <div class="lp-prod-card__price">$420.000</div>
-          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
-        </div>
-      </div>
-
-      <!-- Producto 4 — Cloración -->
-      <div class="lp-prod-card" data-lp-cat="todos">
-        <span class="lp-prod-card__badge lp-prod-card__badge--new">Nuevo</span>
-        <div class="lp-prod-card__img-wrap">
-          <img src="../estaticos/img/producto-osmosis-ecommerce.jpg" alt="Dosificador de Cloro Automático Stenner">
-        </div>
-        <div class="lp-prod-card__body">
-          <div class="lp-prod-card__cat">Cloración Automática</div>
-          <div class="lp-prod-card__name">Dosificador de Cloro Automático Stenner</div>
-          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
-          <div class="lp-prod-card__price">$1.350.000</div>
-          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
-        </div>
-      </div>
-
-    </div>
+    <div class="lp-products__grid" id="lpBestSellerGrid" data-best-sellers="1"></div>
 
     <div class="lp-products__see-all">
-      <a href="/catalogo/agua">Ver todos los sistemas de tratamiento de agua <i class="fas fa-arrow-right"></i></a>
+      <a href="/catalogo/agua" id="lpBestSellerSeeAll">Ver todos los sistemas de tratamiento de agua <i class="fas fa-arrow-right"></i></a>
     </div>
   </section>
 

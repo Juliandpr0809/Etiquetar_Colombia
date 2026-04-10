@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="../estaticos/css/landing.css">
 </head>
 
-<body class="lp-theme--piscina">
+<body class="lp-theme--piscina" data-home-line="piscina">
 
   <!-- ══ PROMO BAR (solo si hay oferta activa) ══ -->
   {% if oferta_activa %}
@@ -109,78 +109,12 @@ Empieza Aquí</div>
       <p class="lp-section__sub">Los equipos con mayor rotación y mejor valoración para piscinas residenciales y comerciales.</p>
     </div>
 
-    <div class="lp-products__tabs" role="tablist">
-      <button class="lp-products__tab is-active" data-lp-cat="bombas" role="tab">Bombas de Agua</button>
-      <button class="lp-products__tab" data-lp-cat="filtros" role="tab">Filtros de Arena</button>
-      <button class="lp-products__tab" data-lp-cat="limpiafondos" role="tab">Robots Limpiafondos</button>
-      <button class="lp-products__tab" data-lp-cat="todos" role="tab">Ver Todos</button>
-    </div>
+    <div class="lp-products__tabs" role="tablist" id="lpBestSellerTabs"></div>
 
-    <div class="lp-products__grid" id="lpPiscinaGrid">
-
-      <!-- Producto 1 — Bombas -->
-      <div class="lp-prod-card" data-lp-cat="bombas">
-        <span class="lp-prod-card__badge">-15% OFF</span>
-        <div class="lp-prod-card__img-wrap">
-          <img src="../estaticos/img/producto-piscina-ecommerce.jpg" alt="Bomba Centrífuga Pentair WhisperFlo 2HP">
-        </div>
-        <div class="lp-prod-card__body">
-          <div class="lp-prod-card__cat">Bombas de Agua</div>
-          <div class="lp-prod-card__name">Bomba Centrífuga 2HP Pentair WhisperFlo</div>
-          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
-          <div class="lp-prod-card__price">$2.450.000</div>
-          <div class="lp-prod-card__price-old">$2.880.000</div>
-          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
-        </div>
-      </div>
-
-      <!-- Producto 2 — Filtros -->
-      <div class="lp-prod-card" data-lp-cat="filtros">
-        <div class="lp-prod-card__img-wrap">
-          <img src="../estaticos/img/producto-piscina-ecommerce.jpg" alt="Filtro de Arena Hayward Pro Series 24">
-        </div>
-        <div class="lp-prod-card__body">
-          <div class="lp-prod-card__cat">Filtros de Arena</div>
-          <div class="lp-prod-card__name">Filtro de Arena Hayward Pro Series 24"</div>
-          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
-          <div class="lp-prod-card__price">$1.750.000</div>
-          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
-        </div>
-      </div>
-
-      <!-- Producto 3 — Limpiafondos -->
-      <div class="lp-prod-card" data-lp-cat="limpiafondos">
-        <span class="lp-prod-card__badge lp-prod-card__badge--new">Nuevo</span>
-        <div class="lp-prod-card__img-wrap">
-          <img src="../estaticos/img/producto-piscina-ecommerce.jpg" alt="Robot Limpiafondos Dolphin E20">
-        </div>
-        <div class="lp-prod-card__body">
-          <div class="lp-prod-card__cat">Robots Limpiafondos</div>
-          <div class="lp-prod-card__name">Robot Limpiafondos Dolphin E20</div>
-          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
-          <div class="lp-prod-card__price">$3.200.000</div>
-          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
-        </div>
-      </div>
-
-      <!-- Producto 4 — Bombas -->
-      <div class="lp-prod-card" data-lp-cat="bombas">
-        <div class="lp-prod-card__img-wrap">
-          <img src="../estaticos/img/producto-piscina-ecommerce.jpg" alt="Luz LED Subacuática RGB 35W">
-        </div>
-        <div class="lp-prod-card__body">
-          <div class="lp-prod-card__cat">Iluminación</div>
-          <div class="lp-prod-card__name">Luz LED Subacuática RGB 35W con Control</div>
-          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
-          <div class="lp-prod-card__price">$380.000</div>
-          <button class="lp-prod-card__btn"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
-        </div>
-      </div>
-
-    </div>
+    <div class="lp-products__grid" id="lpBestSellerGrid" data-best-sellers="1"></div>
 
     <div class="lp-products__see-all">
-      <a href="/catalogo/piscina">Ver todos los productos de piscina <i class="fas fa-arrow-right"></i></a>
+      <a href="/catalogo/piscina" id="lpBestSellerSeeAll">Ver todos los productos de piscina <i class="fas fa-arrow-right"></i></a>
     </div>
   </section>
 

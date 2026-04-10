@@ -25,6 +25,8 @@ try:
 except ImportError:
     MAIL_AVAILABLE = False
 from sqlalchemy import func, text, case
+from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 
 from aplicacion.extensiones import db
@@ -37,6 +39,7 @@ from aplicacion.modelos import (
     FichaTecnica,
     ConfiguracionEnvio,
     Cotizacion,
+    DestacadoHome,
     Notificacion,
     NotificacionUsuario,
     Pedido,
@@ -51,6 +54,7 @@ from aplicacion.modelos import (
     Usuario,
 )
 from aplicacion.servicios import cloudinary_habilitado, subir_imagen_banner, subir_imagen_producto
+from aplicacion.servicios.destacados_home import invalidate_destacados_cache
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -287,6 +291,65 @@ def _decimal(value, default="0"):
         return Decimal(texto)
     except Exception:
         return Decimal(default)
+
+
+def _slug_tab_home(nombre):
+    base = (nombre or "").strip().lower()
+    base = (
+        base.replace("á", "a")
+        .replace("é", "e")
+        .replace("í", "i")
+        .replace("ó", "o")
+        .replace("ú", "u")
+    )
+    base = re.sub(r"[^a-z0-9\s-]", "", base)
+    base = re.sub(r"\s+", "-", base)
+    base = re.sub(r"-+", "-", base).strip("-")
+    return base or "otros"
+
+
+def _serializar_destacado_admin(item):
+    producto = item.producto
+    precio_final = float(producto.precio_final or producto.precio or 0) if producto else 0
+    precio_anterior = None
+    if producto and producto.precio_anterior is not None:
+        try:
+            precio_anterior = float(producto.precio_anterior)
+        except (TypeError, ValueError):
+            precio_anterior = None
+    if producto and (precio_anterior is None or precio_anterior <= precio_final):
+        try:
+            base = float(producto.precio or 0)
+            if base > precio_final:
+                precio_anterior = base
+        except (TypeError, ValueError):
+            precio_anterior = None
+    descuento = 0
+    if precio_anterior and precio_anterior > precio_final and precio_anterior > 0:
+        descuento = int(round((1 - (precio_final / precio_anterior)) * 100))
+
+    return {
+        "id": item.id,
+        "producto_id": item.producto_id,
+        "tab_nombre": item.tab_nombre,
+        "tab_slug": _slug_tab_home(item.tab_nombre),
+        "orden": int(item.orden or 0),
+        "activo": bool(item.activo),
+        "creado_en": item.creado_en.isoformat() if item.creado_en else None,
+        "producto": {
+            "id": producto.id if producto else None,
+            "nombre": producto.nombre if producto else "",
+            "slug": producto.slug if producto else "",
+            "referencia": (producto.referencia or "") if producto else "",
+            "linea": producto.linea if producto else "",
+            "imagen_url": producto.imagen_url if producto else None,
+            "precio": float(producto.precio or 0) if producto else 0,
+            "precio_final": precio_final,
+            "precio_anterior": precio_anterior,
+            "descuento": descuento,
+            "activo": bool(producto.activo) if producto else False,
+        },
+    }
 
 
 def _int_nonneg(value, default=0) -> int:
@@ -1824,6 +1887,7 @@ def crear_producto_api():
             producto.ficha_url = ficha_tecnica.ficha_pdf_url
 
     db.session.commit()
+    invalidate_destacados_cache()
 
     return jsonify({"ok": True, "message": "Producto creado.", "data": {"id": producto.id}}), 201
 
@@ -2014,6 +2078,7 @@ def editar_producto_api(producto_id):
             producto.ficha_url = ficha_tecnica.ficha_pdf_url
 
     db.session.commit()
+    invalidate_destacados_cache()
 
     return jsonify({"ok": True, "message": "Producto actualizado correctamente."})
 
@@ -2043,10 +2108,12 @@ def eliminar_producto_api(producto_id):
         | (ProductoRecomendado.recomendado_id == producto.id)
     ).delete(synchronize_session=False)
     KitProducto.query.filter_by(kit_id=producto.id).delete(synchronize_session=False)
+    DestacadoHome.query.filter_by(producto_id=producto.id).delete(synchronize_session=False)
     Promocion.query.filter_by(producto_id=producto.id).delete(synchronize_session=False)
 
     db.session.delete(producto)
     db.session.commit()
+    invalidate_destacados_cache()
     return jsonify({"ok": True, "message": "Producto eliminado."})
 
 
@@ -2097,6 +2164,164 @@ def buscar_productos_api():
     )
 
 
+@admin_bp.get("/api/destacados-home")
+def listar_destacados_home_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    try:
+        filas = (
+            DestacadoHome.query.options(joinedload(DestacadoHome.producto))
+            .order_by(DestacadoHome.orden.asc(), DestacadoHome.creado_en.asc())
+            .all()
+        )
+    except (ProgrammingError, OperationalError):
+        return jsonify(
+            {
+                "ok": True,
+                "data": [],
+                "meta": {"max_items": 12, "total": 0},
+                "warning": "La tabla destacados_home aun no existe. Ejecuta migraciones.",
+            }
+        )
+    return jsonify(
+        {
+            "ok": True,
+            "data": [_serializar_destacado_admin(item) for item in filas if item.producto],
+            "meta": {"max_items": 12, "total": len(filas)},
+        }
+    )
+
+
+@admin_bp.post("/api/destacados-home")
+def crear_destacado_home_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        producto_id = int(payload.get("producto_id") or 0)
+    except (TypeError, ValueError):
+        producto_id = 0
+
+    tab_nombre = (payload.get("tab_nombre") or "").strip()
+    if not producto_id:
+        return jsonify({"ok": False, "message": "Debes seleccionar un producto valido."}), 400
+    if not tab_nombre:
+        return jsonify({"ok": False, "message": "El nombre del tab es obligatorio."}), 400
+
+    try:
+        total_destacados = DestacadoHome.query.count()
+    except (ProgrammingError, OperationalError):
+        return jsonify({"ok": False, "message": "La tabla destacados_home aun no existe. Ejecuta migraciones."}), 503
+
+    if total_destacados >= 12:
+        return jsonify({"ok": False, "message": "Solo se permiten 12 productos destacados en total."}), 400
+
+    try:
+        existente = DestacadoHome.query.filter_by(producto_id=producto_id).first()
+    except (ProgrammingError, OperationalError):
+        return jsonify({"ok": False, "message": "La tabla destacados_home aun no existe. Ejecuta migraciones."}), 503
+    if existente:
+        return jsonify({"ok": False, "message": "Este producto ya esta en la lista de destacados."}), 409
+
+    producto = Producto.query.get_or_404(producto_id)
+    orden_max = db.session.query(func.max(DestacadoHome.orden)).scalar() or 0
+    fila = DestacadoHome(
+        producto_id=producto.id,
+        tab_nombre=tab_nombre,
+        orden=int(orden_max) + 1,
+        activo=bool(payload.get("activo", True)),
+    )
+    db.session.add(fila)
+    db.session.commit()
+    invalidate_destacados_cache()
+
+    return jsonify({"ok": True, "message": "Producto agregado a Mas Vendidos.", "data": _serializar_destacado_admin(fila)}), 201
+
+
+@admin_bp.patch("/api/destacados-home/<int:destacado_id>")
+def editar_destacado_home_api(destacado_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        fila = DestacadoHome.query.options(joinedload(DestacadoHome.producto)).get_or_404(destacado_id)
+    except (ProgrammingError, OperationalError):
+        return jsonify({"ok": False, "message": "La tabla destacados_home aun no existe. Ejecuta migraciones."}), 503
+
+    if payload.get("tab_nombre") is not None:
+        tab_nombre = (payload.get("tab_nombre") or "").strip()
+        if not tab_nombre:
+            return jsonify({"ok": False, "message": "El nombre del tab no puede estar vacio."}), 400
+        fila.tab_nombre = tab_nombre
+
+    if payload.get("orden") is not None:
+        try:
+            fila.orden = max(0, int(payload.get("orden")))
+        except (TypeError, ValueError):
+            pass
+
+    if payload.get("activo") is not None:
+        fila.activo = bool(payload.get("activo"))
+
+    db.session.commit()
+    invalidate_destacados_cache()
+    return jsonify({"ok": True, "message": "Destacado actualizado.", "data": _serializar_destacado_admin(fila)})
+
+
+@admin_bp.patch("/api/destacados-home/reordenar")
+def reordenar_destacados_home_api():
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    payload = request.get_json(silent=True) or {}
+    items = payload.get("items") or []
+    if not isinstance(items, list) or not items:
+        return jsonify({"ok": False, "message": "Debes enviar la lista de ordenamiento."}), 400
+
+    mapa = {}
+    for idx, item in enumerate(items, start=1):
+        try:
+            dest_id = int(item.get("id") if isinstance(item, dict) else 0)
+        except (TypeError, ValueError):
+            continue
+        if dest_id > 0:
+            mapa[dest_id] = idx
+
+    try:
+        filas = DestacadoHome.query.filter(DestacadoHome.id.in_(list(mapa.keys()))).all()
+    except (ProgrammingError, OperationalError):
+        return jsonify({"ok": False, "message": "La tabla destacados_home aun no existe. Ejecuta migraciones."}), 503
+    for fila in filas:
+        fila.orden = mapa.get(fila.id, fila.orden)
+
+    db.session.commit()
+    invalidate_destacados_cache()
+    return jsonify({"ok": True, "message": "Orden actualizado."})
+
+
+@admin_bp.delete("/api/destacados-home/<int:destacado_id>")
+def eliminar_destacado_home_api(destacado_id):
+    admin = _admin_requerido(api=True)
+    if not isinstance(admin, Usuario):
+        return admin
+
+    try:
+        fila = DestacadoHome.query.get_or_404(destacado_id)
+    except (ProgrammingError, OperationalError):
+        return jsonify({"ok": False, "message": "La tabla destacados_home aun no existe. Ejecuta migraciones."}), 503
+    db.session.delete(fila)
+    db.session.commit()
+    invalidate_destacados_cache()
+    return jsonify({"ok": True, "message": "Producto removido de Mas Vendidos."})
+
+
 @admin_bp.patch("/api/productos/<int:producto_id>/estado")
 def cambiar_estado_producto_api(producto_id):
     admin = _admin_requerido(api=True)
@@ -2107,6 +2332,7 @@ def cambiar_estado_producto_api(producto_id):
     payload = request.get_json(silent=True) or {}
     producto.activo = bool(payload.get("activo", not producto.activo))
     db.session.commit()
+    invalidate_destacados_cache()
     return jsonify({"ok": True, "message": "Estado del producto actualizado."})
 
 
@@ -2124,6 +2350,7 @@ def actualizar_stock_api(producto_id):
     producto = Producto.query.get_or_404(producto_id)
     producto.stock = _int_nonneg(stock, producto.stock)
     db.session.commit()
+    invalidate_destacados_cache()
     return jsonify({"ok": True, "message": "Inventario actualizado."})
 
 

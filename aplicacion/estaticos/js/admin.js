@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fichaCaracteristicasDraft: [],
     fichaComponentesDraft: [],
     cotizacionesRiskFilter: 'all',
+    destacadosHome: [],
   };
 
   const fmtCop = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(valor || 0));
@@ -143,12 +144,40 @@ document.addEventListener('DOMContentLoaded', () => {
     return { label: 'Activo', className: 'ok' };
   };
 
+  const ensureTopNotification = () => {
+    let node = qs('#adminTopNotify');
+    if (node) return node;
+    node = document.createElement('div');
+    node.id = 'adminTopNotify';
+    node.className = 'admin-top-notify';
+    node.setAttribute('role', 'status');
+    node.setAttribute('aria-live', 'polite');
+    document.body.appendChild(node);
+    return node;
+  };
+
+  const showTopNotification = (type, text) => {
+    const node = ensureTopNotification();
+    const kind = type === 'success' ? 'success' : (type === 'info' ? 'info' : 'error');
+    node.className = `admin-top-notify is-visible admin-top-notify--${kind}`;
+    node.innerHTML = `
+      <i class="fas ${kind === 'success' ? 'fa-circle-check' : (kind === 'info' ? 'fa-circle-info' : 'fa-circle-exclamation')}"></i>
+      <span>${escapeHtml(text || 'Ocurrió un error.')}</span>
+    `;
+
+    clearTimeout(node._timer);
+    node._timer = setTimeout(() => {
+      node.classList.remove('is-visible');
+    }, 3600);
+  };
+
   const showMsg = (type, text) => {
     successBox.classList.remove('visible');
     errorBox.classList.remove('visible');
     const target = type === 'success' ? successBox : errorBox;
     target.textContent = text;
     target.classList.add('visible');
+    showTopNotification(type, text);
   };
 
   const confirmAction = ({
@@ -210,6 +239,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return data;
   };
+
+  window.addEventListener('error', (event) => {
+    const message = event?.error?.message || event?.message || 'Error inesperado en el panel.';
+    showTopNotification('error', message);
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event?.reason;
+    const message = reason?.message || String(reason || 'Error inesperado de la aplicación.');
+    showTopNotification('error', message);
+  });
 
   const activateTab = (tab) => {
     qsa('.admin-tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
@@ -3399,6 +3439,203 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const renderDestacadosResultados = (items) => {
+    const root = qs('#destacadosResultados');
+    if (!root) return;
+    if (!Array.isArray(items) || !items.length) {
+      root.innerHTML = '<div class="admin-item admin-item--empty">Sin resultados</div>';
+      return;
+    }
+
+    root.innerHTML = items.map((p) => {
+      const thumb = p.imagen_url
+        ? `<img src="${escapeHtml(p.imagen_url)}" alt="${escapeHtml(p.nombre || 'Producto')}" class="destacados-home-item__thumb">`
+        : `<span class="destacados-home-item__thumb destacados-home-item__thumb--ph">${escapeHtml(initialsFromText(p.nombre || 'PR'))}</span>`;
+      return `
+        <div class="admin-item destacados-result-item">
+          ${thumb}
+          <div>
+            <div class="destacados-home-item__name">${escapeHtml(p.nombre || 'Producto')}</div>
+            <div class="destacados-home-item__meta">
+              <span>Ref: ${escapeHtml(p.referencia || 'N/A')}</span>
+              <span>${fmtCop(p.precio_final || p.precio || 0)}</span>
+              <span class="admin-badge admin-badge--${p.linea === 'agua' ? 'agua' : 'piscina'}">${p.linea === 'agua' ? 'Agua' : 'Piscina'}</span>
+            </div>
+          </div>
+          <div class="destacados-home-item__actions">
+            <button type="button" class="admin-mini-btn" data-add-destacado="${p.id}"><i class="fas fa-plus"></i> Agregar</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  };
+
+  const handleAddDestacado = async (btn) => {
+    const tabInput = qs('#destacadosTabNombre');
+    const tabNombre = (tabInput?.value || '').trim();
+    if (!tabNombre) {
+      showMsg('error', 'Debes indicar el tab bajo el que aparecera el producto.');
+      if (tabInput) tabInput.focus();
+      return;
+    }
+
+    const productoId = Number(btn?.dataset?.addDestacado || 0);
+    if (!productoId) {
+      showMsg('error', 'No se pudo identificar el producto a agregar.');
+      return;
+    }
+
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agregando...';
+    try {
+      await api('/admin/api/destacados-home', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ producto_id: productoId, tab_nombre: tabNombre })
+      });
+      showMsg('success', 'Producto agregado a Mas Vendidos.');
+      await loadDestacadosHome();
+      await buscarProductosDestacados();
+    } catch (err) {
+      showMsg('error', err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
+  };
+
+  const renderDestacadosHomeList = () => {
+    const root = qs('#destacadosHomeList');
+    const counter = qs('#destacadosCounter');
+    if (!root) return;
+    const items = Array.isArray(state.destacadosHome) ? state.destacadosHome : [];
+    if (counter) counter.textContent = `${items.length}/12`;
+
+    if (!items.length) {
+      root.innerHTML = '<div class="admin-item admin-item--empty">Sin productos configurados. Se usara fallback automatico en el homepage.</div>';
+      return;
+    }
+
+    root.innerHTML = items.map((row, idx) => {
+      const p = row.producto || {};
+      const thumb = p.imagen_url
+        ? `<img src="${escapeHtml(p.imagen_url)}" alt="${escapeHtml(p.nombre || 'Producto')}" class="destacados-home-item__thumb">`
+        : `<span class="destacados-home-item__thumb destacados-home-item__thumb--ph">${escapeHtml(initialsFromText(p.nombre || 'PR'))}</span>`;
+      return `
+        <div class="admin-item destacados-home-item" draggable="true" data-home-drag-idx="${idx}" data-home-id="${row.id}">
+          ${thumb}
+          <div>
+            <div class="admin-item__row">
+              <strong>${escapeHtml(p.nombre || 'Producto')}</strong>
+              <span class="destacados-home-item__drag"><i class="fas fa-grip-vertical"></i> arrastrar</span>
+            </div>
+            <div class="destacados-home-item__meta">
+              <span>Ref: ${escapeHtml(p.referencia || 'N/A')}</span>
+              <span>${fmtCop(p.precio_final || p.precio || 0)}</span>
+              <span class="admin-badge admin-badge--neutral">Tab: ${escapeHtml(row.tab_nombre || 'General')}</span>
+              <span class="admin-badge admin-badge--${p.linea === 'agua' ? 'agua' : 'piscina'}">${p.linea === 'agua' ? 'Agua' : 'Piscina'}</span>
+            </div>
+          </div>
+          <div class="destacados-home-item__actions">
+            <button type="button" class="admin-mini-btn" data-edit-tab-destacado="${row.id}"><i class="fas fa-pen"></i> Editar tab</button>
+            <button type="button" class="admin-mini-btn admin-mini-btn--danger" data-delete-destacado="${row.id}"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    qsa('[data-edit-tab-destacado]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const row = items.find((x) => x.id === Number(btn.dataset.editTabDestacado));
+        if (!row) return;
+        const nuevoTab = prompt('Editar tab asignado', row.tab_nombre || '');
+        if (nuevoTab == null) return;
+        try {
+          await api(`/admin/api/destacados-home/${row.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tab_nombre: nuevoTab })
+          });
+          showMsg('success', 'Tab actualizado.');
+          await loadDestacadosHome();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
+    qsa('[data-delete-destacado]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const ok = await confirmAction({
+          title: 'Quitar destacado',
+          message: 'Este producto dejara de aparecer en Los Mas Vendidos.',
+          confirmText: 'Quitar',
+          danger: true,
+        });
+        if (!ok) return;
+        try {
+          await api(`/admin/api/destacados-home/${btn.dataset.deleteDestacado}`, { method: 'DELETE' });
+          showMsg('success', 'Producto removido de Mas Vendidos.');
+          await loadDestacadosHome();
+        } catch (err) {
+          showMsg('error', err.message);
+        }
+      });
+    });
+
+    qsa('[data-home-drag-idx]').forEach((row) => {
+      row.addEventListener('dragstart', (ev) => {
+        row.classList.add('is-dragging');
+        ev.dataTransfer.effectAllowed = 'move';
+        ev.dataTransfer.setData('text/plain', row.dataset.homeDragIdx || '');
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('is-dragging');
+      });
+      row.addEventListener('dragover', (ev) => ev.preventDefault());
+      row.addEventListener('drop', async (ev) => {
+        ev.preventDefault();
+        const from = Number(ev.dataTransfer.getData('text/plain'));
+        const to = Number(row.dataset.homeDragIdx || -1);
+        if (Number.isNaN(from) || Number.isNaN(to) || from === to) return;
+        moveInArray(state.destacadosHome, from, to);
+        renderDestacadosHomeList();
+        try {
+          await api('/admin/api/destacados-home/reordenar', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: state.destacadosHome.map((item, idx) => ({ id: item.id, orden: idx + 1 })) })
+          });
+        } catch (err) {
+          showMsg('error', err.message);
+          await loadDestacadosHome();
+        }
+      });
+    });
+  };
+
+  const loadDestacadosHome = async () => {
+    const data = await api('/admin/api/destacados-home');
+    state.destacadosHome = Array.isArray(data.data) ? data.data : [];
+    renderDestacadosHomeList();
+  };
+
+  const buscarProductosDestacados = async () => {
+    const input = qs('#destacadosBusqueda');
+    if (!input) return;
+    const q = (input.value || '').trim();
+    if (!q || q.length < 2) {
+      renderDestacadosResultados([]);
+      return;
+    }
+    const data = await api(`/admin/api/productos/buscar?q=${encodeURIComponent(q)}&limit=20`);
+    const existentes = new Set((state.destacadosHome || []).map((x) => Number(x.producto_id)));
+    const disponibles = (Array.isArray(data.data) ? data.data : []).filter((p) => !existentes.has(Number(p.id)));
+    renderDestacadosResultados(disponibles);
+  };
+
   const loadPedidos = async () => {
     const data = await api('/admin/api/pedidos');
     renderList('#pedidosList', data.data, (p) => `
@@ -5109,6 +5346,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCotizaciones,
     loadPromociones,
     loadBanners,
+    loadDestacadosHome,
     loadPedidos,
     loadClientes,
     loadEnvios,
@@ -5135,6 +5373,36 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  const btnBuscarDestacados = qs('#btnBuscarDestacados');
+  const destacadosBusqueda = qs('#destacadosBusqueda');
+  if (btnBuscarDestacados) {
+    btnBuscarDestacados.addEventListener('click', () => {
+      buscarProductosDestacados().catch((err) => showMsg('error', err.message));
+    });
+  }
+  if (destacadosBusqueda) {
+    destacadosBusqueda.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        buscarProductosDestacados().catch((err) => showMsg('error', err.message));
+      }
+    });
+    destacadosBusqueda.addEventListener('input', () => {
+      const val = (destacadosBusqueda.value || '').trim();
+      if (val.length >= 2) {
+        buscarProductosDestacados().catch((err) => showMsg('error', err.message));
+      }
+    });
+  }
+
+  document.addEventListener('click', (event) => {
+    const addBtn = event.target.closest('[data-add-destacado]');
+    if (addBtn) {
+      event.preventDefault();
+      handleAddDestacado(addBtn).catch((err) => showMsg('error', err.message));
+    }
+  });
 
   const params = new URLSearchParams(window.location.search);
   const requestedTab = params.get('tab');

@@ -4,14 +4,14 @@ from datetime import datetime
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from flask import Flask, Response, abort, g, render_template, request, session
+from flask import Flask, Response, abort, g, jsonify, render_template, request, session
 from dotenv import load_dotenv
 from sqlalchemy.orm import joinedload
 
 from .config import config_by_name
 from .extensiones import db, migrate
 from .modelos import Banner, KitProducto, Producto, Usuario
-from .servicios import config_cloudinary
+from .servicios import config_cloudinary, get_destacados_home_payload
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -116,6 +116,13 @@ def _register_routes(app):
     @app.get("/agua-landing")
     def agua_landing():
         return render_template("agua-landing.html")
+
+    @app.get("/api/home/mas-vendidos")
+    def api_home_mas_vendidos():
+        linea = (request.args.get("linea") or "").strip().lower()
+        force_refresh = (request.args.get("refresh") or "") == "1"
+        payload = get_destacados_home_payload(linea=linea, force_refresh=force_refresh)
+        return jsonify({"ok": True, "data": payload})
 
     @app.get("/producto/<string:slug>")
     def producto_detalle(slug):

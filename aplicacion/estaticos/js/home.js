@@ -38,6 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const currencyFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+  const escapeHtml = (value) => String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 
   const formatCurrencyNodes = () => {
     document.querySelectorAll([
@@ -196,25 +202,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── Product Tabs (landing pages) ──
-  const tabs = document.querySelectorAll('.products__tab, .lp-products__tab');
-  const productCards = document.querySelectorAll('.product-card, .lp-prod-card');
-
-  const activateProductTab = (line, tabGroup) => {
-    tabGroup.forEach(t => {
-      t.classList.remove('active--piscina', 'active--agua', 'is-active');
-    });
-
+  // ── Product Tabs (static pages) ──
+  const staticTabs = document.querySelectorAll('.products__tab');
+  const staticCards = document.querySelectorAll('.product-card');
+  const activateStaticProductTab = (line, tabGroup) => {
+    tabGroup.forEach(t => t.classList.remove('active--piscina', 'active--agua', 'is-active'));
     tabGroup.forEach(tab => {
-      const tabLine = tab.dataset.line || tab.dataset.lpCat;
+      const tabLine = tab.dataset.line;
       if (tabLine === line) {
         if (line === 'agua') tab.classList.add('active--agua');
         else tab.classList.add('active--piscina', 'is-active');
       }
     });
-
-    productCards.forEach(card => {
-      const cardLine = card.dataset.line || card.dataset.lpCat;
+    staticCards.forEach(card => {
+      const cardLine = card.dataset.line;
       if (line === 'todos' || cardLine === line) {
         card.style.display = '';
         card.style.animation = 'fadeInUp 0.4s ease forwards';
@@ -223,44 +224,195 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   };
-
-  tabs.forEach(tab => {
+  staticTabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      const line = tab.dataset.line || tab.dataset.lpCat;
-      activateProductTab(line, tabs);
+      activateStaticProductTab(tab.dataset.line, staticTabs);
     });
   });
 
-  // ── Add to Cart ──
-  document.querySelectorAll('.product-card__btn, .lp-prod-card__btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const productoId = btn.dataset.productId;
-      if (!productoId) {
-        showToast('Este producto aún no está conectado al carrito.');
-        return;
-      }
+  const bindAddToCartButtons = (scope = document) => {
+    scope.querySelectorAll('.product-card__btn, .lp-prod-card__btn').forEach((btn) => {
+      if (btn.dataset.boundCart === '1') return;
+      btn.dataset.boundCart = '1';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const productoId = btn.dataset.productId;
+        if (!productoId) {
+          showToast('Este producto aun no esta conectado al carrito.');
+          return;
+        }
 
-      const original = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agregando...';
-      btn.style.pointerEvents = 'none';
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agregando...';
+        btn.style.pointerEvents = 'none';
 
-      window.etiquetarCart.addItem(productoId)
-        .then(() => {
-          btn.innerHTML = '<i class="fas fa-check"></i> ¡Agregado!';
-          showToast('Producto agregado al carrito');
-          setTimeout(() => {
+        window.etiquetarCart.addItem(productoId)
+          .then(() => {
+            btn.innerHTML = '<i class="fas fa-check"></i> ¡Agregado!';
+            showToast('Producto agregado al carrito');
+            setTimeout(() => {
+              btn.innerHTML = original;
+              btn.style.pointerEvents = '';
+            }, 1400);
+          })
+          .catch((error) => {
             btn.innerHTML = original;
             btn.style.pointerEvents = '';
-          }, 1400);
-        })
-        .catch((error) => {
-          btn.innerHTML = original;
-          btn.style.pointerEvents = '';
-          showToast(error.message || 'No se pudo agregar el producto');
-        });
+            showToast(error.message || 'No se pudo agregar el producto');
+          });
+      });
     });
+  };
+
+  // ── Dynamic Best Sellers (landing pages) ──
+  const bestSellerGrid = document.getElementById('lpBestSellerGrid');
+  const bestSellerTabsRoot = document.getElementById('lpBestSellerTabs');
+  const bestSellerSeeAll = document.getElementById('lpBestSellerSeeAll');
+  const landingLine = (document.body.dataset.homeLine || (document.body.classList.contains('lp-theme--agua') ? 'agua' : 'piscina')).trim();
+  const bestSellerState = {
+    items: [],
+    tabs: [],
+    active: 'todos',
+  };
+
+  const bestSellerPlaceholder = (item) => {
+    const fallbackText = encodeURIComponent((item.nombre || 'Producto').slice(0, 2).toUpperCase() || 'PR');
+    return `/placeholder/500x380/F0F7FF/0077B6?text=${fallbackText}`;
+  };
+
+  const cardBestSellerMarkup = (item) => {
+    const badge = Number(item.descuento || 0) > 0
+      ? `<span class="lp-prod-card__badge">-${Number(item.descuento)}% OFF</span>`
+      : '';
+    const oldPrice = item.precio_anterior && Number(item.precio_anterior) > Number(item.precio_final || 0)
+      ? `<div class="lp-prod-card__price-old" data-price-value="${Number(item.precio_anterior)}">${Number(item.precio_anterior)}</div>`
+      : '';
+    const img = item.imagen_url || bestSellerPlaceholder(item);
+    return `
+      <div class="lp-prod-card" data-lp-cat="${escapeHtml(item.tab_slug)}">
+        ${badge}
+        <div class="lp-prod-card__img-wrap">
+          <img src="${escapeHtml(img)}" alt="${escapeHtml(item.nombre || 'Producto')}">
+        </div>
+        <div class="lp-prod-card__body">
+          <div class="lp-prod-card__cat">${escapeHtml(item.tab_nombre || 'General')}</div>
+          <div class="lp-prod-card__name">${escapeHtml(item.nombre || 'Producto')}</div>
+          <div class="lp-prod-card__free-ship"><i class="fas fa-truck"></i> Envío gratis en Colombia</div>
+          <div class="lp-prod-card__price" data-price-value="${Number(item.precio_final || 0)}">${Number(item.precio_final || 0)}</div>
+          ${oldPrice}
+          <button class="lp-prod-card__btn" data-product-id="${item.producto_id || item.id}"><i class="fas fa-cart-plus"></i> Agregar al carrito</button>
+        </div>
+      </div>
+    `;
+  };
+
+  const renderBestSellerTabs = () => {
+    if (!bestSellerTabsRoot) return;
+    const dynamicTabs = (bestSellerState.tabs || []).map((tab) => ({ ...tab, isTodos: false }));
+    dynamicTabs.push({ nombre: 'Ver Todos', slug: 'todos', isTodos: true });
+
+    if (!bestSellerState.active || !dynamicTabs.some((t) => t.slug === bestSellerState.active)) {
+      bestSellerState.active = dynamicTabs[0]?.slug || 'todos';
+    }
+
+    bestSellerTabsRoot.innerHTML = dynamicTabs.map((tab) => `
+      <button class="lp-products__tab ${bestSellerState.active === tab.slug ? 'is-active' : ''}" data-lp-cat="${escapeHtml(tab.slug)}" role="tab">${escapeHtml(tab.nombre)}</button>
+    `).join('');
+
+    bestSellerTabsRoot.querySelectorAll('.lp-products__tab').forEach((tabBtn) => {
+      tabBtn.addEventListener('click', () => {
+        bestSellerState.active = tabBtn.dataset.lpCat || 'todos';
+        renderBestSellerTabs();
+        renderBestSellerCards();
+      });
+    });
+  };
+
+  const updateBestSellerSeeAll = (filtered) => {
+    if (!bestSellerSeeAll) return;
+    const selectedTab = (bestSellerState.tabs || []).find((tab) => tab.slug === bestSellerState.active);
+    const hasMoreThanDesktop = filtered.length > 4;
+    const baseCatalog = `/catalogo/${landingLine === 'agua' ? 'agua' : 'piscina'}`;
+
+    if (bestSellerState.active === 'todos') {
+      bestSellerSeeAll.href = baseCatalog;
+      bestSellerSeeAll.innerHTML = `Ver todos los productos ${landingLine === 'agua' ? 'de tratamiento de agua' : 'de piscina'} <i class="fas fa-arrow-right"></i>`;
+      bestSellerSeeAll.parentElement.style.display = '';
+      return;
+    }
+
+    if (!hasMoreThanDesktop) {
+      bestSellerSeeAll.parentElement.style.display = 'none';
+      return;
+    }
+
+    const tabLabel = selectedTab?.nombre || 'esta categoria';
+    bestSellerSeeAll.href = `${baseCatalog}?q=${encodeURIComponent(tabLabel)}`;
+    bestSellerSeeAll.innerHTML = `Ver más de ${escapeHtml(tabLabel)} <i class="fas fa-arrow-right"></i>`;
+    bestSellerSeeAll.parentElement.style.display = '';
+  };
+
+  const renderBestSellerCards = () => {
+    if (!bestSellerGrid) return;
+    const filtered = bestSellerState.active === 'todos'
+      ? [...bestSellerState.items]
+      : bestSellerState.items.filter((item) => item.tab_slug === bestSellerState.active);
+
+    if (!filtered.length) {
+      bestSellerGrid.innerHTML = '<div class="lp-prod-card" style="padding:24px;">No hay productos para este tab.</div>';
+      updateBestSellerSeeAll(filtered);
+      return;
+    }
+
+    bestSellerGrid.classList.add('is-dynamic');
+    bestSellerGrid.innerHTML = filtered.map(cardBestSellerMarkup).join('');
+    bestSellerGrid.querySelectorAll('.lp-prod-card').forEach((card, idx) => {
+      card.style.animation = `fadeInUp 0.32s ease ${idx * 0.03}s both`;
+    });
+    bindAddToCartButtons(bestSellerGrid);
+    formatCurrencyNodes();
+    updateBestSellerSeeAll(filtered);
+  };
+
+  const loadDynamicBestSellers = async () => {
+    if (!bestSellerGrid || !bestSellerTabsRoot) return;
+    try {
+      const response = await fetch(`/api/home/mas-vendidos?linea=${encodeURIComponent(landingLine)}`);
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || 'No se pudo cargar Los Mas Vendidos');
+      bestSellerState.items = Array.isArray(payload.data?.items) ? payload.data.items : [];
+      bestSellerState.tabs = Array.isArray(payload.data?.tabs) ? payload.data.tabs : [];
+
+      if (!bestSellerState.tabs.length && bestSellerState.items.length) {
+        const seen = new Set();
+        bestSellerState.tabs = bestSellerState.items.reduce((acc, item) => {
+          if (seen.has(item.tab_slug)) return acc;
+          seen.add(item.tab_slug);
+          acc.push({ nombre: item.tab_nombre, slug: item.tab_slug });
+          return acc;
+        }, []);
+      }
+
+      bestSellerState.active = bestSellerState.tabs[0]?.slug || 'todos';
+      renderBestSellerTabs();
+      renderBestSellerCards();
+    } catch (_error) {
+      bestSellerGrid.innerHTML = '<div class="lp-prod-card" style="padding:24px;">No fue posible cargar productos en este momento.</div>';
+      if (bestSellerTabsRoot) bestSellerTabsRoot.innerHTML = '';
+    }
+  };
+
+  window.addEventListener('resize', () => {
+    if (!bestSellerGrid || !bestSellerState.items.length) return;
+    updateBestSellerSeeAll(bestSellerState.active === 'todos'
+      ? [...bestSellerState.items]
+      : bestSellerState.items.filter((item) => item.tab_slug === bestSellerState.active));
   });
+
+  loadDynamicBestSellers();
+
+  // ── Add to Cart ──
+  bindAddToCartButtons(document);
 
   formatCurrencyNodes();
 

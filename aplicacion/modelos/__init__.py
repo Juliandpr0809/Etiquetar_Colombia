@@ -17,6 +17,7 @@ from .producto_recomendado import ProductoRecomendado
 from .campo_tecnico import CampoTecnico
 from .kit_producto import KitProducto
 from .ficha_tecnica import FichaTecnica
+from .destacado_home import DestacadoHome
 
 __all__ = [
 	"Categoria",
@@ -40,4 +41,5 @@ __all__ = [
 	"CampoTecnico",
 	"KitProducto",
 	"FichaTecnica",
+	"DestacadoHome",
 ]
