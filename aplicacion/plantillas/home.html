@@ -31,12 +31,12 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,800;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Styles -->
   <link rel="stylesheet" href="../estaticos/css/home.css">
-  <link rel="stylesheet" href="../estaticos/css/landing.css">
+  <link rel="stylesheet" href="../estaticos/css/hero.css">
 
   <!-- Schema.org — Organization -->
   <script type="application/ld+json">
@@ -80,356 +80,251 @@
 <body class="page-gateway">
 
   <!-- ══════════════════════════════
-       PROMO BANNER (TOP)
-       ══════════════════════════════ -->
-  {% set top_banner = banners_activos|selectattr("tipo", "equalto", "top")|first %}
-  {% if top_banner %}
-  <div class="promo-banner" id="topPromoBanner" data-end="{{ top_banner.fecha_fin.isoformat() if top_banner.fecha_fin else '' }}">
-    <div class="promo-banner__container">
-      <div class="promo-banner__content">
-        <span>{{ top_banner.titulo }}</span>
-        <div class="promo-banner__timer">
-          <div class="promo-banner__timer-unit">
-            <span class="promo-banner__timer-num" id="days">00</span>
-            <span class="promo-banner__timer-label">Días</span>
-          </div>
-          <div class="promo-banner__timer-unit">
-            <span class="promo-banner__timer-num" id="hours">00</span>
-            <span class="promo-banner__timer-label">Hrs</span>
-          </div>
-          <div class="promo-banner__timer-unit">
-            <span class="promo-banner__timer-num" id="mins">00</span>
-            <span class="promo-banner__timer-label">Min</span>
-          </div>
-          <div class="promo-banner__timer-unit">
-            <span class="promo-banner__timer-num" id="secs">00</span>
-            <span class="promo-banner__timer-label">Seg</span>
-          </div>
-        </div>
-        <a href="{{ top_banner.enlace_url or '#' }}" class="promo-banner__cta">{{ top_banner.texto_boton or 'Comprar Ahora' }}</a>
-      </div>
-      <i class="fas fa-times promo-banner__close" onclick="document.getElementById('topPromoBanner').style.display='none'"></i>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- ══════════════════════════════
-       TOP BAR
-       ══════════════════════════════ -->
-  <div class="top-bar">
-    <div class="container">
-      <div class="top-bar__left">
-        <div class="top-bar__item">
-          <i class="fas fa-phone-alt"></i>
-          <a href="tel:+573001234567">+57 300 123 4567</a>
-        </div>
-        <div class="top-bar__item">
-          <i class="fas fa-envelope"></i>
-          <a href="mailto:info@etiquetarcolombia.com">info@etiquetarcolombia.com</a>
-        </div>
-      </div>
-      <div class="top-bar__right">
-        <div class="top-bar__item">
-          <i class="fas fa-truck"></i>
-          Envío a todo Colombia
-        </div>
-        <div class="top-bar__item">
-          <i class="fas fa-clock"></i>
-          Lun - Sáb: 8:00 AM - 6:00 PM
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════
-       NAVBAR
+       NAVBAR — Pentair Style
        ══════════════════════════════ -->
   <nav class="navbar" id="navbar">
-    <div class="container">
+    <div class="container navbar__container">
       <a href="/" class="navbar__logo">
-        <img src="../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:50px; width:auto;">
+        <img src="../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S.">
       </a>
 
       <ul class="navbar__menu" id="navMenu">
-        <li><a href="/" class="navbar__link active">Inicio</a></li>
-        <li><a href="/piscina" class="navbar__link navbar__link--piscina">
-            <i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa
-          </a></li>
-        <li><a href="/agua" class="navbar__link navbar__link--agua">
-            <i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua
-          </a></li>
-        <li><a href="#" class="navbar__link navbar__link--catalog">Catálogo <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-left:2px;"></i></a></li>
-        <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
-        <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
-        <li><a href="/contacto" class="navbar__link">Contacto</a></li>
+        <li><a href="#" class="navbar__link">Productos</a></li>
+        <li><a href="#" class="navbar__link">Soluciones</a></li>
+        <li><a href="#" class="navbar__link">Nosotros</a></li>
+        <li><a href="#" class="navbar__link">Sostenibilidad</a></li>
+        <li><a href="#" class="navbar__link">Proyectos</a></li>
+        <li><a href="#" class="navbar__link">Marcas</a></li>
       </ul>
 
       <div class="navbar__actions">
-        <button class="navbar__action-btn navbar__action-btn--search" aria-label="Buscar">
-          <i class="fas fa-search"></i>
-        </button>
-        <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta">
-          <i class="fas fa-user"></i>
-        </a>
-        <a href="/carrito" class="navbar__action-btn" aria-label="Carrito">
-          <i class="fas fa-shopping-cart"></i>
-          <span class="navbar__cart-badge">0</span>
-        </a>
-        <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false">
+        <div class="navbar__search">
+          <input type="text" placeholder="Búsqueda" class="navbar__search-input">
+          <button class="navbar__search-btn"><i class="fas fa-search"></i></button>
+        </div>
+        <a href="/login" class="navbar__action-btn" aria-label="Cuenta"><i class="fas fa-user"></i></a>
+        <a href="/carrito" class="navbar__action-btn" aria-label="Carrito"><i class="fas fa-shopping-cart"></i></a>
+        <a href="/cotizar" class="navbar__cta-cotizar">Cotizar</a>
+        <button class="navbar__toggle" id="navToggle" aria-label="Menú">
           <i class="fas fa-bars"></i>
         </button>
-      </div>
-    </div>
-
-    <!-- Dropdown del Catálogo -->
-    <div class="navbar__catalog-bar" id="catalogBar">
-      <div class="navbar__catalog-bar-inner">
-        <span class="navbar__catalog-label">Elige el catálogo:</span>
-        <a href="/catalogo/piscina" class="navbar__catalog-option">
-          <i class="fas fa-swimming-pool"></i> Piscina y Spa
-        </a>
-        <a href="/catalogo/agua" class="navbar__catalog-option">
-          <i class="fas fa-tint"></i> Tratamiento de Agua
-        </a>
       </div>
     </div>
   </nav>
 
   <!-- ══════════════════════════════
-       SPLIT HERO (ORIGINAL STATIC DESIGN)
+       HERO — Pentair Corporate
        ══════════════════════════════ -->
-  <section class="split-hero">
-    <!-- Panel Agua -->
-    <div class="split-hero__panel split-hero__panel--agua">
-      <div class="split-hero__bg" style="background-image: url('/estaticos/img/agua-home.png');"></div>
-      <div class="split-hero__overlay"></div>
-      <div class="split-hero__content">
-        <span class="split-hero__kicker">Purificación de Agua</span>
-        <h1 class="split-hero__title">AGUA PURA Y SANA</h1>
-        <p class="split-hero__desc">Sistemas de filtración profesional para hogares y empresas.</p>
-        <a href="/agua-landing" class="split-hero__cta">Explorar Soluciones <i class="fas fa-chevron-right" style="margin-left:8px;"></i></a>
-      </div>
+  <section class="hero" id="heroSection">
+    <div class="hero__bg">
+      <div class="hero__bg-image" style="background-image: url('/estaticos/img/hero_piscina.png');"></div>
     </div>
+    <div class="hero__overlay"></div>
+    <div class="hero__chevron"></div>
 
-    <!-- Panel Piscina -->
-    <div class="split-hero__panel split-hero__panel--piscina">
-      <div class="split-hero__bg" style="background-image: url('/estaticos/img/piscina-home.png');"></div>
-      <div class="split-hero__overlay"></div>
-      <div class="split-hero__content">
-        <span class="split-hero__kicker">Mundo Piscina & Spa</span>
-        <h1 class="split-hero__title">TODO PARA TU PISCINA</h1>
-        <p class="split-hero__desc">Mantén tu piscina cristalina con los mejores equipos y químicos.</p>
-        <a href="/piscina-landing" class="split-hero__cta">Explorar Mundo Piscina <i class="fas fa-chevron-right" style="margin-left:8px;"></i></a>
-      </div>
+    <div class="hero__container">
+      <h1 class="hero__title">
+        EL AGUA EN <em>BUENAS MANOS,</em> ASESORÍA TÉCNICA Y EQUIPOS CERTIFICADOS CON GARANTÍA REAL EN TODO COLOMBIA.
+      </h1>
+      <a href="/catalogo" class="hero__cta">Conoce más sobre nosotros</a>
     </div>
   </section>
 
-  <!-- Qué hacemos y qué vendemos -->
-  <section class="home-overview">
+  <!-- ══════════════════════════════
+       PORTALES — Pentair 3-Card Layout
+       ══════════════════════════════ -->
+  <section class="portals">
+    <div class="portals__grid" id="portalsGrid">
+      <!-- Skeleton Loaders (Placeholder) -->
+      <div class="portal-card-skeleton"></div>
+      <div class="portal-card-skeleton"></div>
+      <div class="portal-card-skeleton"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       PREGUNTAS FRECUENTES (Grid Layout)
+       ══════════════════════════════ -->
+  <section class="faq-grid-section" id="faq">
     <div class="container">
-      <div class="section-head sr-fade-up">
-        <span class="section-label">Soluciones Integrales</span>
-        <h2>Que Hacemos y Que Vendemos</h2>
-        <p>Combinamos asesoria, venta de equipos certificados e instalacion para que tu proyecto de piscina o tratamiento de agua funcione desde el primer dia.</p>
+      <div class="faq-grid__header">
+        <h2>Preguntas Frecuentes</h2>
+        <p>Encuentra respuestas rápidas sobre nuestros equipos de piscina y sistemas de tratamiento de agua. ¿No encuentras lo que buscas? Contáctanos.</p>
       </div>
 
-      <div class="pillars-grid sr-stagger">
-        <article class="pillar home-overview__card">
-          <div class="pillar__icon home-overview__icon home-overview__icon--agua">
+      <div class="faq-grid__container">
+        <!-- FAQ Item 1 -->
+        <div class="faq-grid__item">
+          <div class="faq-grid__icon-box">
             <i class="fas fa-tint"></i>
           </div>
-          <h3 class="pillar__title">Tratamiento de Agua</h3>
-          <p class="pillar__text">Vendemos purificadores, osmosis inversa, UV, filtros de carbono y sistemas de dosificacion para hogar, comercio e industria.</p>
-        </article>
+          <div class="faq-grid__content">
+            <h3>¿Cómo elijo el sistema de purificación ideal para mi hogar?</h3>
+            <p>Realizamos un análisis previo de la calidad de tu agua y consumo diario para recomendarte entre ósmosis inversa, filtración por carbón activado o sistemas UV, asegurando la máxima pureza.</p>
+          </div>
+        </div>
 
-        <article class="pillar home-overview__card">
-          <div class="pillar__icon home-overview__icon home-overview__icon--piscina">
+        <!-- FAQ Item 2 -->
+        <div class="faq-grid__item">
+          <div class="faq-grid__icon-box">
             <i class="fas fa-swimming-pool"></i>
           </div>
-          <h3 class="pillar__title">Piscina y Spa</h3>
-          <p class="pillar__text">Bombas, filtros, robots limpiafondos, quimicos, iluminacion y repuestos originales para mantenimiento preventivo y correctivo.</p>
-        </article>
+          <div class="faq-grid__content">
+            <h3>¿Qué mantenimiento requieren los equipos de piscina?</h3>
+            <p>El mantenimiento preventivo incluye el lavado de filtros, revisión de motobombas y balance químico del agua. Ofrecemos kits completos y asesoría técnica para que tu piscina esté siempre cristalina.</p>
+          </div>
+        </div>
 
-        <article class="pillar home-overview__card">
-          <div class="pillar__icon home-overview__icon home-overview__icon--servicio">
+        <!-- FAQ Item 3 -->
+        <div class="faq-grid__item">
+          <div class="faq-grid__icon-box">
+            <i class="fas fa-truck"></i>
+          </div>
+          <div class="faq-grid__content">
+            <h3>¿Hacen envíos e instalaciones en todo el país?</h3>
+            <p>Sí, contamos con cobertura nacional en Colombia. Despachamos equipos certificados y coordinamos personal técnico calificado para instalaciones profesionales en cualquier ciudad.</p>
+          </div>
+        </div>
+
+        <!-- FAQ Item 4 -->
+        <div class="faq-grid__item">
+          <div class="faq-grid__icon-box">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div class="faq-grid__content">
+            <h3>¿Los productos cuentan con garantía real?</h3>
+            <p>Todos nuestros equipos (Pentair, Hayward, Zodiac, etc.) cuentan con garantía directa de fábrica y el respaldo técnico de Etiquetar de Colombia S.A.S. para repuestos y soporte post-venta.</p>
+          </div>
+        </div>
+
+        <!-- FAQ Item 5 -->
+        <div class="faq-grid__item">
+          <div class="faq-grid__icon-box">
+            <i class="fas fa-calculator"></i>
+          </div>
+          <div class="faq-grid__content">
+            <h3>¿Puedo solicitar una cotización formal para mi empresa?</h3>
+            <p>Claro que sí. Emitimos cotizaciones detalladas con especificaciones técnicas, tiempos de entrega y condiciones comerciales para proyectos industriales o residenciales.</p>
+          </div>
+        </div>
+
+        <!-- FAQ Item 6 -->
+        <div class="faq-grid__item">
+          <div class="faq-grid__icon-box">
             <i class="fas fa-tools"></i>
           </div>
-          <h3 class="pillar__title">Asesoria e Instalacion</h3>
-          <p class="pillar__text">Te ayudamos a elegir capacidad, tecnologia y presupuesto. Tambien instalamos y dejamos el sistema calibrado para uso real.</p>
-        </article>
+          <div class="faq-grid__content">
+            <h3>¿Ofrecen repuestos originales para las marcas que venden?</h3>
+            <p>Sí, mantenemos un stock permanente de repuestos originales y consumibles (filtros, membranas, arena) para asegurar la longevidad de tus equipos.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-grid__footer">
+        <button class="faq-grid__load-more">Cargar más preguntas</button>
       </div>
     </div>
   </section>
 
-  <!-- SECCIÓN STATS -->
-  <section class="home-stats">
+  <!-- ══════════════════════════════
+       RESEÑAS — Trustpilot Placeholder
+       (Datos ficticios hasta conectar widget real)
+       ══════════════════════════════ -->
+  <section class="reviews" id="reviews">
     <div class="container">
-      <div class="home-stats__grid sr-stagger">
-        <div class="home-stats__item">
-          <div class="home-stats__num">120<span>+</span></div>
-          <div class="home-stats__label">Productos disponibles</div>
+      <div class="reviews__header">
+        <div class="reviews__header-left">
+          <h2 class="reviews__title">Lo que dicen nuestros clientes</h2>
+          <p class="reviews__subtitle">Más de 500 clientes confían en Etiquetar Colombia para sus proyectos de agua y piscina.</p>
         </div>
-        <div class="home-stats__divider"></div>
-        <div class="home-stats__item">
-          <div class="home-stats__num">5<span> años</span></div>
-          <div class="home-stats__label">Garantía en equipos principales</div>
+        <!-- Trustpilot Widget Placeholder -->
+        <div class="reviews__trustpilot" id="trustpilotWidget">
+          <div class="reviews__tp-badge">
+            <div class="reviews__tp-stars">
+              <span class="reviews__tp-star">★</span>
+              <span class="reviews__tp-star">★</span>
+              <span class="reviews__tp-star">★</span>
+              <span class="reviews__tp-star">★</span>
+              <span class="reviews__tp-star reviews__tp-star--half">★</span>
+            </div>
+            <span class="reviews__tp-score">4.7 / 5</span>
+            <span class="reviews__tp-label">Basado en 127 reseñas</span>
+            <span class="reviews__tp-brand">✦ Trustpilot</span>
+          </div>
         </div>
-        <div class="home-stats__divider"></div>
-        <div class="home-stats__item">
-          <div class="home-stats__num">100<span>%</span></div>
-          <div class="home-stats__label">Cobertura nacional Colombia</div>
+      </div>
+
+      <div class="reviews__grid">
+        <!-- Review 1 -->
+        <div class="reviews__card">
+          <div class="reviews__card-stars">★★★★★</div>
+          <p class="reviews__card-text">"Instalaron el sistema de ósmosis inversa en menos de 48 horas. El agua sabe completamente diferente. Excelente asesoría desde el primer contacto."</p>
+          <div class="reviews__card-author">
+            <div class="reviews__card-avatar">CM</div>
+            <div>
+              <span class="reviews__card-name">Carlos Mendoza</span>
+              <span class="reviews__card-location">Bogotá, Colombia</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review 2 -->
+        <div class="reviews__card">
+          <div class="reviews__card-stars">★★★★★</div>
+          <p class="reviews__card-text">"Compramos la motobomba Pentair y el filtro de arena para nuestra piscina. Todo llegó bien empacado y con garantía. El soporte técnico es muy profesional."</p>
+          <div class="reviews__card-author">
+            <div class="reviews__card-avatar">LR</div>
+            <div>
+              <span class="reviews__card-name">Laura Ramírez</span>
+              <span class="reviews__card-location">Medellín, Colombia</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review 3 -->
+        <div class="reviews__card">
+          <div class="reviews__card-stars">★★★★★</div>
+          <p class="reviews__card-text">"Llevamos 3 años comprándoles equipos para nuestros proyectos de construcción. Siempre cumplen con los tiempos de entrega y los precios son competitivos."</p>
+          <div class="reviews__card-author">
+            <div class="reviews__card-avatar">JV</div>
+            <div>
+              <span class="reviews__card-name">Jorge Villamizar</span>
+              <span class="reviews__card-location">Barranquilla, Colombia</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review 4 -->
+        <div class="reviews__card">
+          <div class="reviews__card-stars">★★★★<span class="reviews__star-empty">★</span></div>
+          <p class="reviews__card-text">"Muy buena atención. Me ayudaron a elegir el purificador adecuado para mi restaurante. La instalación fue rápida y el mantenimiento es sencillo."</p>
+          <div class="reviews__card-author">
+            <div class="reviews__card-avatar">AP</div>
+            <div>
+              <span class="reviews__card-name">Andrea Patiño</span>
+              <span class="reviews__card-location">Cali, Colombia</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Preguntas frecuentes -->
-  <section class="home-faq">
-    <div class="container">
-      <div class="section-head sr-fade-up">
-        <span class="section-label">Soporte al Cliente</span>
-        <h2>Preguntas Frecuentes</h2>
-        <p>Respuestas rapidas para ayudarte a cotizar mejor y comprar con confianza.</p>
-      </div>
-
-      <div class="home-faq__list sr-stagger">
-        <details class="home-faq__item" open>
-          <summary>Como se cual equipo necesito para mi casa o negocio?</summary>
-          <p>Con una asesoria breve revisamos consumo, calidad del agua, espacio disponible y objetivo del proyecto. Con eso te recomendamos opciones concretas.</p>
-        </details>
-
-        <details class="home-faq__item">
-          <summary>Hacen envio a todo Colombia?</summary>
-          <p>Si. Despachamos a nivel nacional y compartimos tiempos estimados segun ciudad. Tambien coordinamos instalacion donde aplique.</p>
-        </details>
-
-        <details class="home-faq__item">
-          <summary>Venden repuestos y consumibles despues de la compra?</summary>
-          <p>Si. Manejamos cartuchos, filtros, accesorios y repuestos para las marcas que comercializamos, con apoyo tecnico para compatibilidad.</p>
-        </details>
-
-        <details class="home-faq__item">
-          <summary>Puedo pedir cotizacion formal para empresa o conjunto residencial?</summary>
-          <p>Claro. Preparamos cotizacion con especificaciones tecnicas, tiempos de entrega y alternativas por presupuesto.</p>
-        </details>
-      </div>
-
-      <div class="home-faq__actions">
-        <a href="/cotizar" class="btn-primary home-faq__btn-primary">
-          Solicitar Cotizacion <i class="fas fa-arrow-right"></i>
-        </a>
-        <a href="/contacto" class="home-faq__btn-link">Hablar con un asesor</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer unificado -->
+  <!-- ══════════════════════════════
+       FOOTER
+       ══════════════════════════════ -->
   <footer class="footer">
     <div class="container">
       <div class="footer__grid">
         <div class="footer__col">
           <img src="../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:46px;width:auto;display:block;margin-bottom:12px;">
-          <p class="footer__desc">Especialistas en equipos de piscina y tratamiento de agua. Cobertura nacional con las mejores marcas y garantia real.</p>
-          <div class="footer__social">
-            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-            <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-          </div>
+          <p class="footer__desc">Especialistas en equipos de piscina y tratamiento de agua. Cobertura nacional con las mejores marcas y garantía real.</p>
         </div>
-
-        <div class="footer__col">
-          <h4 class="footer__title">Piscina y Spa</h4>
-          <ul class="footer__links">
-            <li><a href="/catalogo/piscina"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Bombas y Filtros</a></li>
-            <li><a href="/catalogo/piscina"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Robots Limpiafondos</a></li>
-            <li><a href="/catalogo/piscina"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Quimicos y Accesorios</a></li>
-            <li><a href="/piscina"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Ver Mundo Piscina</a></li>
-          </ul>
-        </div>
-
-        <div class="footer__col">
-          <h4 class="footer__title">Tratamiento de Agua</h4>
-          <ul class="footer__links">
-            <li><a href="/catalogo/agua"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Purificadores</a></li>
-            <li><a href="/catalogo/agua"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Osmosis Inversa</a></li>
-            <li><a href="/catalogo/agua"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Equipos UV</a></li>
-            <li><a href="/agua"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Ver Mundo Agua</a></li>
-          </ul>
-        </div>
-
-        <div class="footer__col">
-          <h4 class="footer__title">Contacto</h4>
-          <ul class="footer__links">
-            <li><a href="tel:+573001234567"><i class="fas fa-phone-alt" style="font-size:0.75rem;"></i> +57 300 123 4567</a></li>
-            <li><a href="mailto:info@etiquetarcolombia.com"><i class="fas fa-envelope" style="font-size:0.75rem;"></i> info@etiquetarcolombia.com</a></li>
-            <li><a href="/cotizar"><i class="fas fa-file-alt" style="font-size:0.75rem;"></i> Solicitar Cotizacion</a></li>
-            <li><a href="/contacto"><i class="fas fa-map-marker-alt" style="font-size:0.75rem;"></i> Cobertura Nacional</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer__bottom">
-        &copy; 2026 Etiquetar Colombia. Todos los derechos reservados.
       </div>
     </div>
   </footer>
 
-  <!-- WhatsApp Flotante -->
-  <a href="https://wa.me/573001234567" target="_blank" class="whatsapp-btn" aria-label="WhatsApp">
-    <i class="fab fa-whatsapp"></i>
-  </a>
-
-  <script src="../estaticos/js/home.js"></script>
-  <script src="../estaticos/js/effects.js"></script>
-
-  <script>
-    // Timer para el Banner de Promo
-    function updatePromoTimer() {
-      const banner = document.getElementById('topPromoBanner');
-      if (!banner) return;
-      
-      const endStr = banner.dataset.end;
-      let targetDate;
-      
-      if (endStr) {
-        targetDate = new Date(endStr);
-      } else {
-        // Fallback: 3 días desde ahora si no hay fecha en DB
-        targetDate = new Date();
-        targetDate.setDate(targetDate.getDate() + 3);
-      }
-      
-      function update() {
-        const now = new Date();
-        const diff = targetDate - now;
-        
-        if (diff <= 0) {
-          banner.style.display = 'none';
-          return;
-        }
-        
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        const daysEl = document.getElementById('days');
-        const hoursEl = document.getElementById('hours');
-        const minsEl = document.getElementById('mins');
-        const secsEl = document.getElementById('secs');
-        
-        if (daysEl) daysEl.innerText = String(d).padStart(2, '0');
-        if (hoursEl) hoursEl.innerText = String(h).padStart(2, '0');
-        if (minsEl) minsEl.innerText = String(m).padStart(2, '0');
-        if (secsEl) secsEl.innerText = String(s).padStart(2, '0');
-      }
-      
-      setInterval(update, 1000);
-      update();
-    }
-    
-    document.addEventListener('DOMContentLoaded', updatePromoTimer);
-  </script>
+  <script src="../estaticos/js/hero.js"></script>
 </body>
+
 </html>

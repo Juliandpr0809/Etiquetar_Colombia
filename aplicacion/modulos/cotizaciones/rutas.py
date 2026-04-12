@@ -35,7 +35,7 @@ def cotizar_form():
 @cotizaciones_bp.post("/cotizar")
 def cotizar_submit():
     if request.is_json:
-        payload = request.get_json()
+        payload = request.get_json(silent=True) or {}
     else:
         payload = request.form
 
@@ -96,10 +96,19 @@ def cotizar_submit():
         estado="pendiente",
     )
     
-    db.session.add(cotizacion)
-    db.session.flush() # Para obtener el ID antes del commit
-    cotizacion.generar_numero_y_token()
-    db.session.commit()
+    try:
+        db.session.add(cotizacion)
+        db.session.flush() # Para obtener el ID antes del commit
+        cotizacion.generar_numero_y_token()
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        if request.is_json:
+            return {
+                "ok": False,
+                "message": "No fue posible registrar la cotización. Intenta nuevamente.",
+            }, 500
+        return "No fue posible registrar la cotización.", 500
 
     if request.is_json:
         return {

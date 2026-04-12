@@ -269,9 +269,11 @@ body.lp-theme--agua .lp-hero__content {
   justify-content: flex-end;
 }
 .lp-hero__media img {
-  height: 100%;
-  width: 100%;
-  object-fit: cover; /* Cambiar a cover para que llene el espacio sin bordes vacíos */
+  height: auto;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
   object-position: center center;
   display: block;
 }

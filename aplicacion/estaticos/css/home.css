@@ -5,31 +5,37 @@
 
 /* ── CSS Variables — Marca Paraguas ── */
 :root {
+  /* Pentair Palette */
+  --color-primary: #002855;
+  --color-accent: #78BE20;
+  --color-dark: #001A38;
+  --color-light: #F5F6F7;
+
   /* Shared Brand */
-  --brand-display: 'Cormorant Garamond', serif;
-  --brand-body: 'Manrope', sans-serif;
+  --brand-display: 'Barlow Condensed', sans-serif;
+  --brand-body: 'Inter', sans-serif;
 
   /* Neutrals */
   --white: #FFFFFF;
-  --off-white: #F8F6F1; /* Beige cálido */
-  --bg-warm: #F8F6F1;
-  --text-dark: #1A1A1A;
+  --off-white: var(--color-light);
+  --bg-warm: var(--color-light);
+  --text-dark: var(--color-primary);
   --text-body: #1A1A1A;
-  --text-muted: #4A5C6A; /* Gris pizarra */
-  --border-soft: #D7DFDD;
-  --footer-charcoal: #1C2E3D; /* Navy profundo */
+  --text-muted: #4A6B62;
+  --border-soft: #E8EDEB;
+  --footer-charcoal: var(--color-primary);
 
   /* Semantic tokens */
-  --cta-primary: #088395; /* Aqua premium */
-  --cta-hover: #0A4D68; /* Azul profundo corporativo */
+  --cta-primary: var(--color-accent);
+  --cta-hover: #5ea11a;
   --promo: #D96C3D;
-  --success: #2E7D32;
-  --bg-light: #F0F8FA; /* Fondo para iconos aqua */
+  --success: var(--color-accent);
+  --bg-light: #F0F8FA;
   --border-color: #D7DFDD;
-  --piscina-primary: #0A4D68;
-  --piscina-dark: #1C2E3D;
+  --piscina-primary: var(--color-primary);
+  --piscina-dark: var(--color-dark);
   --agua-primary: #088395;
-  --agua-text: #0A4D68;
+  --agua-text: var(--color-primary);
 
   /* Purificación de Agua */
   --water-night: #1C2E3D;
@@ -176,7 +182,7 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden; /* Evitar scroll lateral por las curvas */
+  overflow-x: hidden;
 }
 
 body {
@@ -188,7 +194,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Forzar que todos los contenedores principales no tengan márgenes que los separen de los bordes */
+/* Gateway page — 100% Light */
+body.page-gateway {
+  background: #FFFFFF;
+  color: #0D1F1A;
+}
+
 main, section, header, footer, nav {
   width: 100%;
   max-width: 100%;
@@ -289,7 +300,7 @@ h4 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 84px; /* Un poco más de altura para el logo */
+  height: 60px;
   flex-wrap: nowrap;
 }
 
@@ -302,13 +313,12 @@ h4 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
 /* Transparent navbar for Landing Pages and Gateway */
 body.lp-theme--agua .navbar,
 body.lp-theme--piscina .navbar,
-body.page-gateway .navbar,
 body.nosotros-page .navbar {
   background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   box-shadow: none !important;
-  border: none !important; /* Re-añadido para eliminar la línea blanca */
+  border: none !important;
   border-bottom: none !important;
   outline: none !important;
   position: absolute;
@@ -362,12 +372,13 @@ body.nosotros-page .navbar.scrolled .navbar__action-btn {
   color: #ffffff !important;
 }
 
-body.page-gateway .navbar.scrolled,
 body.nosotros-page .navbar.scrolled {
-  background: rgba(10, 77, 104, 0.96) !important; /* var(--piscina-primary) para consistencia */
+  background: rgba(7, 21, 18, 0.96) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(240, 247, 244, 0.06) !important;
 }
 
-body.page-gateway .navbar.scrolled .navbar__logo img,
 body.nosotros-page .navbar.scrolled .navbar__logo img {
   filter: brightness(0) invert(1) !important;
 }
@@ -420,7 +431,6 @@ body.lp-theme--piscina .navbar.scrolled .navbar__link:hover {
 /* Logo inversion when transparent */
 body.lp-theme--agua .navbar:not(.scrolled) .navbar__logo img,
 body.lp-theme--piscina .navbar:not(.scrolled) .navbar__logo img,
-body.page-gateway .navbar:not(.scrolled) .navbar__logo img,
 body.nosotros-page .navbar:not(.scrolled) .navbar__logo img {
   filter: brightness(0) invert(1) !important;
   opacity: 1 !important;
@@ -463,7 +473,7 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px; /* Más espacio entre links */
+  gap: 24px; /* Más espacio entre links */
 }
 .navbar__link {
   padding: 10px 18px; /* Más padding para que se vea más premium */
@@ -1374,10 +1384,22 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   .home-stats__divider { width: 60px; height: 1px; }
 }
 
-/* ── FAQ ── */
+/* ── FAQ — Dark Premium ── */
 .home-faq {
-  padding: 72px 0 84px;
-  background: var(--bg-warm);
+  padding: 80px 0 96px;
+  background: #0A3D3A;
+}
+
+.home-faq .section-head .section-label {
+  color: #1D9E75;
+}
+
+.home-faq .section-head h2 {
+  color: #F0F7F4;
+}
+
+.home-faq .section-head p {
+  color: #8AADA4;
 }
 
 .home-faq__list {
@@ -1390,26 +1412,27 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
 .home-faq__item {
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  border-bottom: 1px solid rgba(240,247,244,0.08);
   border-radius: 0;
   padding: 0;
   box-shadow: none;
 }
 
 .home-faq__item:first-child {
-  border-top: 1px solid rgba(0,0,0,0.08);
+  border-top: 1px solid rgba(240,247,244,0.08);
 }
 
 .home-faq__item summary {
   padding: 24px 0;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #0D2B38;
+  color: #F0F7F4;
   padding-right: 32px;
   letter-spacing: -0.01em;
   cursor: pointer;
   list-style: none;
   position: relative;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .home-faq__item summary::before {
@@ -1417,7 +1440,7 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   display: inline-block;
   width: 3px;
   height: 1em;
-  background: #0CAF7A;
+  background: #1D9E75;
   border-radius: 2px;
   margin-right: 14px;
   vertical-align: middle;
@@ -1427,7 +1450,7 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   content: '+';
   font-size: 1.4rem;
   font-weight: 300;
-  color: #0CAF7A;
+  color: #1D9E75;
   position: absolute;
   right: 0;
   top: 50%;
@@ -1440,14 +1463,15 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
 
 .home-faq__item p {
   padding: 0 0 24px 17px;
-  color: #5A7080;
+  color: #8AADA4;
   font-size: 0.95rem;
   line-height: 1.75;
   margin: 0;
+  font-family: 'Inter', sans-serif;
 }
 
 .home-faq__actions {
-  margin-top: 28px;
+  margin-top: 36px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1456,22 +1480,27 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
 }
 
 .home-faq__btn-primary {
-  background: var(--cta-primary);
+  background: transparent;
+  border: 1.5px solid #1D9E75;
+  color: #1D9E75;
+  border-radius: 6px;
 }
 
 .home-faq__btn-primary:hover {
-  background: var(--cta-hover);
+  background: #1D9E75;
+  color: #071512;
 }
 
 .home-faq__btn-link {
-  color: var(--water-deep);
+  color: #8AADA4;
   font-weight: 600;
   border-bottom: 2px solid transparent;
   transition: all var(--transition-fast);
 }
 
 .home-faq__btn-link:hover {
-  border-bottom-color: var(--water-deep);
+  color: #F0F7F4;
+  border-bottom-color: #1D9E75;
 }
 
 /* ── CTA Button Shared ── */
@@ -1576,16 +1605,17 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
    FOOTER
    ============================================ */
 .footer {
-  background: var(--footer-charcoal);
-  color: rgba(255,255,255,0.75);
+  background: #071512;
+  color: rgba(240,247,244,0.65);
   padding: 64px 0 0;
+  border-top: 1px solid rgba(240,247,244,0.06);
 }
 .footer__grid {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 40px;
   padding-bottom: 40px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(240,247,244,0.06);
 }
 .footer__brand {
   display: flex;
@@ -1597,6 +1627,7 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   font-size: 0.88rem;
   line-height: 1.7;
   max-width: 320px;
+  color: #8AADA4;
 }
 .footer__social { display: flex; gap: 8px; }
 .footer__social a {
@@ -1608,15 +1639,15 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   transition: all var(--transition-fast);
   font-size: 0.85rem;
 }
-.footer__social a:hover { background: var(--water-crystal); color: white; }
+.footer__social a:hover { background: #1D9E75; color: white; }
 
 .footer__title {
-  font-family: var(--brand-body);
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 600;
   font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 2px;
-  color: white;
+  color: #F0F7F4;
   margin-bottom: 20px;
 }
 .footer__links li { margin-bottom: 10px; }
@@ -1624,8 +1655,9 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   font-size: 0.88rem;
   transition: color var(--transition-fast);
   display: flex; align-items: center; gap: 6px;
+  color: #8AADA4;
 }
-.footer__links a:hover { color: var(--cta-primary); }
+.footer__links a:hover { color: #1D9E75; }
 .footer__links a i { font-size: 0.55rem; opacity: 0.5; }
 
 /* Payment methods */
@@ -1635,7 +1667,7 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   gap: 16px;
   flex-wrap: wrap;
   padding: 20px 0;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(240,247,244,0.06);
   margin-top: 24px;
 }
 .footer__payment-badge {
@@ -1643,12 +1675,12 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  background: rgba(240,247,244,0.04);
+  border: 1px solid rgba(240,247,244,0.08);
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.7);
+  color: #8AADA4;
 }
 .footer__payment-badge i { font-size: 0.9rem; }
 
@@ -1657,19 +1689,19 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border-radius: var(--radius-pill);
-  background: rgba(0,166,118,0.14);
-  border: 1px solid rgba(0,166,118,0.28);
+  border-radius: 6px;
+  background: rgba(29,158,117,0.1);
+  border: 1px solid rgba(29,158,117,0.2);
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--cta-primary);
+  color: #1D9E75;
 }
 
 .footer__bottom {
   padding: 20px 0;
   text-align: center;
   font-size: 0.78rem;
-  color: rgba(255,255,255,0.4);
+  color: rgba(240,247,244,0.3);
 }
 
 /* ============================================
@@ -1804,6 +1836,18 @@ body.lp-theme--piscina .navbar.scrolled .navbar__logo img {
     padding: 20px;
     gap: 4px;
     border-bottom: 1px solid var(--border-soft);
+  }
+
+  /* Dark mobile menu for gateway */
+  body.page-gateway .navbar__menu.active {
+    background: rgba(7, 21, 18, 0.97);
+    border-bottom: 1px solid rgba(240,247,244,0.06);
+  }
+  body.page-gateway .navbar__menu.active .navbar__link {
+    color: #F0F7F4 !important;
+  }
+  body.page-gateway .navbar__menu.active .navbar__link:hover {
+    background: rgba(29,158,117,0.1);
   }
 
   .navbar__catalog-bar {

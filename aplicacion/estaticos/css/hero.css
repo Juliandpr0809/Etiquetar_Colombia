@@ -1,0 +1,736 @@
+/* ============================================
+   ETIQUETAR COLOMBIA — Pentair Faithful v3
+   Reference: pentair.com homepage
+   Navy #002855 · Lime #78BE20 · White · Gray #F5F6F7
+   ============================================ */
+
+/* ── Tokens ── */
+:root {
+  --c-navy: #002855;
+  --c-navy-dark: #001A38;
+  --c-accent: #78BE20;
+  --c-accent-hover: #6aad18;
+  --c-white: #ffffff;
+  --c-light: #F5F6F7;
+  --c-gray: #6b7280;
+  --c-border: #e0e2e6;
+
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--c-navy);
+  background: var(--c-white);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+img { max-width: 100%; height: auto; display: block; }
+button { font-family: inherit; cursor: pointer; }
+
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ══════════════════════════════════════════════
+   NAVBAR — Pentair White Bar
+   ══════════════════════════════════════════════ */
+.navbar {
+  background: var(--c-white);
+  border-bottom: 1px solid rgba(0, 40, 85, 0.08);
+  height: 70px;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar__container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.navbar__logo img {
+  height: 42px;
+  width: auto;
+}
+
+.navbar__menu {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+}
+
+.navbar__link {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-navy) !important;
+  transition: color 0.2s;
+}
+
+.navbar__link:hover {
+  color: var(--c-accent) !important;
+}
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.navbar__search {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+  padding: 0 12px;
+  height: 36px;
+}
+
+.navbar__search-input {
+  border: none;
+  background: transparent;
+  padding: 0 8px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+  width: 140px;
+  color: var(--c-navy);
+}
+
+.navbar__search-input::placeholder {
+  color: #9ca3af;
+}
+
+.navbar__search-btn {
+  border: none;
+  background: transparent;
+  color: var(--c-navy);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.navbar__action-btn {
+  color: var(--c-navy);
+  font-size: 16px;
+  transition: color 0.2s;
+}
+
+.navbar__action-btn:hover {
+  color: var(--c-accent);
+}
+
+.navbar__cta-cotizar {
+  background: var(--c-accent);
+  color: var(--c-white);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 9px 22px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.navbar__cta-cotizar:hover {
+  background: var(--c-accent-hover);
+}
+
+.navbar__toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: var(--c-navy);
+  cursor: pointer;
+}
+
+/* ── Force dark text — defeats home.css page-gateway overrides ── */
+body.page-gateway .navbar,
+body.page-gateway .navbar.scrolled {
+  background: var(--c-white) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid rgba(0, 40, 85, 0.08) !important;
+  box-shadow: none !important;
+  position: sticky !important;
+}
+
+body.page-gateway .navbar .navbar__link,
+body.page-gateway .navbar:not(.scrolled) .navbar__link,
+body.page-gateway .navbar.scrolled .navbar__link {
+  color: var(--c-navy) !important;
+}
+
+body.page-gateway .navbar .navbar__link:hover,
+body.page-gateway .navbar:not(.scrolled) .navbar__link:hover,
+body.page-gateway .navbar.scrolled .navbar__link:hover {
+  color: var(--c-accent) !important;
+  background: transparent !important;
+}
+
+body.page-gateway .navbar .navbar__action-btn,
+body.page-gateway .navbar:not(.scrolled) .navbar__action-btn,
+body.page-gateway .navbar.scrolled .navbar__action-btn {
+  color: var(--c-navy) !important;
+}
+
+body.page-gateway .navbar .navbar__action-btn:hover {
+  color: var(--c-accent) !important;
+}
+
+body.page-gateway .navbar__logo img,
+body.page-gateway .navbar:not(.scrolled) .navbar__logo img,
+body.page-gateway .navbar.scrolled .navbar__logo img {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+body.page-gateway .navbar__search-btn {
+  color: var(--c-navy) !important;
+}
+
+body.page-gateway .navbar__search-input {
+  color: var(--c-navy) !important;
+}
+
+/* ══════════════════════════════════════════════
+   HERO — Pentair Corporate (Exact Reference)
+   ══════════════════════════════════════════════ */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 55vh;
+  min-height: 420px;
+  max-height: 600px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+/* Background image */
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero__bg-image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 40%;
+}
+
+/* Dark overlay — heavier on the left, fading to right */
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to right,
+    rgba(0, 26, 56, 0.82) 0%,
+    rgba(0, 26, 56, 0.65) 35%,
+    rgba(0, 26, 56, 0.25) 60%,
+    rgba(0, 26, 56, 0.08) 80%,
+    transparent 100%
+  );
+}
+
+/* Green chevron decoration — bottom right */
+.hero__chevron {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28%;
+  height: 100%;
+  background: var(--c-accent);
+  clip-path: polygon(100% 40%, 60% 100%, 100% 100%);
+  opacity: 0.85;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Container */
+.hero__container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 40px 60px;
+}
+
+/* Title — Condensed uppercase, Pentair style */
+.hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.2vw, 42px);
+  font-weight: 700;
+  color: var(--c-white);
+  line-height: 1.15;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  max-width: 680px;
+  margin: 0 0 28px 0;
+}
+
+.hero__title em {
+  font-style: italic;
+  font-weight: 800;
+}
+
+/* CTA Button — Outlined, Pentair corporate */
+.hero__cta {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-navy);
+  background: var(--c-white);
+  border: none;
+  padding: 14px 32px;
+  border-radius: 4px;
+  transition: opacity 0.2s;
+}
+
+.hero__cta:hover {
+  opacity: 0.92;
+}
+
+/* ══════════════════════════════════════════════
+   PORTALS — 3 Rectangular Cards with Gaps
+   ══════════════════════════════════════════════ */
+.portals {
+  padding: 48px 0 80px;
+  background: var(--c-light);
+}
+
+.portals__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 40px;
+  min-height: 340px;
+}
+
+/* Skeleton Loaders */
+.portal-card-skeleton {
+  height: 360px;
+  background: linear-gradient(90deg, #eaeaea 25%, #e0e0e0 50%, #eaeaea 75%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.5s infinite linear;
+  border-radius: 12px;
+}
+
+@keyframes skeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Portal Card */
+.portal-card {
+  height: 360px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 12px;
+  /* Reveal animation */
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.portal-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.portal-card__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.6s ease;
+  border-radius: 12px;
+}
+
+.portal-card:hover .portal-card__bg {
+  transform: scale(1.05);
+}
+
+.portal-card__overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 26, 56, 0.88) 0%,
+    rgba(0, 26, 56, 0.45) 50%,
+    rgba(0, 26, 56, 0.15) 100%
+  );
+}
+
+.portal-card__content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+  z-index: 2;
+}
+
+.portal-card__logo {
+  width: 100px;
+  height: auto;
+  margin-bottom: 16px;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+.portal-card__eyebrow {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--c-accent);
+  margin-bottom: 8px;
+}
+
+.portal-card__title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 3vw, 44px);
+  font-weight: 800;
+  color: var(--c-white);
+  line-height: 0.95;
+  text-transform: uppercase;
+  margin-bottom: 0;
+}
+
+.portal-card__link {
+  margin-top: 24px;
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.portal-card__link:hover {
+  color: var(--c-white);
+}
+
+.portal-card__arrow {
+  font-size: 16px;
+  color: var(--c-accent);
+  transition: transform 0.2s;
+}
+
+.portal-card:hover .portal-card__arrow {
+  transform: translateX(4px);
+}
+
+/* Error State */
+.portals__error {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px;
+  background: var(--c-white);
+  border: 1px dashed var(--c-border);
+  border-radius: 12px;
+}
+
+.portals__error-btn {
+  margin-top: 16px;
+  background: var(--c-navy);
+  color: var(--c-white);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.portals__error-btn:hover {
+  opacity: 0.9;
+}
+
+/* ══════════════════════════════════════════════
+   FAQ SECTION
+   ══════════════════════════════════════════════ */
+.faq-grid-section {
+  padding: 80px 0;
+  background: var(--c-white);
+}
+
+.faq-grid__header {
+  text-align: left;
+  margin-bottom: 48px;
+}
+
+.faq-grid__header h2 {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--c-navy);
+  margin-bottom: 12px;
+  text-transform: none;
+}
+
+.faq-grid__header p {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--c-gray);
+  max-width: 480px;
+  line-height: 1.7;
+}
+
+.faq-grid__container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 48px;
+  row-gap: 36px;
+}
+
+.faq-grid__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.faq-grid__icon-box {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-navy);
+  font-size: 14px;
+}
+
+.faq-grid__content h3 {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-navy);
+  margin: 0 0 6px 0;
+  text-transform: none;
+  line-height: 1.4;
+}
+
+.faq-grid__content p {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--c-gray);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.faq-grid__footer {
+  margin-top: 56px;
+  display: flex;
+  justify-content: center;
+}
+
+.faq-grid__load-more {
+  background: var(--c-white);
+  border: 1.5px solid var(--c-navy);
+  color: var(--c-navy);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 32px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.faq-grid__load-more:hover {
+  background: var(--c-navy);
+  color: var(--c-white);
+}
+
+/* ══════════════════════════════════════════════
+   FOOTER
+   ══════════════════════════════════════════════ */
+.footer {
+  background: var(--c-navy);
+  padding: 40px 0;
+}
+
+.footer .container {
+  max-width: 1440px;
+}
+
+.footer__desc {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.7;
+  max-width: 380px;
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════ */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .navbar__menu {
+    display: none;
+  }
+
+  .navbar__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero {
+    height: 50vh;
+    min-height: 380px;
+  }
+
+  .hero__title {
+    font-size: clamp(24px, 4vw, 34px);
+    max-width: 500px;
+  }
+
+  .hero__chevron {
+    width: 20%;
+    clip-path: polygon(100% 50%, 50% 100%, 100% 100%);
+  }
+
+  .portals__grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 0 24px;
+  }
+
+  .portal-card {
+    height: 300px;
+  }
+
+  .faq-grid__container {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  .navbar__container {
+    padding: 0 20px;
+  }
+
+  .navbar__search {
+    display: none;
+  }
+
+  .hero {
+    height: auto;
+    min-height: 320px;
+    align-items: center;
+    padding: 48px 0;
+  }
+
+  .hero__container {
+    padding: 0 24px;
+  }
+
+  .hero__title {
+    font-size: 24px;
+    max-width: 100%;
+  }
+
+  .hero__chevron {
+    width: 25%;
+    opacity: 0.6;
+    clip-path: polygon(100% 55%, 40% 100%, 100% 100%);
+  }
+
+  .hero__cta {
+    font-size: 13px;
+    padding: 12px 24px;
+  }
+
+  .portals__grid {
+    padding: 0 20px;
+  }
+
+  .portal-card {
+    height: 280px;
+  }
+
+  .portal-card__title {
+    font-size: 28px;
+  }
+
+  .faq-grid__header h2 {
+    font-size: 28px;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .hero__title {
+    font-size: 22px;
+  }
+
+  .hero__cta {
+    font-size: 12px;
+    padding: 11px 20px;
+  }
+
+  .portal-card {
+    height: 240px;
+  }
+
+  .portal-card__title {
+    font-size: 24px;
+  }
+
+  .portal-card__logo {
+    width: 80px;
+  }
+}

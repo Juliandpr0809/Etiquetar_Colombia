@@ -927,7 +927,13 @@
         function validateStep(step) {
             let isValid = true;
             const stepEl = document.getElementById(`step-${step}`);
-            const requiredFields = stepEl.querySelectorAll('[required]');
+            const requiredFields = Array.from(stepEl.querySelectorAll('[required]')).filter((field) => {
+                // En paso 2 estos campos se validan con reglas especiales.
+                if (step === 2 && (field.id === 'q-type' || field.id === 'q-products')) {
+                    return false;
+                }
+                return true;
+            });
             
             requiredFields.forEach(field => {
                 if (!field.value.trim() || (field.tagName === 'SELECT' && !field.value)) {
@@ -1094,9 +1100,14 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                const data = await response.json();
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (_jsonErr) {
+                    data = null;
+                }
                 
-                if (data.ok) {
+                if (response.ok && data?.ok) {
                     // Pantalla de éxito
                     document.getElementById('formContainer').style.display = 'none';
                     document.getElementById('consultarLink').style.display = 'none';
@@ -1110,7 +1121,10 @@
                     
                     window.scrollTo({ top: document.querySelector('.quote-form').offsetTop - 100, behavior: 'smooth' });
                 } else {
-                    alert(data.message || 'Error al enviar la solicitud.');
+                    const fallbackMsg = response.ok
+                        ? 'Error al enviar la solicitud.'
+                        : `Error del servidor (${response.status}).`;
+                    alert(data?.message || fallbackMsg);
                     btn.disabled = false;
                     btn.innerHTML = originalHTML;
                 }
