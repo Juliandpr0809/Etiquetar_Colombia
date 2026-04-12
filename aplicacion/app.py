@@ -109,13 +109,19 @@ def _register_routes(app):
 
     @app.get("/piscina")
     @app.get("/piscina-landing")
+    @app.get("/pool")
     def piscina_landing():
         return render_template("piscina-landing.html")
 
     @app.get("/agua")
     @app.get("/agua-landing")
+    @app.get("/flow")
     def agua_landing():
         return render_template("agua-landing.html")
+
+    @app.get("/industrial")
+    def industrial_landing():
+        return render_template("industrial-landing.html")
 
     @app.get("/api/home/mas-vendidos")
     def api_home_mas_vendidos():

@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
       nombre: 'Etiquetar Flow',
       accion: 'Purifica',
       descripcion: 'Suministro y purificación de agua',
-      enlace: '/agua',
+      enlace: '/flow',
       imagen_url: '/estaticos/img/portal_agua.png',
       logo_url: '../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png'
     },
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
       nombre: 'Etiquetar Pool',
       accion: 'Disfruta',
       descripcion: 'Explora piscina y spa',
-      enlace: '/piscina',
+      enlace: '/pool',
       imagen_url: '/estaticos/img/portal_piscina.png',
       logo_url: '../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png'
     },

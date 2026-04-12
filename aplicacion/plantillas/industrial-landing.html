@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soluciones Industriales | Etiquetar Colombia</title>
+  <meta name="description" content="Sistemas de filtración industrial, sellado y tratamiento de agua para plantas de producción, fábricas y proyectos industriales en Colombia.">
+  <meta name="keywords" content="filtración industrial Colombia, tratamiento agua industrial, equipos industriales agua, sellado industrial Colombia">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Etiquetar de Colombia S.A.S.">
+  <link rel="canonical" href="https://etiquetarcolombia.com/industrial">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Etiquetar Industrial | Etiquetar Colombia">
+  <meta property="og:description" content="Soluciones de filtración y tratamiento de agua a escala industrial. Proyectos a medida para la industria colombiana.">
+  <meta property="og:url" content="https://etiquetarcolombia.com/industrial">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../estaticos/css/home.css">
+  <link rel="stylesheet" href="../estaticos/css/landing.css">
+</head>
+
+<body class="lp-theme--industrial" data-home-line="industrial">
+
+  <!-- ══ TOP BAR ══ -->
+  <div class="top-bar">
+    <div class="container">
+      <div class="top-bar__left">
+        <div class="top-bar__item"><i class="fas fa-phone-alt"></i><a href="tel:+573001234567">+57 300 123 4567</a></div>
+        <div class="top-bar__item"><i class="fas fa-envelope"></i><a href="mailto:info@etiquetarcolombia.com">info@etiquetarcolombia.com</a></div>
+      </div>
+      <div class="top-bar__right">
+        <div class="top-bar__item"><i class="fas fa-truck"></i> Envío a todo Colombia</div>
+        <div class="top-bar__item"><i class="fas fa-clock"></i> Lun - Sáb: 8:00 AM - 6:00 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="/" class="navbar__logo">
+        <img src="../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:50px;width:auto;">
+      </a>
+      <ul class="navbar__menu" id="navMenu">
+        <li><a href="/" class="navbar__link">Inicio</a></li>
+        <li><a href="/piscina" class="navbar__link navbar__link--piscina"><i class="fas fa-swimming-pool" style="margin-right:4px;"></i> Piscina & Spa</a></li>
+        <li><a href="/agua" class="navbar__link navbar__link--agua"><i class="fas fa-tint" style="margin-right:4px;"></i> Tratamiento de Agua</a></li>
+        <li><a href="/industrial" class="navbar__link active"><i class="fas fa-industry" style="margin-right:4px;"></i> Industrial</a></li>
+        <li><a href="/blog" class="navbar__link"><i class="fas fa-book" style="margin-right:4px;"></i> Blog</a></li>
+        <li><a href="/cotizar" class="navbar__link">Cotizar</a></li>
+        <li><a href="/contacto" class="navbar__link">Contacto</a></li>
+      </ul>
+      <div class="navbar__actions">
+        <button class="navbar__action-btn navbar__action-btn--search" aria-label="Buscar"><i class="fas fa-search"></i></button>
+        <a href="{{ url_for('autenticacion.perfil') if usuario_autenticado else url_for('autenticacion.login') }}" class="navbar__action-btn" aria-label="Cuenta"><i class="fas fa-user"></i></a>
+        <a href="/carrito" class="navbar__action-btn" aria-label="Carrito">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="navbar__cart-badge">0</span>
+        </a>
+        <button class="navbar__toggle" id="navToggle" aria-label="Menú" aria-controls="navMenu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ SUBNAV — Etiquetar Industrial ══ -->
+  <div class="subnav">
+    <div class="subnav__container">
+      <div class="subnav__brand">
+        <span class="subnav__brand-accent">E</span> Etiquetar Industrial
+      </div>
+      <ul class="subnav__links">
+        <li><a href="/industrial" class="subnav__link active">Inicio</a></li>
+        <li><a href="/industrial#contacto" class="subnav__link">Contacto</a></li>
+      </ul>
+      <a href="/cotizar" class="subnav__cta">Cotizar</a>
+      <button class="subnav__toggle" aria-label="Menú secundario"><i class="fas fa-bars"></i></button>
+    </div>
+  </div>
+
+  <!-- ══ HERO — En Construcción ══ -->
+  <section class="mw-coming-hero">
+    <div class="mw-coming-hero__bg" style="background-image: url('../estaticos/img/hero_banda_industrial.png');"></div>
+    <div class="mw-coming-hero__overlay"></div>
+    <div class="mw-coming-hero__content">
+      <span class="mw-coming-hero__label"><i class="fas fa-industry"></i> Etiquetar Industrial</span>
+      <h1 class="mw-coming-hero__title">Estamos Preparando<br>Algo Grande</h1>
+      <p class="mw-coming-hero__desc">Soluciones de filtración, sellado y tratamiento de agua a escala industrial. Pronto podrás explorar nuestro catálogo especializado para la industria colombiana.</p>
+    </div>
+  </section>
+
+  <!-- ══ FORMULARIO DE CONTACTO ══ -->
+  <section class="mw-contact" id="contacto">
+    <div class="container">
+      <div class="mw-contact__header">
+        <h2 class="mw-contact__title">¿Tienes un proyecto industrial?</h2>
+        <p class="mw-contact__subtitle">Cuéntanos sobre tu necesidad y un asesor especializado te contactará en menos de 24 horas.</p>
+      </div>
+      <form class="mw-contact__form" onsubmit="return false;" id="industrialContactForm">
+        <div class="mw-contact__row">
+          <div class="mw-contact__field">
+            <label class="mw-contact__label" for="indName">Nombre</label>
+            <input type="text" class="mw-contact__input" id="indName" placeholder="Tu nombre completo" required>
+          </div>
+          <div class="mw-contact__field">
+            <label class="mw-contact__label" for="indCompany">Empresa</label>
+            <input type="text" class="mw-contact__input" id="indCompany" placeholder="Nombre de tu empresa">
+          </div>
+        </div>
+        <div class="mw-contact__field">
+          <label class="mw-contact__label" for="indEmail">Correo electrónico</label>
+          <input type="email" class="mw-contact__input" id="indEmail" placeholder="tu@empresa.com" required>
+        </div>
+        <div class="mw-contact__field">
+          <label class="mw-contact__label" for="indMessage">Mensaje</label>
+          <textarea class="mw-contact__textarea" id="indMessage" placeholder="Describe tu proyecto o necesidad industrial..." rows="5"></textarea>
+        </div>
+        <button type="submit" class="mw-contact__submit"><i class="fas fa-paper-plane" style="margin-right:8px;"></i> Quiero Más Información</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__col">
+          <img src="../estaticos/img/Modern_Logo_for_Etiquetar_de_Colombia_S.A.S.-removebg-preview.png" alt="Etiquetar de Colombia S.A.S." style="height:46px;width:auto;display:block;margin-bottom:12px;">
+          <p class="footer__desc">Especialistas en equipos de piscina, tratamiento de agua y soluciones industriales. Cobertura nacional con las mejores marcas y garantía real.</p>
+          <div class="footer__social">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+            <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+          </div>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__title">Nuestras Líneas</h4>
+          <ul class="footer__links">
+            <li><a href="/pool"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Piscina & Spa</a></li>
+            <li><a href="/flow"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Tratamiento de Agua</a></li>
+            <li><a href="/industrial"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Industrial</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__title">Soporte al Cliente</h4>
+          <ul class="footer__links">
+            <li><a href="/cotizar"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Solicitar Cotización</a></li>
+            <li><a href="/contacto"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Contacto</a></li>
+            <li><a href="/blog"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i> Blog y Guías</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__title">Contacto</h4>
+          <ul class="footer__links">
+            <li><a href="tel:+573001234567"><i class="fas fa-phone-alt" style="font-size:0.75rem;"></i> +57 300 123 4567</a></li>
+            <li><a href="mailto:info@etiquetarcolombia.com"><i class="fas fa-envelope" style="font-size:0.75rem;"></i> info@etiquetarcolombia.com</a></li>
+            <li><a href="#"><i class="fas fa-map-marker-alt" style="font-size:0.75rem;"></i> Colombia — Envío Nacional</a></li>
+            <li><a href="https://wa.me/573001234567" target="_blank"><i class="fab fa-whatsapp" style="font-size:0.75rem;"></i> WhatsApp Asesor</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        &copy; 2026 Etiquetar Colombia · Industrial. Todos los derechos reservados.
+      </div>
+    </div>
+  </footer>
+
+  <!-- WhatsApp Flotante -->
+  <a href="https://wa.me/573001234567" target="_blank" class="whatsapp-btn" aria-label="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <script src="../estaticos/js/home.js"></script>
+  <script src="../estaticos/js/effects.js"></script>
+</body>
+</html>
