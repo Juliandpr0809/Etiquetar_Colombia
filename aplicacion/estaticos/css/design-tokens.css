@@ -1,0 +1,521 @@
+/* =====================================================
+   ETIQUETAR COLOMBIA — Design Tokens v1
+   Source of truth: hero.css (Pentair Corporate Style)
+   
+   All values extracted directly from the hero section.
+   Use these tokens across ALL sections for consistency.
+   ===================================================== */
+
+:root {
+  /* ── COLOR PALETTE (extracted from hero.css :root + overlays) ── */
+  --dt-navy:            #002855;   /* Hero overlay base, hero__title color context */
+  --dt-navy-dark:       #001A38;   /* Hero overlay darkest: rgba(0,26,56,0.82) */
+  --dt-accent:          #78BE20;   /* Hero chevron, portal eyebrow, CTA accents */
+  --dt-accent-hover:    #6aad18;   /* .navbar__cta-cotizar:hover */
+  --dt-white:           #ffffff;   /* Hero text, buttons, card backgrounds */
+  --dt-light:           #F5F6F7;   /* .portals background, general light bg */
+  --dt-gray:            #6b7280;   /* FAQ answers, muted text, review locations */
+  --dt-border:          #e0e2e6;   /* FAQ icon-box border, review card borders */
+
+  /* Semantic aliases */
+  --color-primary:      var(--dt-navy);
+  --color-accent:       var(--dt-accent);
+  --color-accent-hover: var(--dt-accent-hover);
+  --color-text-primary: var(--dt-navy);
+  --color-text-muted:   var(--dt-gray);
+  --color-bg-dark:      var(--dt-navy-dark);
+  --color-bg-light:     var(--dt-light);
+  --color-bg-white:     var(--dt-white);
+  --color-border:       var(--dt-border);
+
+  /* ── TYPOGRAPHY (extracted from hero.css) ── */
+  --font-family-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;  /* hero__title */
+  --font-family-base:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;  /* body, faq, cards */
+
+  /* Font sizes — hero as source, proportionally scaled */
+  --font-size-eyebrow:  11px;                          /* .portal-card__eyebrow */
+  --font-size-h1:       clamp(26px, 3.2vw, 42px);     /* .hero__title */
+  --font-size-h2:       clamp(24px, 2.8vw, 36px);     /* .faq-grid__header h2, .reviews__title */
+  --font-size-h3:       15px;                          /* .faq-grid__content h3 */
+  --font-size-body:     15px;                          /* body font-size */
+  --font-size-body-sm:  14px;                          /* .hero__cta, .faq answers */
+  --font-size-caption:  13px;                          /* .portal-card__link */
+  --font-size-micro:    12px;                          /* .reviews__tp-label */
+  --font-size-nano:     11px;                          /* .reviews__tp-brand */
+
+  /* Font weights — from hero */
+  --font-weight-regular: 400;  /* body */
+  --font-weight-medium:  500;  /* .navbar__link, .portal-card__link */
+  --font-weight-semi:    600;  /* .portal-card__eyebrow, .faq h3, .reviews card name */
+  --font-weight-bold:    700;  /* .hero__title, .hero__cta, h2s, avatars */
+  --font-weight-black:   800;  /* .hero__title em, .portal-card__title */
+
+  /* Letter spacing — from hero */
+  --ls-eyebrow:         0.15em;  /* .portal-card__eyebrow */
+  --ls-cta:             0.06em;  /* .hero__cta */
+  --ls-title:           0.01em;  /* .hero__title */
+  --ls-heading:        -0.02em;  /* h1-h4 in home.css */
+
+  /* ── SPACING ── */
+  --section-padding-v:        80px;   /* .faq-grid-section, .reviews padding */
+  --section-padding-v-mobile: 48px;
+  --section-gap:              48px;   /* margin-bottom on headers */
+  --max-width-content:        1440px; /* .container max-width */
+  --content-padding-x:        40px;   /* .container padding */
+
+  /* ── SHAPE ── */
+  --border-radius-btn:   4px;    /* .hero__cta, .navbar__cta-cotizar, .faq-grid__load-more */
+  --border-radius-badge: 999px;  /* eyebrow pills, navbar pills */
+  --border-radius-card:  12px;   /* .portal-card */
+  --border-radius-icon:  8px;    /* .faq-grid__icon-box, .reviews__tp-badge */
+
+  /* ── BUTTONS (cloned from hero__cta) ── */
+  --padding-btn:         14px 32px;    /* .hero__cta */
+  --padding-btn-sm:      12px 24px;    /* .hero__cta mobile */
+  --padding-btn-outline: 12px 32px;    /* .faq-grid__load-more */
+
+  /* ── TRANSITIONS ── */
+  --transition-base:   opacity 0.2s ease;          /* .hero__cta:hover */
+  --transition-color:  color 0.2s;                 /* .navbar__link, links */
+  --transition-bg:     background 0.2s;            /* .navbar__cta-cotizar */
+  --transition-all:    all 0.2s ease;
+  --transition-card:   transform 0.6s ease;        /* .portal-card__bg hover */
+  --transition-reveal: opacity 0.5s ease, transform 0.5s ease;  /* .portal-card.is-visible */
+
+  /* ── OVERLAYS (from hero gradient) ── */
+  --overlay-hero:   linear-gradient(to right, rgba(0,26,56,0.82) 0%, rgba(0,26,56,0.65) 35%, rgba(0,26,56,0.25) 60%, rgba(0,26,56,0.08) 80%, transparent 100%);
+  --overlay-card:   linear-gradient(to top, rgba(0,26,56,0.88) 0%, rgba(0,26,56,0.45) 50%, rgba(0,26,56,0.15) 100%);
+  --overlay-dark-50: rgba(0, 26, 56, 0.50);
+  --overlay-dark-75: rgba(0, 26, 56, 0.75);
+
+  /* ── SHADOWS ── */
+  --shadow-subtle:  0 2px 12px rgba(0,0,0,0.06);
+  --shadow-card:    0 8px 32px rgba(0,0,0,0.08);
+  --shadow-elevate: 0 20px 60px rgba(0,0,0,0.12);
+}
+
+/* ═══════════════════════════════════════════════
+   FLOATING COMPONENTS
+   ═══════════════════════════════════════════════ */
+
+/* ── COMPONENTE 1: FloatingStatsBanner ── */
+.floating-stats {
+  position: fixed;
+  top: 70px; /* Below navbar (70px height) */
+  left: 0;
+  right: 0;
+  z-index: 90;
+  background: var(--color-bg-dark);
+  color: var(--dt-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 10px 20px;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-eyebrow);
+  font-weight: var(--font-weight-semi);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-eyebrow);
+  border-bottom: 1px solid rgba(120, 190, 32, 0.15);
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.floating-stats.is-visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.floating-stats.is-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.floating-stats__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.floating-stats__item i {
+  color: var(--color-accent);
+  font-size: 10px;
+}
+
+.floating-stats__sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  flex-shrink: 0;
+}
+
+/* ── COMPONENTE 2: FloatingCTA ── */
+.floating-cta {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) translateX(100%);
+  z-index: 91;
+  background: var(--color-accent);
+  color: var(--color-primary);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cta);
+  padding: 14px 24px;
+  border-radius: var(--border-radius-btn) 0 0 var(--border-radius-btn);
+  text-decoration: none;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transition: transform 0.4s ease, background 0.2s;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.12);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.floating-cta.is-visible {
+  transform: translateY(-50%) translateX(0);
+  opacity: 1;
+}
+
+.floating-cta:hover {
+  background: var(--color-accent-hover);
+}
+
+/* ── COMPONENTE 3: SectionDivider ── */
+.section-divider {
+  width: 100%;
+  height: 60px;
+  overflow: hidden;
+  line-height: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.section-divider--light-to-dark svg {
+  display: block;
+  width: 100%;
+  height: 60px;
+}
+
+.section-divider--dark-to-light svg {
+  display: block;
+  width: 100%;
+  height: 60px;
+}
+
+/* ═══════════════════════════════════════════════
+   TOKEN-BASED OVERRIDES — Applied to existing sections
+   These rules ensure visual consistency with the hero
+   ═══════════════════════════════════════════════ */
+
+/* ── A) PORTALS SECTION (Soluciones para cada necesidad) ── */
+body.page-gateway .portals {
+  background: var(--color-bg-light);
+  padding: var(--section-padding-v) 0;
+}
+
+body.page-gateway .portal-card__eyebrow {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-eyebrow);
+  font-weight: var(--font-weight-semi);
+  letter-spacing: var(--ls-eyebrow);
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+body.page-gateway .portal-card__title {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-black);
+  color: var(--dt-white);
+  text-transform: uppercase;
+}
+
+body.page-gateway .portal-card__overlay {
+  background: var(--overlay-card);
+}
+
+body.page-gateway .portal-card__link {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+  color: rgba(255,255,255,0.85);
+}
+
+body.page-gateway .portal-card__arrow {
+  color: var(--color-accent);
+}
+
+/* ── B) FAQ SECTION ── */
+body.page-gateway .faq-grid-section {
+  background: var(--color-bg-white);
+  padding: var(--section-padding-v) 0;
+}
+
+body.page-gateway .faq-grid__header h2 {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+body.page-gateway .faq-grid__header p {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+body.page-gateway .faq-grid__content h3 {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-semi);
+  color: var(--color-primary);
+}
+
+body.page-gateway .faq-grid__content p {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-muted);
+}
+
+body.page-gateway .faq-grid__icon-box {
+  border-color: var(--color-border);
+  border-radius: var(--border-radius-icon);
+  color: var(--color-primary);
+}
+
+body.page-gateway .faq-grid__load-more {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-semi);
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-bg-white);
+  border-radius: var(--border-radius-btn);
+  padding: var(--padding-btn-outline);
+  transition: var(--transition-bg), var(--transition-color);
+}
+
+body.page-gateway .faq-grid__load-more:hover {
+  background: var(--color-primary);
+  color: var(--dt-white);
+}
+
+/* ── B2) REVIEWS SECTION ── */
+body.page-gateway .reviews {
+  background: var(--color-bg-light);
+  padding: var(--section-padding-v) 0;
+}
+
+body.page-gateway .reviews__title {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+body.page-gateway .reviews__subtitle {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  color: var(--color-text-muted);
+}
+
+body.page-gateway .reviews__card {
+  background: var(--color-bg-white);
+  border-color: var(--color-border);
+  border-radius: var(--border-radius-icon);
+}
+
+body.page-gateway .reviews__card-text {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body-sm);
+  color: var(--color-primary);
+}
+
+body.page-gateway .reviews__card-stars {
+  color: var(--color-accent);
+}
+
+body.page-gateway .reviews__card-avatar {
+  background: var(--color-primary);
+  color: var(--dt-white);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-micro);
+  font-weight: var(--font-weight-bold);
+}
+
+body.page-gateway .reviews__card-name {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semi);
+  color: var(--color-primary);
+}
+
+body.page-gateway .reviews__card-location {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-nano);
+  color: var(--color-text-muted);
+}
+
+body.page-gateway .reviews__tp-star {
+  color: var(--color-accent);
+}
+
+body.page-gateway .reviews__tp-score {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ── C) MINI-WEBS: Token overrides for subnav, projects, etc. ── */
+
+/* Subnav — use navy dark instead of green dark */
+.subnav {
+  background: var(--color-bg-dark, #001A38) !important;
+  font-family: var(--font-family-base);
+}
+
+.subnav__brand {
+  font-family: var(--font-family-base) !important;
+  color: var(--dt-white);
+}
+
+.subnav__brand-accent {
+  color: var(--color-accent) !important;
+}
+
+.subnav__link {
+  font-family: var(--font-family-base) !important;
+}
+
+.subnav__cta {
+  background: var(--color-accent) !important;
+  color: var(--color-primary) !important;
+  font-family: var(--font-family-base) !important;
+  border-radius: var(--border-radius-btn) !important;
+}
+
+/* Mini-web project cards */
+.mw-project-card {
+  border: 1px solid rgba(0,40,85,0.15);
+  border-radius: var(--border-radius-card);
+}
+
+.mw-project-card__tag {
+  background: rgba(120,190,32,0.15);
+  color: var(--color-primary);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-semi);
+  border-radius: var(--border-radius-btn);
+}
+
+.mw-project-card__title {
+  font-family: var(--font-family-base) !important;
+  color: var(--color-primary);
+}
+
+.mw-project-card__desc {
+  font-family: var(--font-family-base);
+  color: var(--color-text-muted);
+}
+
+.mw-projects__label {
+  color: var(--color-accent) !important;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-eyebrow);
+  letter-spacing: var(--ls-eyebrow);
+}
+
+.mw-projects__title {
+  font-family: var(--font-family-display) !important;
+  color: var(--color-primary);
+}
+
+/* Blog soon section */
+.mw-blog-soon__title {
+  font-family: var(--font-family-display) !important;
+  color: var(--color-primary);
+}
+
+.mw-blog-soon__btn {
+  background: var(--color-primary) !important;
+  color: var(--dt-white) !important;
+  font-family: var(--font-family-base) !important;
+  border-radius: var(--border-radius-btn) !important;
+}
+
+/* Industrial coming soon */
+.mw-coming-hero {
+  background: var(--color-bg-dark) !important;
+}
+
+.mw-coming-hero__label {
+  color: var(--color-accent) !important;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-eyebrow);
+  letter-spacing: var(--ls-eyebrow);
+}
+
+.mw-coming-hero__title {
+  font-family: var(--font-family-display) !important;
+}
+
+.mw-contact__title {
+  font-family: var(--font-family-display) !important;
+  color: var(--color-primary);
+}
+
+.mw-contact__submit {
+  background: var(--color-accent) !important;
+  color: var(--color-primary) !important;
+  font-family: var(--font-family-base) !important;
+  border-radius: var(--border-radius-btn) !important;
+}
+
+/* ── FOOTER — token consistency ── */
+body.page-gateway .footer {
+  background: var(--color-primary);
+}
+
+body.page-gateway .footer__desc {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body-sm);
+  color: rgba(255,255,255,0.55);
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — Floating components
+   ═══════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .floating-stats {
+    gap: 16px;
+    font-size: 10px;
+    padding: 8px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .floating-cta {
+    display: none !important;
+  }
+
+  .floating-stats {
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 9px;
+    padding: 6px 12px;
+  }
+
+  body.page-gateway .faq-grid-section,
+  body.page-gateway .reviews {
+    padding: var(--section-padding-v-mobile) 0;
+  }
+}
